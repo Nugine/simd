@@ -1,8 +1,16 @@
 [package]
 name = "simd-abstraction"
-version = "0.1.0"
+version = "0.5.0-dev"
 edition = "2021"
+description = "Abstract SIMD instruction sets"
+license = "MIT"
+repository = "https://github.com/Nugine/simd"
+keywords = ["simd"]
+categories = ["no-std"]
+readme = "../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
+[features]
+std = []
+unstable = []
