@@ -1,0 +1,2 @@
+[workspace]
+members = ["simd-abstraction", "uuid-simd", "hex-simd"]
