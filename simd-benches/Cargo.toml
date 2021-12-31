@@ -1,0 +1,29 @@
+[package]
+name = "simd-benches"
+version = "0.5.0-dev"
+edition = "2021"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.uuid-simd]
+path = "../uuid-simd"
+version = "0.5.0-dev"
+
+[dependencies.hex-simd]
+path = "../hex-simd"
+version = "0.5.0-dev"
+
+[dev-dependencies]
+criterion = "0.3.5"
+faster-hex = "0.6.1"
+rand = "0.8.4"
+uuid = { git = "https://github.com/uuid-rs/uuid", rev = "2d6c147bdfca9612263dd7e82e26155f7ef8bf32" }
+
+[[bench]]
+name = "uuid"
+harness = false
+
+[[bench]]
+name = "hex"
+harness = false

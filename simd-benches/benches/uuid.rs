@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Bencher, BenchmarkId, Criterion};
-use uuid1::Uuid;
+use uuid::Uuid;
 use uuid_simd::AsciiCase;
 
 pub fn bench_parse(c: &mut Criterion) {

@@ -1,4 +1,4 @@
-use crate::traits::{self,InstructionSet, SIMD128, SIMD256};
+use crate::traits::{self, InstructionSet, SIMD128, SIMD256};
 
 use core::arch::aarch64::*;
 

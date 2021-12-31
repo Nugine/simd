@@ -80,9 +80,7 @@ unsafe impl SIMD128 for NEON {
 
     #[inline(always)]
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
-        unsafe {
-            !self.v128_all_zero(vceqq_u8(a, vdupq_n_u8(0)))
-        }
+        unsafe { !self.v128_all_zero(vceqq_u8(a, vdupq_n_u8(0))) }
     }
 
     #[inline(always)]

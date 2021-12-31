@@ -7,8 +7,8 @@ use crate::{AsciiCase, Error, OutBuf, ERROR};
 
 use core::slice;
 
-use simd_abstraction::traits::SIMD256;
 use simd_abstraction::tools::{Bytes16, Bytes32, Load};
+use simd_abstraction::traits::SIMD256;
 
 macro_rules! specialize_for {
     ($feature:literal, $ty: ty) => {
