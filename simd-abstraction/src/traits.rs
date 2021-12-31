@@ -1,3 +1,5 @@
+#![allow(clippy::missing_safety_doc)]
+
 pub unsafe trait InstructionSet: Copy {
     fn detect() -> Option<Self>;
     unsafe fn new_unchecked() -> Self;

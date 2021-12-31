@@ -4,6 +4,7 @@ use core::mem::MaybeUninit;
 
 use crate::traits::{SIMD128, SIMD256};
 
+/// A write-only slice of T.
 pub struct OutBuf<'a, T> {
     base: *mut T,
     len: usize,
@@ -14,6 +15,15 @@ unsafe impl<'a, T: Send> Send for OutBuf<'a, T> {}
 unsafe impl<'a, T: Sync> Sync for OutBuf<'a, T> {}
 
 impl<'a, T> OutBuf<'a, T> {
+    /// Returns an `OutBuf<'a, T>`
+    ///
+    /// # Safety
+    /// This function requires:
+    ///
+    /// + It's safe to call `slice::from_raw_parts_mut(base.cast::<MaybeUninit<T>>(), len)`
+    ///
+    /// See also [`slice::from_raw_parts_mut`](core::slice::from_raw_parts_mut)
+    ///
     #[inline]
     pub unsafe fn new(base: *mut T, len: usize) -> Self {
         Self {
@@ -34,7 +44,11 @@ impl<'a, T> OutBuf<'a, T> {
         unsafe { Self::new(base.cast(), len) }
     }
 
-    #[allow(clippy::len_without_is_empty)]
+    #[inline(always)]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
     #[inline(always)]
     pub fn len(&self) -> usize {
         self.len
@@ -100,8 +114,14 @@ macro_rules! debug_assert_ptr_align {
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
-/// len > 0
-/// len <= isize::MAX
+/// Allocates uninit bytes
+///
+/// # Safety
+/// This function requires:
+///
+/// + `len > 0`
+/// + `len <= isize::MAX`
+///
 #[cfg(feature = "alloc")]
 pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
     use alloc::alloc::{alloc, handle_alloc_error, Layout};

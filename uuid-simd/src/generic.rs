@@ -1,5 +1,4 @@
-#![allow(unused_macros)]
-#![allow(dead_code)]
+#![allow(unused_macros, clippy::missing_safety_doc)]
 
 use crate::sa_hex;
 use crate::{AsciiCase, Error, Hex, ERROR};

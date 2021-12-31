@@ -3,7 +3,6 @@
 //
 #![deny(missing_debug_implementations, clippy::all, clippy::cargo)]
 #![warn(clippy::todo)]
-#![allow(clippy::missing_safety_doc)] // TODO
 
 #[cfg(feature = "alloc")]
 extern crate alloc;

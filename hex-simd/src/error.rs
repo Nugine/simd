@@ -1,5 +1,6 @@
 use core::fmt;
 
+/// Hex Error
 #[derive(Debug)]
 pub struct Error(());
 

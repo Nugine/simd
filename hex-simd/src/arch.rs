@@ -1,3 +1,5 @@
+#![allow(missing_docs, clippy::missing_safety_doc)]
+
 #[allow(unused_macros)]
 macro_rules! unit_tests_for {
     ($feature: literal) => {

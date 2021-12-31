@@ -7,6 +7,7 @@ use alloc::boxed::Box;
 #[cfg(feature = "alloc")]
 use simd_abstraction::tools::alloc_uninit_bytes;
 
+/// Encodes `src` and returns [`Box<str>`].
 #[cfg(feature = "alloc")]
 #[inline]
 pub fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
@@ -29,6 +30,13 @@ pub fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
     }
 }
 
+/// Decodes `src` and returns [`Box<[u8]>`](Box).
+///
+/// # Errors
+/// This function returns `Err` if:
+///
+/// + The content of `src` is invalid.
+///
 #[cfg(feature = "alloc")]
 #[inline]
 pub fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
@@ -52,6 +60,14 @@ pub fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
     }
 }
 
+/// Encodes `src` to `dst` and returns [`&mut str`](str).
+///
+/// # Errors
+/// This function returns `Err` if:
+///
+/// + The length of `dst` is not enough.
+/// + The content of `src` is invalid.
+///
 #[inline]
 pub fn encode_as_str<'s, 'd>(
     src: &'s [u8],

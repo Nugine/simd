@@ -109,10 +109,18 @@ pub enum AsciiCase {
     Upper,
 }
 
+#[derive(Clone, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Hex<const N: usize>([u8; N]);
 
 impl<const N: usize> Hex<N> {
+    /// Returns [`Hex<N>`](Hex)
+    ///
+    /// # Safety
+    /// This function requires:
+    ///
+    /// + for all byte in `bytes`, the byte matches `b'0'..=b'9'|b'a'..b'f'|b'A'..b'F'`.
+    ///
     #[inline]
     pub const unsafe fn new_unchecked(bytes: [u8; N]) -> Self {
         Self(bytes)

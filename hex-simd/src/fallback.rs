@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use crate::sa_hex::unhex;
 use crate::{AsciiCase, Error, OutBuf, ERROR};
 

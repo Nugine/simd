@@ -41,7 +41,6 @@ macro_rules! try_simd {
                 return unsafe { $crate::arch::wasm::simd128::$f($($args)*) };
             }
         }
-
     };
 }
 

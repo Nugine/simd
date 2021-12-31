@@ -30,15 +30,33 @@ macro_rules! try_simd {
                 return unsafe { $crate::arch::arm::neon::$f($($args)*) };
             }
         }
+        #[cfg(target_arch = "wasm32")]
+        {
+            use simd_abstraction::traits::InstructionSet;
+
+            use simd_abstraction::arch::wasm::*;
+
+            if SIMD128::detect().is_some() {
+                return unsafe { $crate::arch::wasm::simd128::$f($($args)*) };
+            }
+        }
     };
 }
 
+/// Checks whether `src` is a hex string.
 #[inline]
 pub fn check(src: &[u8]) -> bool {
     try_simd!(check(src));
     crate::fallback::check(src)
 }
 
+/// Encodes `src` with a given ascii case and writes to `dst`.
+///
+/// # Errors
+/// This function returns `Err` if:
+///
+/// + The length of `dst` is not enough.
+///
 #[inline]
 pub fn encode<'s, 'd>(
     src: &'s [u8],
@@ -49,12 +67,29 @@ pub fn encode<'s, 'd>(
     crate::fallback::encode(src, dst, case)
 }
 
+/// Decodes `src` case-insensitively and writes to `dst`.
+///
+/// # Errors
+/// This function returns `Err` if:
+///
+/// + The length of `dst` is not enough.
+/// + The content of `src` is invalid.
+///
 #[inline]
 pub fn decode<'s, 'd>(src: &'s [u8], dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
     try_simd!(decode(src, dst));
     crate::fallback::decode(src, dst)
 }
 
+/// Decodes `buf` case-insensitively and writes inplace.
+///
+/// # Errors
+/// This function returns `Err` if:
+///
+/// + The content of `buf` is invalid.
+///
+/// When this function returns `Err`, the content of `buf` should be considered as fully broken.
+///
 #[inline]
 pub fn decode_inplace(buf: &mut [u8]) -> Result<&mut [u8], Error> {
     try_simd!(decode_inplace(buf));

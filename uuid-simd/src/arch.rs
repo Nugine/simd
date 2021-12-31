@@ -1,3 +1,5 @@
+#![allow(clippy::missing_safety_doc, missing_docs)]
+
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub mod x86 {
     pub mod avx2 {
