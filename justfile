@@ -24,11 +24,12 @@ wasm-test:
     cd {{invocation_directory()}}
     export RUSTFLAGS="-C target-feature=+simd128"
     wasm-pack test --firefox --headless
-    wasm-pack test --chrome --headless
+    wasm-pack test --chrome --headless 
 
-miri:
+miri *ARGS:
     #!/bin/bash
-    cargo miri test -- --nocapture --test-threads=1
+    cd {{invocation_directory()}}
+    cargo miri test -- --nocapture --test-threads=1 {{ARGS}}
 
 test-all:
     #!/bin/bash -ex

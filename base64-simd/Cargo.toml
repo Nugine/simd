@@ -1,11 +1,11 @@
 [package]
-name = "uuid-simd"
+name = "base64-simd"
 version = "0.5.0-dev"
 edition = "2021"
-description = "SIMD-accelerated UUID operations"
+description = "SIMD-accelerated base64 encoding and decoding"
 license = "MIT"
 repository = "https://github.com/Nugine/simd"
-keywords = ["uuid", "guid", "simd"]
+keywords = ["base64", "simd"]
 categories = ["no-std", "parser-implementations"]
 readme = "../README.md"
 rust-version = "1.57"
@@ -13,20 +13,19 @@ rust-version = "1.57"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["std", "detect", "uuid"]
-std = []
+default = ["std", "detect"]
+std = ["alloc"]
 detect = ["simd-abstraction/std"]
+alloc = ["simd-abstraction/alloc"]
 unstable = ["simd-abstraction/unstable"]
-
-[dependencies.uuid]
-version = "0.8.2"
-optional = true
 
 [dependencies.simd-abstraction]
 path = "../simd-abstraction"
 version = "0.5.0-dev"
 
 [dev-dependencies]
+base64 = "0.13.0"
+rand = "0.8.4"
 faster-hex = "0.6.1"
+getrandom = { version = "0.2", features = ["js"] }
 wasm-bindgen-test = "0.3"
-

@@ -68,6 +68,11 @@ unsafe impl traits::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
+    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        v128_andnot(a, b)
+    }
+
+    #[inline(always)]
     fn u8x16_splat(self, x: u8) -> Self::V128 {
         u8x16_splat(x)
     }
@@ -85,6 +90,11 @@ unsafe impl traits::SIMD128 for SIMD128 {
     #[inline(always)]
     fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u8x16_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u8x16_sub_sat(a, b)
     }
 
     #[inline(always)]
@@ -108,6 +118,11 @@ unsafe impl traits::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
+    fn i8x16_cmp_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i8x16_eq(a, b)
+    }
+
+    #[inline(always)]
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         u16x8_shl(a, IMM8 as u32)
     }
@@ -115,6 +130,26 @@ unsafe impl traits::SIMD128 for SIMD128 {
     #[inline(always)]
     fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         u16x8_shr(a, IMM8 as u32)
+    }
+
+    #[inline(always)]
+    fn u16x8_splat(self, x: u16) -> Self::V128 {
+        u16x8_splat(x)
+    }
+
+    #[inline(always)]
+    fn u32x4_splat(self, x: u32) -> Self::V128 {
+        u32x4_splat(x)
+    }
+
+    #[inline(always)]
+    fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        u32x4_shl(a, IMM8 as u32)
+    }
+
+    #[inline(always)]
+    fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        u32x4_shr(a, IMM8 as u32)
     }
 }
 

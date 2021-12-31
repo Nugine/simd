@@ -96,3 +96,21 @@ macro_rules! debug_assert_ptr_align {
         debug_assert!(addr % align == 0)
     }};
 }
+
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+
+/// len > 0
+/// len <= isize::MAX
+#[cfg(feature = "alloc")]
+pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
+    use alloc::alloc::{alloc, handle_alloc_error, Layout};
+    use core::slice;
+    let layout = Layout::from_size_align_unchecked(len, 1);
+    let p = alloc(layout);
+    if p.is_null() {
+        handle_alloc_error(layout)
+    }
+    let ptr = p.cast();
+    Box::from_raw(slice::from_raw_parts_mut(ptr, len))
+}

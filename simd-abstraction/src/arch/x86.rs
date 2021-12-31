@@ -42,6 +42,11 @@ macro_rules! impl_simd128 {
             }
 
             #[inline(always)]
+            fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                unsafe { _mm_andnot_si128(b, a) }
+            }
+
+            #[inline(always)]
             fn v128_to_bytes(self, a: Self::V128) -> [u8; 16] {
                 unsafe { core::mem::transmute(a) }
             }
@@ -77,6 +82,11 @@ macro_rules! impl_simd128 {
             }
 
             #[inline(always)]
+            fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                unsafe { _mm_subs_epu8(a, b) }
+            }
+
+            #[inline(always)]
             fn u8x16_any_zero(self, a: Self::V128) -> bool {
                 unsafe {
                     let cmp = _mm_cmpeq_epi8(a, _mm_setzero_si128());
@@ -100,6 +110,11 @@ macro_rules! impl_simd128 {
             }
 
             #[inline(always)]
+            fn i8x16_cmp_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                unsafe { _mm_cmpeq_epi8(a, b) }
+            }
+
+            #[inline(always)]
             fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
                 unsafe { _mm_slli_epi16::<IMM8>(a) }
             }
@@ -107,6 +122,26 @@ macro_rules! impl_simd128 {
             #[inline(always)]
             fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
                 unsafe { _mm_srli_epi16::<IMM8>(a) }
+            }
+
+            #[inline(always)]
+            fn u16x8_splat(self, x: u16) -> Self::V128 {
+                unsafe { _mm_set1_epi16(x as i16) }
+            }
+
+            #[inline(always)]
+            fn u32x4_splat(self, x: u32) -> Self::V128 {
+                unsafe { _mm_set1_epi32(x as i32) }
+            }
+
+            #[inline(always)]
+            fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+                unsafe { _mm_slli_epi32::<IMM8>(a) }
+            }
+
+            #[inline(always)]
+            fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+                unsafe { _mm_srli_epi32::<IMM8>(a) }
             }
         }
     };
@@ -209,6 +244,11 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
+    fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_andnot_si256(b, a) }
+    }
+
+    #[inline(always)]
     fn v256_create_zero(self) -> Self::V256 {
         unsafe { _mm256_setzero_si256() }
     }
@@ -267,6 +307,11 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
+    fn i8x32_cmp_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_cmpeq_epi8(b, a) }
+    }
+
+    #[inline(always)]
     fn u16x16_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         unsafe { _mm256_slli_epi16::<IMM8>(a) }
     }
@@ -274,6 +319,31 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         unsafe { _mm256_srli_epi16::<IMM8>(a) }
+    }
+
+    #[inline(always)]
+    fn u16x16_splat(self, x: u16) -> Self::V256 {
+        unsafe { _mm256_set1_epi16(x as i16) }
+    }
+
+    #[inline(always)]
+    fn u32x8_splat(self, x: u32) -> Self::V256 {
+        unsafe { _mm256_set1_epi32(x as i32) }
+    }
+
+    #[inline(always)]
+    fn u8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_subs_epu8(a, b) }
+    }
+
+    #[inline(always)]
+    fn u32x8_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        unsafe { _mm256_slli_epi32::<IMM8>(a) }
+    }
+
+    #[inline(always)]
+    fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        unsafe { _mm256_srli_epi32::<IMM8>(a) }
     }
 }
 

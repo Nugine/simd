@@ -46,19 +46,27 @@ pub unsafe trait SIMD128: InstructionSet {
     fn v128_to_bytes(self, a: Self::V128) -> [u8; 16];
     fn v128_create_zero(self) -> Self::V128;
     fn v128_all_zero(self, a: Self::V128) -> bool;
+    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u8x16_splat(self, x: u8) -> Self::V128;
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u8x16_any_zero(self, a: Self::V128) -> bool;
     fn u8x16_min(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn i8x16_splat(self, x: i8) -> Self::V128;
     fn i8x16_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn i8x16_cmp_eq(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
+    fn u16x8_splat(self, x: u16) -> Self::V128;
+
+    fn u32x4_splat(self, x: u32) -> Self::V128;
+    fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
+    fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
 }
 
 #[inline(always)]
@@ -118,6 +126,13 @@ pub unsafe trait SIMD256: SIMD128 {
     fn v256_and(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
             (self.v128_and(a.0, b.0), self.v128_and(a.1, b.1))
+        })
+    }
+
+    #[inline(always)]
+    fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        split_merge(self, a, b, |a, b| {
+            (self.v128_andnot(a.0, b.0), self.v128_andnot(a.1, b.1))
         })
     }
 
@@ -187,6 +202,13 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
+    fn i8x32_cmp_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        split_merge(self, a, b, |a, b| {
+            (self.i8x16_cmp_eq(a.0, b.1), self.i8x16_cmp_eq(a.1, b.1))
+        })
+    }
+
+    #[inline(always)]
     fn u16x16_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         let a = self.v256_to_v128x2(a);
         self.v256_from_v128x2(self.u16x8_shl::<IMM8>(a.0), self.u16x8_shl::<IMM8>(a.1))
@@ -196,6 +218,35 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         let a = self.v256_to_v128x2(a);
         self.v256_from_v128x2(self.u16x8_shr::<IMM8>(a.0), self.u16x8_shr::<IMM8>(a.1))
+    }
+
+    #[inline(always)]
+    fn u16x16_splat(self, x: u16) -> Self::V256 {
+        self.v256_from_v128x2(self.u16x8_splat(x), self.u16x8_splat(x))
+    }
+
+    #[inline(always)]
+    fn u32x8_splat(self, x: u32) -> Self::V256 {
+        self.v256_from_v128x2(self.u32x4_splat(x), self.u32x4_splat(x))
+    }
+
+    #[inline(always)]
+    fn u8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        split_merge(self, a, b, |a, b| {
+            (self.u8x16_sub_sat(a.0, b.0), self.u8x16_sub_sat(a.1, b.1))
+        })
+    }
+
+    #[inline(always)]
+    fn u32x8_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        let a = self.v256_to_v128x2(a);
+        self.v256_from_v128x2(self.u32x4_shl::<IMM8>(a.0), self.u32x4_shl::<IMM8>(a.1))
+    }
+
+    #[inline(always)]
+    fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        let a = self.v256_to_v128x2(a);
+        self.v256_from_v128x2(self.u32x4_shr::<IMM8>(a.0), self.u32x4_shr::<IMM8>(a.1))
     }
 }
 

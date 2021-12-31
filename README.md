@@ -26,6 +26,20 @@ SIMD-accelerated UUID operations
 [![Crates.io](https://img.shields.io/crates/v/hex-simd.svg)](https://crates.io/crates/hex-simd)
 [![Docs](https://docs.rs/hex-simd/badge.svg)](https://docs.rs/hex-simd/)
 
-SIMD-accelerated hexadecimal operations
+SIMD-accelerated hex encoding and decoding.
 
 Inspired by [faster-hex](https://github.com/nervosnetwork/faster-hex)
+
+## base64-simd
+
+[![Crates.io](https://img.shields.io/crates/v/base64-simd.svg)](https://crates.io/crates/base64-simd)
+[![Docs](https://docs.rs/base64-simd/badge.svg)](https://docs.rs/base64-simd/)
+
+SIMD-accelerated base64 encoding and decoding.
+
+Inspired by [base64](https://github.com/marshallpierce/rust-base64) and [radix64](https://github.com/ggriffiniii/radix64)
+
+References:
+
++ <http://0x80.pl/notesen/2016-01-12-sse-base64-encoding.html>
++ <http://0x80.pl/notesen/2016-01-17-sse-base64-decoding.html>

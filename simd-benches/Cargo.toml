@@ -14,11 +14,18 @@ version = "0.5.0-dev"
 path = "../hex-simd"
 version = "0.5.0-dev"
 
+[dependencies.base64-simd]
+path = "../base64-simd"
+version = "0.5.0-dev"
+
 [dev-dependencies]
 criterion = "0.3.5"
 faster-hex = "0.6.1"
+getrandom = { version = "0.2", features = ["js"] }
 rand = "0.8.4"
 uuid = { git = "https://github.com/uuid-rs/uuid", rev = "2d6c147bdfca9612263dd7e82e26155f7ef8bf32" }
+base64 = "0.13.0"
+radix64 = "0.6.2"
 
 [[bench]]
 name = "uuid"
@@ -26,4 +33,8 @@ harness = false
 
 [[bench]]
 name = "hex"
+harness = false
+
+[[bench]]
+name = "base64"
 harness = false

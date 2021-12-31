@@ -110,6 +110,41 @@ unsafe impl SIMD128 for NEON {
     fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         unsafe { vreinterpretq_u8_u16(vshrq_n_u16::<IMM8>(vreinterpretq_u16_u8(a))) }
     }
+
+    #[inline(always)]
+    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vandq_u8(a, vmvnq_u8(b)) }
+    }
+
+    #[inline(always)]
+    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vqsubq_u8(a, b) }
+    }
+
+    #[inline(always)]
+    fn i8x16_cmp_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vceqq_u8(a, b) }
+    }
+
+    #[inline(always)]
+    fn u16x8_splat(self, x: u16) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u16(vdupq_n_u16(x)) }
+    }
+
+    #[inline(always)]
+    fn u32x4_splat(self, x: u32) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u32(vdupq_n_u32(x)) }
+    }
+
+    #[inline(always)]
+    fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u32(vshlq_n_u32::<IMM8>(vreinterpretq_u32_u8(a))) }
+    }
+
+    #[inline(always)]
+    fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u32(vshrq_n_u32::<IMM8>(vreinterpretq_u32_u8(a))) }
+    }
 }
 
 unsafe impl SIMD256 for NEON {

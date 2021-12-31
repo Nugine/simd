@@ -1,2 +1,8 @@
 [workspace]
-members = ["simd-abstraction", "simd-benches", "uuid-simd", "hex-simd"]
+members = [
+    "simd-abstraction",
+    "simd-benches",
+    "uuid-simd",
+    "hex-simd",
+    "base64-simd",
+]

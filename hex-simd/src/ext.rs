@@ -1,23 +1,11 @@
 use crate::auto::*;
 use crate::{AsciiCase, Error, OutBuf, ERROR};
 
-use core::mem::MaybeUninit;
-
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
 #[cfg(feature = "alloc")]
-unsafe fn alloc_uninit_bytes(len: usize) -> alloc::boxed::Box<[MaybeUninit<u8>]> {
-    use alloc::alloc::{alloc, handle_alloc_error, Layout};
-    use core::slice;
-    let layout = Layout::from_size_align_unchecked(len, 1);
-    let p = alloc(layout);
-    if p.is_null() {
-        handle_alloc_error(layout)
-    }
-    let ptr = p.cast();
-    Box::from_raw(slice::from_raw_parts_mut(ptr, len))
-}
+use simd_abstraction::tools::alloc_uninit_bytes;
 
 #[cfg(feature = "alloc")]
 #[inline]
@@ -87,6 +75,7 @@ fn test_alloc() {
 
 #[test]
 fn test_str() {
+    use core::mem::MaybeUninit;
     let src = "hello";
     let mut dst = [MaybeUninit::uninit(); 10];
     let ans = {

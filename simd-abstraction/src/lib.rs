@@ -5,6 +5,9 @@
 #![warn(clippy::todo)]
 #![allow(clippy::missing_safety_doc)] // TODO
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 #[macro_export]
 macro_rules! item_group {
     ($($item:item)*) => {
