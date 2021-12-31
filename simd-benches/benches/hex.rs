@@ -1,21 +1,15 @@
+use simd_benches::rand_bytes;
+
 use criterion::{black_box, criterion_group, criterion_main};
 use criterion::{Bencher, BenchmarkId, Criterion, Throughput};
-use rand::RngCore;
 
 use hex_simd::{AsciiCase, OutBuf};
 
 fn gen_hex_chars(len: usize) -> Vec<u8> {
+    let mut buf = rand_bytes(len);
     let chars = b"0123456789abcdef";
-    let mut buf = vec![0; len];
-    rand::thread_rng().fill_bytes(&mut buf);
     let to_hex = |x: &mut u8| *x = chars[(*x % 16) as usize];
     buf.iter_mut().for_each(to_hex);
-    buf
-}
-
-fn gen_bytes(len: usize) -> Vec<u8> {
-    let mut buf = vec![0; len];
-    rand::thread_rng().fill_bytes(&mut buf);
     buf
 }
 
@@ -120,7 +114,7 @@ pub fn bench_encode(c: &mut Criterion) {
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096]
         .iter()
         .copied()
-        .map(gen_bytes)
+        .map(rand_bytes)
         .collect();
 
     #[allow(clippy::type_complexity)]

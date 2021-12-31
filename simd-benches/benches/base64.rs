@@ -1,14 +1,9 @@
+use simd_benches::rand_bytes;
+
 use criterion::{black_box, criterion_group, criterion_main};
 use criterion::{Bencher, BenchmarkId, Criterion, Throughput};
-use rand::RngCore;
 
 use base64_simd::{Base64, OutBuf};
-
-fn gen_bytes(len: usize) -> Vec<u8> {
-    let mut buf = vec![0; len];
-    rand::thread_rng().fill_bytes(&mut buf);
-    buf
-}
 
 pub fn bench_encode(c: &mut Criterion) {
     let mut group = c.benchmark_group("base64-simd-encode");
@@ -16,7 +11,7 @@ pub fn bench_encode(c: &mut Criterion) {
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096, 65536]
         .iter()
         .copied()
-        .map(gen_bytes)
+        .map(rand_bytes)
         .collect();
 
     #[allow(clippy::type_complexity)]
@@ -74,7 +69,7 @@ pub fn bench_decode(c: &mut Criterion) {
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096, 65536]
         .iter()
         .copied()
-        .map(gen_bytes)
+        .map(rand_bytes)
         .map(|b| base64::encode(b).into_bytes())
         .collect();
 
