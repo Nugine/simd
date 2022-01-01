@@ -348,7 +348,7 @@ impl<S: SIMD256> B64Range<S> {
                 upper_limit: s.load(&URL_SAFE_LIMITS.1),
                 decoding_shift: s.load(URL_SAFE_DECODING_SHIFT),
                 b63: s.u8x32_splat(b'_'),
-                b63_shift63: s.u8x32_splat(33), // (63 - b'_') - (15 - ord('P'))
+                b63_shift63: s.u8x32_splat(33), // (63 - b'_') - (15 - b'P')
             },
         }
     }
@@ -388,5 +388,5 @@ unsafe fn decode_chunk<S: SIMDExt>(s: S, x: S::V256, r: B64Range<S>) -> Result<S
         0x08, 0x0e, 0x0d, 0x0c, 0x80, 0x80, 0x80, 0x80, //
     ]);
     Ok(s.u8x16x2_swizzle(x4, s.load(SHUFFLE)))
-    // {AAAB|BBCC|CDDD|????|FFGG|GHHH|IIIJ|????}
+    // {AAAB|BBCC|CDDD|????|EEEF|FFGG|GHHH|????}
 }

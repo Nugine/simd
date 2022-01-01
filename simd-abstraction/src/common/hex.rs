@@ -119,7 +119,7 @@ impl<const N: usize> Hex<N> {
     /// # Safety
     /// This function requires:
     ///
-    /// + for all byte in `bytes`, the byte matches `b'0'..=b'9'|b'a'..b'f'|b'A'..b'F'`.
+    /// + for all byte in `bytes`, the byte matches `b'0'..=b'9'|b'a'..=b'f'|b'A'..=b'F'`.
     ///
     #[inline]
     pub const unsafe fn new_unchecked(bytes: [u8; N]) -> Self {

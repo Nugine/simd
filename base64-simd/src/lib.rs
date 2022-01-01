@@ -112,6 +112,10 @@ impl Base64 {
         }
     }
 
+    /// # Safety
+    /// This function requires:
+    /// 
+    /// + `src.len() > 0`
     unsafe fn decoded_length_unchecked(src: &[u8], padding: bool) -> Result<(usize, usize), Error> {
         let n = {
             let len = src.len();
