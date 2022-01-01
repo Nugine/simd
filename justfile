@@ -10,7 +10,9 @@ x86-bench *ARGS:
 x86-test *ARGS:
     #!/bin/bash -ex
     cd {{invocation_directory()}}
-    export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1"
+    export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1 -Zsanitizer=address"
+    cargo test --lib {{ARGS}}
+    export RUSTFLAGS=""
     cargo test {{ARGS}}
 
 arm-test *ARGS:
@@ -34,12 +36,12 @@ miri *ARGS:
 test-all:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    members=`python3 -c 'list(map(print,__import__("toml").load(open("Cargo.toml"))["workspace"]["members"]))'`
-    for member in $members
+    members=("simd-abstraction" "uuid-simd" "hex-simd" "base64-simd")
+    just arm-test
+    for member in "${members[@]}"
     do
         cd $member
+        just x86-test
         just wasm-test
         cd ..
     done
-    just arm-test
-    just x86-test

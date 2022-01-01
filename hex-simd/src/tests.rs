@@ -1,9 +1,48 @@
 use crate::{AsciiCase, Error, OutBuf};
 
+#[cfg(miri)]
+use std::io::Write;
+
+#[cfg(miri)]
+macro_rules! dbg_msg {
+    (@1 $($tt:tt)*) => {
+        print!("\x1B[2K\x1B[80D");
+        print!($($tt)*);
+        let _ = std::io::stdout().flush();
+    };
+    (@2 $($tt:tt)*) => {
+        print!("\x1B[1B\x1B[2K\x1B[80D");
+        print!($($tt)*);
+        print!("\x1B[80D\x1B[1A");
+        let _ = std::io::stdout().flush();
+    };
+    (@3 $($tt:tt)*) => {
+        print!("\x1B[2B\x1B[2K\x1B[80D");
+        print!($($tt)*);
+        print!("\x1B[80D\x1B[2A");
+        let _ = std::io::stdout().flush();
+    };
+}
+
+#[cfg(not(miri))]
+macro_rules! dbg_msg {
+    (@1 $($tt:tt)*) => {
+        println!($($tt)*);
+    };
+    (@2 $($tt:tt)*) => {
+        println!($($tt)*);
+    };
+    (@3 $($tt:tt)*) => {
+        println!($($tt)*);
+    };
+}
+
 fn ok_cases() -> Vec<Vec<u8>> {
     let mut ans = Vec::new();
 
     for n in 0..256usize {
+        dbg_msg!(@1 "generating ok case n = {}", n);
+
         let iter = (0..16)
             .cycle()
             .take(n)
@@ -30,6 +69,8 @@ pub fn test(
     encode: impl for<'s, 'd> Fn(&'s [u8], OutBuf<'d, u8>, AsciiCase) -> Result<&'d mut [u8], Error>,
     decode_inplace: impl Fn(&mut [u8]) -> Result<&mut [u8], Error>,
 ) {
+    println!();
+
     let ok_cases = ok_cases();
     let err_cases = err_cases();
 
@@ -79,7 +120,7 @@ pub fn test(
     }
 
     for (i, src) in ok_cases.iter().enumerate() {
-        println!("ok case {}", i + 1);
+        dbg_msg!(@1 "ok case {}", i + 1);
         assert!(check(src));
         if src.len() % 2 == 0 {
             test_decode_encode!(src, AsciiCase::Lower);
@@ -91,7 +132,7 @@ pub fn test(
     }
 
     for (i, src) in err_cases.iter().enumerate() {
-        println!("err case {}", i + 1);
+        dbg_msg!(@1 "err case {}", i + 1);
         assert!(!check(src));
         let mut buf = vec![0; src.len() / 2];
         let buf = OutBuf::from_slice_mut(&mut buf);

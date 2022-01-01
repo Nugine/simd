@@ -76,8 +76,3 @@ impl Base64 {
         fallback::decode(self, src, dst)
     }
 }
-
-#[test]
-fn test() {
-    crate::tests::test(Base64::encode, Base64::decode);
-}

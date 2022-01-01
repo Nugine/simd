@@ -1,4 +1,4 @@
-use crate::{AsciiCase, Error, OutBuf};
+use crate::{fallback, AsciiCase, Error, OutBuf};
 
 macro_rules! try_simd {
     ($f:ident($($args:tt)*)) => {
@@ -47,7 +47,7 @@ macro_rules! try_simd {
 #[inline]
 pub fn check(src: &[u8]) -> bool {
     try_simd!(check(src));
-    crate::fallback::check(src)
+    fallback::check(src)
 }
 
 /// Encodes `src` with a given ascii case and writes to `dst`.
@@ -64,7 +64,7 @@ pub fn encode<'s, 'd>(
     case: AsciiCase,
 ) -> Result<&'d mut [u8], Error> {
     try_simd!(encode(src, dst, case));
-    crate::fallback::encode(src, dst, case)
+    fallback::encode(src, dst, case)
 }
 
 /// Decodes `src` case-insensitively and writes to `dst`.
@@ -78,7 +78,7 @@ pub fn encode<'s, 'd>(
 #[inline]
 pub fn decode<'s, 'd>(src: &'s [u8], dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
     try_simd!(decode(src, dst));
-    crate::fallback::decode(src, dst)
+    fallback::decode(src, dst)
 }
 
 /// Decodes `buf` case-insensitively and writes inplace.
@@ -93,5 +93,5 @@ pub fn decode<'s, 'd>(src: &'s [u8], dst: OutBuf<'d, u8>) -> Result<&'d mut [u8]
 #[inline]
 pub fn decode_inplace(buf: &mut [u8]) -> Result<&mut [u8], Error> {
     try_simd!(decode_inplace(buf));
-    crate::fallback::decode_inplace(buf)
+    fallback::decode_inplace(buf)
 }
