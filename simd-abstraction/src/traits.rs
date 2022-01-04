@@ -259,5 +259,5 @@ pub unsafe trait CRC32<const P: u32>: InstructionSet {
     fn crc32_u64(self, crc: u32, value: u64) -> u32;
 }
 
-pub const CRC32IEEE: u32 = 0x04C11DB7;
-pub const CRC32C: u32 = 0x1EDC6F41;
+pub const POLYNOMIAL_CRC32_IEEE: u32 = 0x04C11DB7;
+pub const POLYNOMIAL_CRC32C: u32 = 0x1EDC6F41;

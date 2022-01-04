@@ -1,4 +1,5 @@
-use crate::traits::{self, InstructionSet, SIMD128, SIMD256};
+use crate::traits::{self, POLYNOMIAL_CRC32C, POLYNOMIAL_CRC32_IEEE};
+use crate::traits::{InstructionSet, SIMD128, SIMD256};
 
 use core::arch::aarch64::*;
 
@@ -189,7 +190,7 @@ unsafe impl SIMD256 for NEON {
     }
 }
 
-unsafe impl traits::CRC32<{ traits::CRC32IEEE }> for CRC32 {
+unsafe impl traits::CRC32<POLYNOMIAL_CRC32_IEEE> for CRC32 {
     #[inline(always)]
     fn crc32_u8(self, crc: u32, value: u8) -> u32 {
         unsafe { __crc32b(crc, value) }
@@ -211,7 +212,7 @@ unsafe impl traits::CRC32<{ traits::CRC32IEEE }> for CRC32 {
     }
 }
 
-unsafe impl traits::CRC32<{ traits::CRC32C }> for CRC32 {
+unsafe impl traits::CRC32<POLYNOMIAL_CRC32C> for CRC32 {
     #[inline(always)]
     fn crc32_u8(self, crc: u32, value: u8) -> u32 {
         unsafe { __crc32cb(crc, value) }

@@ -1,4 +1,4 @@
-use crate::traits::{InstructionSet, CRC32, CRC32C, SIMD128, SIMD256};
+use crate::traits::{InstructionSet, CRC32, POLYNOMIAL_CRC32C, SIMD128, SIMD256};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -347,7 +347,7 @@ unsafe impl SIMD256 for AVX2 {
     }
 }
 
-unsafe impl CRC32<CRC32C> for SSE42 {
+unsafe impl CRC32<POLYNOMIAL_CRC32C> for SSE42 {
     #[inline(always)]
     fn crc32_u8(self, crc: u32, value: u8) -> u32 {
         unsafe { _mm_crc32_u8(crc, value) }
