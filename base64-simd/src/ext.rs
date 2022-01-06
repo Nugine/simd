@@ -8,6 +8,12 @@ use simd_abstraction::tools::alloc_uninit_bytes;
 
 impl Base64 {
     /// Encodes `src` and returns [`Box<str>`]
+    ///
+    /// # Panics
+    /// This function panics if:
+    ///
+    /// + The encoded length of `src` is greater than `isize::MAX`
+    ///
     #[cfg(feature = "alloc")]
     pub fn encode_to_boxed_str(&self, src: &[u8]) -> Box<str> {
         use core::{slice, str};
@@ -18,6 +24,7 @@ impl Base64 {
 
         unsafe {
             let m = Self::encoded_length_unchecked(src.len(), self.padding);
+            assert!(m <= (isize::MAX as usize));
             let mut uninit_buf = alloc_uninit_bytes(m);
             Self::encode(self, src, OutBuf::from_uninit_mut(&mut *uninit_buf)).unwrap();
 
@@ -33,14 +40,18 @@ impl Base64 {
     /// This function returns `Err` if:
     ///
     /// + The content of `src` is invalid.
+    ///
     #[cfg(feature = "alloc")]
     pub fn decode_to_boxed_bytes(&self, src: &[u8]) -> Result<Box<[u8]>, Error> {
         use core::slice;
+
         if src.is_empty() {
             return Ok(Box::from([]));
         }
         unsafe {
             let (_, m) = Self::decoded_length_unchecked(src, self.padding)?;
+
+            // safety: 0 < m < isize::MAX
             let mut uninit_buf = alloc_uninit_bytes(m);
             Self::decode(self, src, OutBuf::from_uninit_mut(&mut *uninit_buf))?;
 

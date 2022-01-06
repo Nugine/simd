@@ -124,6 +124,7 @@ use alloc::boxed::Box;
 ///
 #[cfg(feature = "alloc")]
 pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
+    debug_assert!(len > 0 && len <= (isize::MAX as usize));
     use alloc::alloc::{alloc, handle_alloc_error, Layout};
     use core::slice;
     let layout = Layout::from_size_align_unchecked(len, 1);

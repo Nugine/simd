@@ -151,7 +151,7 @@ impl Base64 {
     /// + `n <= isize::MAX`
     ///
     pub const fn encoded_length(&self, n: usize) -> usize {
-        assert!(n < usize::MAX / 2);
+        assert!(n <= (isize::MAX as usize));
         unsafe { Self::encoded_length_unchecked(n, self.padding) }
     }
 }

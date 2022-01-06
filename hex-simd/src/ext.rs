@@ -8,6 +8,11 @@ use alloc::boxed::Box;
 use simd_abstraction::tools::alloc_uninit_bytes;
 
 /// Encodes `src` and returns [`Box<str>`].
+///
+/// # Panics
+/// This function panics if:
+///
+/// + The encoded length of `src` is greater than `isize::MAX`.
 #[cfg(feature = "alloc")]
 #[inline]
 pub fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
@@ -19,7 +24,8 @@ pub fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
     }
 
     unsafe {
-        // src.len() <= isize::MAX, so (src.len() * 2) never overflows
+        assert!(src.len() * 2 <= (isize::MAX as usize));
+
         let mut uninit_buf = alloc_uninit_bytes(src.len() * 2);
         encode(src, OutBuf::from_uninit_mut(&mut *uninit_buf), case).unwrap();
 
