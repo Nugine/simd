@@ -45,3 +45,15 @@ test-all:
         just wasm-test
         popd
     done
+
+sync-version:
+    #!/bin/bash -e
+    cd {{justfile_directory()}}
+    vers='0.5.1-dev'
+    for pkg in `ls crates`
+    do
+        echo $pkg $vers
+        pushd crates/$pkg > /dev/null
+        cargo set-version $vers
+        popd > /dev/null
+    done
