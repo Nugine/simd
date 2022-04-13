@@ -57,3 +57,9 @@ sync-version:
         cargo set-version $vers
         popd > /dev/null
     done
+
+fmt:
+    #!/bin/bash -ex
+    cd {{justfile_directory()}}
+    cargo fmt
+    # cargo sort -w > /dev/null
