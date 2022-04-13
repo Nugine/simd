@@ -21,7 +21,7 @@ macro_rules! define_isa {
                 #[cfg(not(target_feature = $feature))]
                 {
                     #[cfg(feature = "std")]
-                    if std::$detect!($feature) {
+                    if std::arch::$detect!($feature) {
                         return Some(Self(()));
                     }
                     None
