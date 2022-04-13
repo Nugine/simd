@@ -40,8 +40,8 @@ test-all:
     just arm-test
     for member in "${members[@]}"
     do
-        cd $member
+        pushd crates/$member
         just x86-test
         just wasm-test
-        cd ..
+        popd
     done
