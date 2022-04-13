@@ -14,7 +14,6 @@
 
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
-#![cfg_attr(feature = "unstable", feature(aarch64_target_feature))]
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]
 //
 #![deny(clippy::all, clippy::cargo, missing_docs)]
