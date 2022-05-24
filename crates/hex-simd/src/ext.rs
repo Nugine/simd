@@ -72,7 +72,6 @@ pub fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
 /// This function returns `Err` if:
 ///
 /// + The length of `dst` is not enough.
-/// + The content of `src` is invalid.
 ///
 #[inline]
 pub fn encode_as_str<'s, 'd>(
