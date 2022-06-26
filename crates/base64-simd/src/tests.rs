@@ -86,4 +86,26 @@ pub fn test(
             dbg_msg!(@3 "decoding ... ok");
         }
     }
+
+    // canonicity tests
+    // <https://eprint.iacr.org/2022/361>
+    {
+        let test_vectors = [
+            ("SGVsbG8=", Some("Hello")),
+            ("SGVsbG9=", None),
+            ("SGVsbG9", None),
+            ("SGVsbA==", Some("Hell")),
+            ("SGVsbA=", None),
+            ("SGVsbA", None),
+            ("SGVsbA====", None),
+        ];
+
+        for (encoded, expected) in test_vectors {
+            let result: _ = Base64::STANDARD.decode_to_boxed_bytes(encoded.as_bytes());
+            match expected {
+                Some(expected) => assert_eq!(&*result.unwrap(), expected.as_bytes()),
+                None => assert!(result.is_err()),
+            }
+        }
+    }
 }
