@@ -19,13 +19,13 @@ path = "../base64-simd"
 version = "0.5.1-dev"
 
 [dependencies]
-getrandom = { version = "0.2", features = ["js"] }
-rand = "0.8.4"
+getrandom = { version = "0.2.7", features = ["js"] }
+rand = "0.8.5"
 
 [dev-dependencies]
 criterion = "0.3.5"
 faster-hex = "0.6.1"
-uuid = { git = "https://github.com/uuid-rs/uuid", rev = "2d6c147bdfca9612263dd7e82e26155f7ef8bf32" }
+uuid = "1.1.2"
 base64 = "0.13.0"
 radix64 = "0.6.2"
 
