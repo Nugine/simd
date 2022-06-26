@@ -49,7 +49,7 @@ test-all:
 sync-version:
     #!/bin/bash -e
     cd {{justfile_directory()}}
-    vers='0.5.1-dev'
+    vers='0.5.1'
     for pkg in `ls crates`
     do
         echo $pkg $vers

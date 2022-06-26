@@ -1,13 +1,13 @@
 [package]
 name = "uuid-simd"
-version = "0.5.1-dev"
+version = "0.5.1"
 edition = "2021"
 description = "SIMD-accelerated UUID operations"
 license = "MIT"
 repository = "https://github.com/Nugine/simd"
 keywords = ["uuid", "guid", "simd"]
 categories = ["no-std", "parser-implementations"]
-readme = "../README.md"
+readme = "../../README.md"
 rust-version = "1.57"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -24,7 +24,7 @@ optional = true
 
 [dependencies.simd-abstraction]
 path = "../simd-abstraction"
-version = "0.5.1-dev"
+version = "0.5.1"
 
 [dev-dependencies]
 faster-hex = "0.6.1"

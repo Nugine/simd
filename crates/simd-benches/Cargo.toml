@@ -1,6 +1,6 @@
 [package]
 name = "simd-benches"
-version = "0.5.1-dev"
+version = "0.5.1"
 edition = "2021"
 publish = false
 
@@ -8,15 +8,15 @@ publish = false
 
 [dependencies.uuid-simd]
 path = "../uuid-simd"
-version = "0.5.1-dev"
+version = "0.5.1"
 
 [dependencies.hex-simd]
 path = "../hex-simd"
-version = "0.5.1-dev"
+version = "0.5.1"
 
 [dependencies.base64-simd]
 path = "../base64-simd"
-version = "0.5.1-dev"
+version = "0.5.1"
 
 [dependencies]
 getrandom = { version = "0.2.7", features = ["js"] }
