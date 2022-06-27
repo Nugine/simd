@@ -87,6 +87,7 @@ pub fn encode<'s, 'd>(
     }
 }
 
+#[inline(always)]
 pub(crate) unsafe fn encode_extra(
     extra: usize,
     src: *const u8,
@@ -166,6 +167,7 @@ pub fn decode_inplace<'b>(base64: &'_ Base64, buf: &'b mut [u8]) -> Result<&'b m
     }
 }
 
+#[inline(always)]
 unsafe fn decode_unchecked(
     base64: &'_ Base64,
     n: usize,
@@ -235,6 +237,7 @@ unsafe fn decode_unchecked(
     Ok(())
 }
 
+#[inline(always)]
 pub(crate) unsafe fn decode_extra(
     extra: usize,
     src: *const u8,

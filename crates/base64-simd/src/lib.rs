@@ -100,6 +100,7 @@ impl Base64 {
         padding: false,
     };
 
+    #[inline(always)]
     const unsafe fn encoded_length_unchecked(n: usize, padding: bool) -> usize {
         let extra = n % 3;
         if extra == 0 {
@@ -115,6 +116,7 @@ impl Base64 {
     /// This function requires:
     ///
     /// + `src.len() > 0`
+    #[inline(always)]
     unsafe fn decoded_length_unchecked(src: &[u8], padding: bool) -> Result<(usize, usize), Error> {
         let n = {
             let len = src.len();

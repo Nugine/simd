@@ -267,6 +267,7 @@ pub fn decode_inplace<'b, S: SIMDExt>(
     }
 }
 
+#[inline(always)]
 unsafe fn decode_unchecked<S: SIMDExt>(
     s: S,
     base64: &'_ Base64,
@@ -332,7 +333,7 @@ struct B64Range<S: SIMD256> {
 }
 
 impl<S: SIMD256> B64Range<S> {
-    #[inline]
+    #[inline(always)]
     fn new(s: S, base64: &Base64) -> Self {
         const fn build_limits(b62: u8) -> (Bytes32, Bytes32) {
             let mut low: [u8; 32] = [0x01; 32];
