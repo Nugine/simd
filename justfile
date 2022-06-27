@@ -7,6 +7,14 @@ x86-bench *ARGS:
     export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1"
     cargo criterion {{ARGS}}
 
+js-bench:
+    #!/bin/bash -ex
+    cd {{invocation_directory()}}
+    node -v
+    node ./scripts/base64.js
+    deno -V
+    deno run ./scripts/base64.js
+
 x86-test *ARGS:
     #!/bin/bash -ex
     cd {{invocation_directory()}}
