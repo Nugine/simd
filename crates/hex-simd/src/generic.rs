@@ -25,7 +25,7 @@ macro_rules! specialize_for {
         #[target_feature(enable = $feature)]
         pub unsafe fn encode<'s, 'd>(
             src: &'s [u8],
-            dst: OutBuf<'d, u8>,
+            dst: OutBuf<'d>,
             case: AsciiCase,
         ) -> Result<&'d mut [u8], Error> {
             let s = <$ty as InstructionSet>::new_unchecked();
@@ -36,7 +36,7 @@ macro_rules! specialize_for {
         #[target_feature(enable = $feature)]
         pub unsafe fn decode<'s, 'd>(
             src: &'s [u8],
-            dst: OutBuf<'d, u8>,
+            dst: OutBuf<'d>,
         ) -> Result<&'d mut [u8], Error> {
             let s = <$ty as InstructionSet>::new_unchecked();
             crate::generic::decode(s, src, dst)
@@ -72,7 +72,7 @@ pub fn check<S: SIMD256>(s: S, src: &[u8]) -> bool {
 pub fn encode<'s, 'd, S>(
     s: S,
     src: &'s [u8],
-    dst: OutBuf<'d, u8>,
+    dst: OutBuf<'d>,
     case: AsciiCase,
 ) -> Result<&'d mut [u8], Error>
 where
@@ -111,7 +111,7 @@ unsafe fn encode_unchecked<S: SIMD256>(s: S, src: &[u8], dst: *mut u8, case: Asc
 }
 
 #[inline]
-pub fn decode<'s, 'd, S>(s: S, src: &'s [u8], dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error>
+pub fn decode<'s, 'd, S>(s: S, src: &'s [u8], dst: OutBuf<'d>) -> Result<&'d mut [u8], Error>
 where
     S: SIMD256,
 {

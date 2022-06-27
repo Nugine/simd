@@ -26,7 +26,7 @@ pub(crate) const URL_SAFE_DECODE_TABLE: &[u8; 256] = &decode_table(URL_SAFE_CHAR
 pub fn encode<'s, 'd>(
     base64: &'_ Base64,
     src: &'s [u8],
-    dst: OutBuf<'d, u8>,
+    dst: OutBuf<'d>,
 ) -> Result<&'d mut [u8], Error> {
     unsafe {
         if src.is_empty() {
@@ -126,7 +126,7 @@ pub(crate) unsafe fn encode_extra(
 pub fn decode<'s, 'd>(
     base64: &'_ Base64,
     src: &'s [u8],
-    dst: OutBuf<'d, u8>,
+    dst: OutBuf<'d>,
 ) -> Result<&'d mut [u8], Error> {
     unsafe {
         if src.is_empty() {

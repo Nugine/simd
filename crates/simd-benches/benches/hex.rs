@@ -67,14 +67,14 @@ pub fn bench_decode(c: &mut Criterion) {
         #[cfg(target_feature = "avx2")]
         ("hex-simd/avx2", |b, src, dst| {
             b.iter(|| unsafe {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 hex_simd::arch::x86::avx2::decode(src, dst).unwrap();
             })
         }),
         #[cfg(target_feature = "sse4.1")]
         ("hex-simd/sse4.1", |b, src, dst| {
             b.iter(|| unsafe {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 hex_simd::arch::x86::sse41::decode(src, dst).unwrap();
             })
         }),
@@ -86,7 +86,7 @@ pub fn bench_decode(c: &mut Criterion) {
         }),
         ("hex-simd/fallback", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 hex_simd::fallback::decode(src, dst).unwrap();
             })
         }),
@@ -122,14 +122,14 @@ pub fn bench_encode(c: &mut Criterion) {
         #[cfg(target_feature = "avx2")]
         ("hex-simd/avx2", |b, src, dst| {
             b.iter(|| unsafe {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 hex_simd::arch::x86::avx2::encode(src, dst, AsciiCase::Lower).unwrap();
             })
         }),
         #[cfg(target_feature = "sse4.1")]
         ("hex-simd/sse4.1", |b, src, dst| {
             b.iter(|| unsafe {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 hex_simd::arch::x86::sse41::encode(src, dst, AsciiCase::Lower).unwrap();
             })
         }),
@@ -141,7 +141,7 @@ pub fn bench_encode(c: &mut Criterion) {
         }),
         ("hex-simd/fallback", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 hex_simd::fallback::encode(src, dst, AsciiCase::Lower).unwrap();
             })
         }),

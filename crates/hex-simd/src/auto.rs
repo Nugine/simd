@@ -60,7 +60,7 @@ pub fn check(src: &[u8]) -> bool {
 #[inline]
 pub fn encode<'s, 'd>(
     src: &'s [u8],
-    dst: OutBuf<'d, u8>,
+    dst: OutBuf<'d>,
     case: AsciiCase,
 ) -> Result<&'d mut [u8], Error> {
     try_simd!(encode(src, dst, case));
@@ -76,7 +76,7 @@ pub fn encode<'s, 'd>(
 /// + The content of `src` is invalid.
 ///
 #[inline]
-pub fn decode<'s, 'd>(src: &'s [u8], dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
+pub fn decode<'s, 'd>(src: &'s [u8], dst: OutBuf<'d>) -> Result<&'d mut [u8], Error> {
     try_simd!(decode(src, dst));
     fallback::decode(src, dst)
 }

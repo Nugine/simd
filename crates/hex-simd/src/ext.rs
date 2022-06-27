@@ -27,7 +27,7 @@ pub fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
         assert!(src.len() * 2 <= (isize::MAX as usize));
 
         let mut uninit_buf = alloc_uninit_bytes(src.len() * 2);
-        encode(src, OutBuf::from_uninit_mut(&mut *uninit_buf), case).unwrap();
+        encode(src, OutBuf::uninit(&mut *uninit_buf), case).unwrap();
 
         let len = uninit_buf.len();
         let ptr = Box::into_raw(uninit_buf).cast::<u8>();
@@ -57,7 +57,7 @@ pub fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
             return Err(ERROR);
         }
         let mut uninit_buf = alloc_uninit_bytes(src.len() / 2);
-        decode(src, OutBuf::from_uninit_mut(&mut *uninit_buf))?;
+        decode(src, OutBuf::uninit(&mut *uninit_buf))?;
 
         let len = uninit_buf.len();
         let ptr = Box::into_raw(uninit_buf).cast::<u8>();
@@ -76,7 +76,7 @@ pub fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
 #[inline]
 pub fn encode_as_str<'s, 'd>(
     src: &'s [u8],
-    dst: OutBuf<'d, u8>,
+    dst: OutBuf<'d>,
     case: AsciiCase,
 ) -> Result<&'d mut str, Error> {
     let ans = encode(src, dst, case)?;
@@ -101,7 +101,7 @@ fn test_str() {
     let mut dst = [MaybeUninit::uninit(); 10];
     let ans = {
         let src = src.as_bytes();
-        let dst = OutBuf::from_uninit_mut(&mut dst);
+        let dst = OutBuf::uninit(&mut dst);
         let case = AsciiCase::Lower;
         encode_as_str(src, dst, case).unwrap()
     };

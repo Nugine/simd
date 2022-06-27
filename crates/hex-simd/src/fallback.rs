@@ -79,7 +79,7 @@ pub const FULL_UPPER_TABLE: &[u16; 256] = &full_table(UPPER_TABLE);
 #[inline]
 pub fn encode<'s, 'd>(
     src: &'s [u8],
-    dst: OutBuf<'d, u8>,
+    dst: OutBuf<'d>,
     case: AsciiCase,
 ) -> Result<&'d mut [u8], Error> {
     if dst.len() / 2 < src.len() {
@@ -110,7 +110,7 @@ pub(crate) unsafe fn encode_unchecked(src: &[u8], dst: *mut u8, table: &[u16; 25
 }
 
 #[inline]
-pub fn decode<'s, 'd>(src: &'s [u8], dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
+pub fn decode<'s, 'd>(src: &'s [u8], dst: OutBuf<'d>) -> Result<&'d mut [u8], Error> {
     let n = src.len();
     let m = n / 2;
     if !(n % 2 == 0 && dst.len() >= m) {

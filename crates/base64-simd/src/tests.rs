@@ -9,8 +9,8 @@ fn rand_bytes(n: usize) -> Vec<u8> {
 }
 
 pub fn test(
-    encode: impl for<'s, 'd> Fn(&'_ Base64, &'s [u8], OutBuf<'d, u8>) -> Result<&'d mut [u8], Error>,
-    decode: impl for<'s, 'd> Fn(&'_ Base64, &'s [u8], OutBuf<'d, u8>) -> Result<&'d mut [u8], Error>,
+    encode: impl for<'s, 'd> Fn(&'_ Base64, &'s [u8], OutBuf<'d>) -> Result<&'d mut [u8], Error>,
+    decode: impl for<'s, 'd> Fn(&'_ Base64, &'s [u8], OutBuf<'d>) -> Result<&'d mut [u8], Error>,
 ) {
     #[cfg(miri)]
     use std::io::Write;
@@ -74,13 +74,13 @@ pub fn test(
             let encoded = encoded.as_bytes();
 
             let mut buf = vec![0u8; base64.encoded_length(n)];
-            let buf = OutBuf::from_slice_mut(&mut buf);
+            let buf = OutBuf::new(&mut buf);
             let ans = encode(&base64, &bytes, buf).unwrap();
             assert_eq!(ans, encoded);
             dbg_msg!(@3 "encoding ... ok");
 
             let mut buf = vec![0u8; n];
-            let buf = OutBuf::from_slice_mut(&mut buf);
+            let buf = OutBuf::new(&mut buf);
             let ans = decode(&base64, &*ans, buf).unwrap();
             assert_eq!(ans, bytes);
             dbg_msg!(@3 "decoding ... ok");

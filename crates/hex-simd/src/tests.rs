@@ -65,8 +65,8 @@ fn err_cases() -> Vec<Vec<u8>> {
 
 pub fn test(
     check: impl Fn(&[u8]) -> bool,
-    decode: impl for<'s, 'd> Fn(&'s [u8], OutBuf<'d, u8>) -> Result<&'d mut [u8], Error>,
-    encode: impl for<'s, 'd> Fn(&'s [u8], OutBuf<'d, u8>, AsciiCase) -> Result<&'d mut [u8], Error>,
+    decode: impl for<'s, 'd> Fn(&'s [u8], OutBuf<'d>) -> Result<&'d mut [u8], Error>,
+    encode: impl for<'s, 'd> Fn(&'s [u8], OutBuf<'d>, AsciiCase) -> Result<&'d mut [u8], Error>,
     decode_inplace: impl Fn(&mut [u8]) -> Result<&mut [u8], Error>,
 ) {
     println!();
@@ -78,8 +78,8 @@ pub fn test(
         ($src: expr, $case: expr) => {{
             let mut decode_buf = vec![0; $src.len() / 2];
             let mut encode_buf = vec![0; $src.len()];
-            let decode_buf = OutBuf::from_slice_mut(&mut decode_buf);
-            let encode_buf = OutBuf::from_slice_mut(&mut encode_buf);
+            let decode_buf = OutBuf::new(&mut decode_buf);
+            let encode_buf = OutBuf::new(&mut encode_buf);
             let decode_buf = decode($src, decode_buf).unwrap();
             let encode_buf = encode(decode_buf, encode_buf, $case).unwrap();
             assert_eq!(encode_buf, $src);
@@ -91,7 +91,7 @@ pub fn test(
             let mut decode_buf = $src.to_owned();
             let mut encode_buf = vec![0; $src.len()];
             let decode_buf = decode_inplace(&mut decode_buf).unwrap();
-            let encode_buf = OutBuf::from_slice_mut(&mut encode_buf);
+            let encode_buf = OutBuf::new(&mut encode_buf);
             let encode_buf = encode(decode_buf, encode_buf, $case).unwrap();
             assert_eq!(encode_buf, $src);
         }};
@@ -101,8 +101,8 @@ pub fn test(
         ($src: expr, $case: expr) => {{
             let mut encode_buf = vec![0; $src.len() * 2];
             let mut decode_buf = vec![0; $src.len()];
-            let encode_buf = OutBuf::from_slice_mut(&mut encode_buf);
-            let decode_buf = OutBuf::from_slice_mut(&mut decode_buf);
+            let encode_buf = OutBuf::new(&mut encode_buf);
+            let decode_buf = OutBuf::new(&mut decode_buf);
             let encode_buf = encode($src, encode_buf, $case).unwrap();
             let decode_buf = decode(encode_buf, decode_buf).unwrap();
             assert_eq!(decode_buf, $src);
@@ -112,7 +112,7 @@ pub fn test(
     macro_rules! test_encode_decode_inplace {
         ($src: expr, $case: expr) => {{
             let mut encode_buf = vec![0; $src.len() * 2];
-            let encode_buf = OutBuf::from_slice_mut(&mut encode_buf);
+            let encode_buf = OutBuf::new(&mut encode_buf);
             let encode_buf = encode($src, encode_buf, $case).unwrap();
             let decode_buf = decode_inplace(encode_buf).unwrap();
             assert_eq!(decode_buf, $src);
@@ -135,7 +135,7 @@ pub fn test(
         dbg_msg!(@1 "err case {}", i + 1);
         assert!(!check(src));
         let mut buf = vec![0; src.len() / 2];
-        let buf = OutBuf::from_slice_mut(&mut buf);
+        let buf = OutBuf::new(&mut buf);
         assert!(decode(src, buf).is_err())
     }
 }

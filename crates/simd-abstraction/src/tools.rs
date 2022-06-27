@@ -1,47 +1,49 @@
+use crate::traits::{SIMD128, SIMD256};
+
 use core::fmt;
 use core::marker::PhantomData;
 use core::mem::MaybeUninit;
+use core::ptr::NonNull;
 
-use crate::traits::{SIMD128, SIMD256};
-
-/// A write-only slice of T.
-pub struct OutBuf<'a, T> {
-    base: *mut T,
+/// A write-only slice of bytes.
+pub struct OutBuf<'a> {
+    data: NonNull<MaybeUninit<u8>>,
     len: usize,
-    _marker: PhantomData<&'a mut [MaybeUninit<T>]>,
+    _marker: PhantomData<&'a mut [MaybeUninit<u8>]>,
 }
 
-unsafe impl<'a, T: Send> Send for OutBuf<'a, T> {}
-unsafe impl<'a, T: Sync> Sync for OutBuf<'a, T> {}
+unsafe impl<'a> Send for OutBuf<'a> {}
+unsafe impl<'a> Sync for OutBuf<'a> {}
 
-impl<'a, T> OutBuf<'a, T> {
+impl<'a> OutBuf<'a> {
     /// Returns an `OutBuf<'a, T>`
     ///
     /// # Safety
     /// This function requires:
     ///
-    /// + It's safe to call `slice::from_raw_parts_mut(base.cast::<MaybeUninit<T>>(), len)`
+    /// + It's safe to call `slice::from_raw_parts_mut(data, len)`
     ///
     /// See also [`slice::from_raw_parts_mut`](core::slice::from_raw_parts_mut)
     ///
     #[inline]
-    pub unsafe fn new(base: *mut T, len: usize) -> Self {
+    pub unsafe fn from_raw(data: *mut MaybeUninit<u8>, len: usize) -> Self {
         Self {
-            base,
+            data: NonNull::new_unchecked(data),
             len,
             _marker: PhantomData,
         }
     }
 
     #[inline]
-    pub fn from_slice_mut(slice: &'a mut [T]) -> Self {
-        let (base, len) = (slice.as_mut_ptr(), slice.len());
-        unsafe { Self::new(base, len) }
+    pub fn new(slice: &'a mut [u8]) -> Self {
+        let (data, len): _ = (slice.as_mut_ptr(), slice.len());
+        unsafe { Self::from_raw(data.cast(), len) }
     }
+
     #[inline]
-    pub fn from_uninit_mut(slice: &'a mut [MaybeUninit<T>]) -> Self {
-        let (base, len) = (slice.as_mut_ptr(), slice.len());
-        unsafe { Self::new(base.cast(), len) }
+    pub fn uninit(slice: &'a mut [MaybeUninit<u8>]) -> Self {
+        let (data, len): _ = (slice.as_mut_ptr(), slice.len());
+        unsafe { Self::from_raw(data, len) }
     }
 
     #[inline(always)]
@@ -55,15 +57,29 @@ impl<'a, T> OutBuf<'a, T> {
     }
 
     #[inline(always)]
-    pub fn as_mut_ptr(&self) -> *mut T {
-        self.base
+    pub fn as_mut_ptr(&self) -> *mut u8 {
+        self.data.as_ptr().cast()
     }
 }
 
-impl<T> fmt::Debug for OutBuf<'_, T> {
+impl<'a> From<&'a mut [u8]> for OutBuf<'a> {
+    #[inline(always)]
+    fn from(slice: &'a mut [u8]) -> Self {
+        Self::new(slice)
+    }
+}
+
+impl<'a> From<&'a mut [MaybeUninit<u8>]> for OutBuf<'a> {
+    #[inline(always)]
+    fn from(slice: &'a mut [MaybeUninit<u8>]) -> Self {
+        Self::uninit(slice)
+    }
+}
+
+impl fmt::Debug for OutBuf<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("OutBuf")
-            .field("base", &self.base)
+            .field("data", &self.data)
             .field("len", &self.len)
             .finish()
     }
@@ -124,7 +140,10 @@ use alloc::boxed::Box;
 ///
 #[cfg(feature = "alloc")]
 pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
-    debug_assert!(len > 0 && len <= (isize::MAX as usize));
+    #[cfg(any(debug_assertions, miri))]
+    {
+        assert!(len > 0 && len <= (isize::MAX as usize))
+    }
     use alloc::alloc::{alloc, handle_alloc_error, Layout};
     use core::slice;
     let layout = Layout::from_size_align_unchecked(len, 1);

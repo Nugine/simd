@@ -26,7 +26,7 @@ impl Base64 {
             let m = Self::encoded_length_unchecked(src.len(), self.padding);
             assert!(m <= (isize::MAX as usize));
             let mut uninit_buf = alloc_uninit_bytes(m);
-            Self::encode(self, src, OutBuf::from_uninit_mut(&mut *uninit_buf)).unwrap();
+            Self::encode(self, src, OutBuf::uninit(&mut *uninit_buf)).unwrap();
 
             let ptr = Box::into_raw(uninit_buf).cast::<u8>();
             let buf = slice::from_raw_parts_mut(ptr, m);
@@ -53,7 +53,7 @@ impl Base64 {
 
             // safety: 0 < m < isize::MAX
             let mut uninit_buf = alloc_uninit_bytes(m);
-            Self::decode(self, src, OutBuf::from_uninit_mut(&mut *uninit_buf))?;
+            Self::decode(self, src, OutBuf::uninit(&mut *uninit_buf))?;
 
             let ptr = Box::into_raw(uninit_buf).cast::<u8>();
             let buf = slice::from_raw_parts_mut(ptr, m);

@@ -19,7 +19,7 @@ pub fn bench_encode(c: &mut Criterion) {
         #[cfg(target_feature = "avx2")]
         ("base64-simd/avx2", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 unsafe {
                     base64_simd::arch::x86::avx2::encode(&Base64::STANDARD, src, dst).unwrap()
                 };
@@ -28,7 +28,7 @@ pub fn bench_encode(c: &mut Criterion) {
         #[cfg(target_feature = "sse4.1")]
         ("base64-simd/sse4.1", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 unsafe {
                     base64_simd::arch::x86::sse41::encode(&Base64::STANDARD, src, dst).unwrap()
                 };
@@ -36,7 +36,7 @@ pub fn bench_encode(c: &mut Criterion) {
         }),
         ("base64-simd/fallback", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 base64_simd::fallback::encode(&Base64::STANDARD, src, dst).unwrap();
             })
         }),
@@ -78,7 +78,7 @@ pub fn bench_decode(c: &mut Criterion) {
         #[cfg(target_feature = "avx2")]
         ("base64-simd/avx2", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 unsafe {
                     base64_simd::arch::x86::avx2::decode(&Base64::STANDARD, src, dst).unwrap()
                 };
@@ -87,7 +87,7 @@ pub fn bench_decode(c: &mut Criterion) {
         #[cfg(target_feature = "sse4.1")]
         ("base64-simd/sse4.1", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 unsafe {
                     base64_simd::arch::x86::sse41::decode(&Base64::STANDARD, src, dst).unwrap()
                 };
@@ -95,7 +95,7 @@ pub fn bench_decode(c: &mut Criterion) {
         }),
         ("base64-simd/fallback", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::from_slice_mut(dst)));
+                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 base64_simd::fallback::decode(&Base64::STANDARD, src, dst).unwrap();
             })
         }),

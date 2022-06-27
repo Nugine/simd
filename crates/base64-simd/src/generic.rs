@@ -20,7 +20,7 @@ macro_rules! specialize_for {
         pub unsafe fn encode<'s, 'd>(
             base64: &'_ Base64,
             src: &'s [u8],
-            dst: OutBuf<'d, u8>,
+            dst: OutBuf<'d>,
         ) -> Result<&'d mut [u8], Error> {
             let s = <$ty as InstructionSet>::new_unchecked();
             crate::generic::encode(s, base64, src, dst)
@@ -31,7 +31,7 @@ macro_rules! specialize_for {
         pub unsafe fn decode<'s, 'd>(
             base64: &'_ Base64,
             src: &'s [u8],
-            dst: OutBuf<'d, u8>,
+            dst: OutBuf<'d>,
         ) -> Result<&'d mut [u8], Error> {
             let s = <$ty as InstructionSet>::new_unchecked();
             crate::generic::decode(s, base64, src, dst)
@@ -111,7 +111,7 @@ pub fn encode<'s, 'd, S: SIMDExt>(
     s: S,
     base64: &'_ Base64,
     src: &'s [u8],
-    dst: OutBuf<'d, u8>,
+    dst: OutBuf<'d>,
 ) -> Result<&'d mut [u8], Error> {
     unsafe {
         if src.is_empty() {
@@ -215,7 +215,7 @@ pub fn decode<'s, 'd, S: SIMDExt>(
     s: S,
     base64: &'_ Base64,
     src: &'s [u8],
-    dst: OutBuf<'d, u8>,
+    dst: OutBuf<'d>,
 ) -> Result<&'d mut [u8], Error> {
     unsafe {
         if src.is_empty() {

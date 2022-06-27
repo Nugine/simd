@@ -51,11 +51,7 @@ impl Base64 {
     /// This function returns `Err` if:
     ///
     /// + The length of `dst` is not enough.
-    pub fn encode<'s, 'd>(
-        &'_ self,
-        src: &'s [u8],
-        dst: OutBuf<'d, u8>,
-    ) -> Result<&'d mut [u8], Error> {
+    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], dst: OutBuf<'d>) -> Result<&'d mut [u8], Error> {
         try_simd!(encode(self, src, dst));
         fallback::encode(self, src, dst)
     }
@@ -67,11 +63,7 @@ impl Base64 {
     ///
     /// + The length of `dst` is not enough.
     /// + The content of `src` is invalid.
-    pub fn decode<'s, 'd>(
-        &'_ self,
-        src: &'s [u8],
-        dst: OutBuf<'d, u8>,
-    ) -> Result<&'d mut [u8], Error> {
+    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], dst: OutBuf<'d>) -> Result<&'d mut [u8], Error> {
         try_simd!(decode(self, src, dst));
         fallback::decode(self, src, dst)
     }
