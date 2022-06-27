@@ -16,7 +16,7 @@ unsafe impl<'a> Send for OutBuf<'a> {}
 unsafe impl<'a> Sync for OutBuf<'a> {}
 
 impl<'a> OutBuf<'a> {
-    /// Returns an `OutBuf<'a, T>`
+    /// Returns an `OutBuf<'a>`
     ///
     /// # Safety
     /// This function requires:
