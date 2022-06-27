@@ -9,6 +9,7 @@ macro_rules! unit_tests_for {
             crate::tests::test(
                 |base64, src, dst| unsafe { encode(base64, src, dst) },
                 |base64, src, dst| unsafe { decode(base64, src, dst) },
+                |base64, buf| unsafe { decode_inplace(base64, buf) },
             );
         }
     };
@@ -23,6 +24,7 @@ macro_rules! unit_tests_for {
             crate::tests::test(
                 |base64, src, dst| unsafe { encode(base64, src, dst) },
                 |base64, src, dst| unsafe { decode(base64, src, dst) },
+                |base64, buf| unsafe { decode_inplace(base64, buf) },
             );
         }
     };
