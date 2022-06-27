@@ -67,4 +67,17 @@ impl Base64 {
         try_simd!(decode(self, src, dst));
         fallback::decode(self, src, dst)
     }
+
+    /// Decodes `buf` and writes inplace.
+    ///
+    /// # Errors
+    /// This function returns `Err` if:
+    ///
+    /// + The content of `buf` is invalid.
+    ///
+    /// When this function returns `Err`, the content of `buf` should be considered as fully broken.
+    pub fn decode_inplace<'b>(&'_ self, buf: &'b mut [u8]) -> Result<&'b mut [u8], Error> {
+        try_simd!(decode_inplace(self, buf));
+        fallback::decode_inplace(self, buf)
+    }
 }

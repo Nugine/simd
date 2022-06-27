@@ -1,14 +1,15 @@
 #![allow(clippy::missing_safety_doc)]
 
-use crate::fallback::{
-    decode_extra, encode_extra, STANDARD_CHARSET, STANDARD_DECODE_TABLE, URL_SAFE_CHARSET,
-    URL_SAFE_DECODE_TABLE,
-};
+use crate::fallback::{decode_extra, encode_extra};
+use crate::fallback::{STANDARD_CHARSET, URL_SAFE_CHARSET};
+use crate::fallback::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
 use crate::utils::{empty_slice_mut, read, write};
 use crate::{Base64, Base64Kind, Error, OutBuf, ERROR};
 
 use simd_abstraction::tools::{Bytes32, Load};
 use simd_abstraction::traits::SIMD256;
+
+use core::slice;
 
 macro_rules! specialize_for {
     ($feature:literal, $ty: ty) => {
@@ -35,6 +36,16 @@ macro_rules! specialize_for {
         ) -> Result<&'d mut [u8], Error> {
             let s = <$ty as InstructionSet>::new_unchecked();
             crate::generic::decode(s, base64, src, dst)
+        }
+
+        #[inline]
+        #[target_feature(enable = $feature)]
+        pub unsafe fn decode_inplace<'b>(
+            base64: &'_ Base64,
+            buf: &'b mut [u8],
+        ) -> Result<&'b mut [u8], Error> {
+            let s = <$ty as InstructionSet>::new_unchecked();
+            crate::generic::decode_inplace(s, base64, buf)
         }
     };
 }
@@ -169,7 +180,7 @@ pub fn encode<'s, 'd, S: SIMDExt>(
             encode_extra(n % 3, src, dst, charset, base64.padding)
         }
 
-        Ok(core::slice::from_raw_parts_mut(dst.as_mut_ptr(), m))
+        Ok(slice::from_raw_parts_mut(dst.as_mut_ptr(), m))
     }
 }
 
@@ -228,56 +239,87 @@ pub fn decode<'s, 'd, S: SIMDExt>(
             return Err(ERROR);
         }
 
-        let table = match base64.kind {
-            Base64Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
-            Base64Kind::UrlSafe => URL_SAFE_DECODE_TABLE.as_ptr(),
-        };
+        let src = src.as_ptr();
+        let dst = dst.as_mut_ptr();
+        decode_unchecked(s, base64, n, m, src, dst)?;
 
-        {
-            let mut src = src.as_ptr();
-            let mut dst = dst.as_mut_ptr();
-            let src_end = src.add(n / 4 * 4);
+        Ok(slice::from_raw_parts_mut(dst, m))
+    }
+}
 
-            if m >= (24 + 4) {
-                let end = dst.add(m - (24 + 4));
-                let range_check = B64Range::new(s, base64);
-                while dst <= end {
-                    let x = s.v256_load_unaligned(src);
-                    let y = decode_chunk(s, x, range_check)?;
-                    let (y1, y2) = s.v256_to_v128x2(y);
-                    s.v128_store_unaligned(dst, y1);
-                    s.v128_store_unaligned(dst.add(12), y2);
-                    src = src.add(32);
-                    dst = dst.add(24);
-                }
-            }
-
-            while src < src_end {
-                let mut x = u32::from_le_bytes(src.cast::<[u8; 4]>().read());
-                let mut y: u32 = 0;
-                let mut flag = 0;
-                for i in 0..4 {
-                    let bits = read(table, (x & 0xff) as usize);
-                    flag |= bits;
-                    x >>= 8;
-                    y |= (bits as u32) << (18 - i * 6);
-                }
-                if flag == 0xff {
-                    return Err(ERROR);
-                }
-                let y = y.to_be_bytes();
-                write(dst, 0, y[1]);
-                write(dst, 1, y[2]);
-                write(dst, 2, y[3]);
-                src = src.add(4);
-                dst = dst.add(3);
-            }
-
-            decode_extra(n % 4, src, dst, table)?;
+pub fn decode_inplace<'b, S: SIMDExt>(
+    s: S,
+    base64: &'_ Base64,
+    buf: &'b mut [u8],
+) -> Result<&'b mut [u8], Error> {
+    unsafe {
+        if buf.is_empty() {
+            return Ok(empty_slice_mut(buf.as_mut_ptr()));
         }
 
-        Ok(core::slice::from_raw_parts_mut(dst.as_mut_ptr(), m))
+        let (n, m) = Base64::decoded_length_unchecked(buf, base64.padding)?;
+
+        let src = buf.as_ptr();
+        let dst = buf.as_mut_ptr();
+        decode_unchecked(s, base64, n, m, src, dst)?;
+
+        Ok(slice::from_raw_parts_mut(dst, m))
     }
+}
+
+unsafe fn decode_unchecked<S: SIMDExt>(
+    s: S,
+    base64: &'_ Base64,
+    n: usize,
+    m: usize,
+    mut src: *const u8,
+    mut dst: *mut u8,
+) -> Result<(), Error> {
+    let table = match base64.kind {
+        Base64Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
+        Base64Kind::UrlSafe => URL_SAFE_DECODE_TABLE.as_ptr(),
+    };
+
+    let src_end = src.add(n / 4 * 4);
+
+    if m >= (24 + 4) {
+        let end = dst.add(m - (24 + 4));
+        let range_check = B64Range::new(s, base64);
+        while dst <= end {
+            let x = s.v256_load_unaligned(src);
+            let y = decode_chunk(s, x, range_check)?;
+            let (y1, y2) = s.v256_to_v128x2(y);
+            s.v128_store_unaligned(dst, y1);
+            s.v128_store_unaligned(dst.add(12), y2);
+            src = src.add(32);
+            dst = dst.add(24);
+        }
+    }
+
+    while src < src_end {
+        let mut x = u32::from_le_bytes(src.cast::<[u8; 4]>().read());
+        let mut y: u32 = 0;
+        let mut flag = 0;
+        for i in 0..4 {
+            let bits = read(table, (x & 0xff) as usize);
+            flag |= bits;
+            x >>= 8;
+            y |= (bits as u32) << (18 - i * 6);
+        }
+        if flag == 0xff {
+            return Err(ERROR);
+        }
+        let y = y.to_be_bytes();
+        write(dst, 0, y[1]);
+        write(dst, 1, y[2]);
+        write(dst, 2, y[3]);
+        src = src.add(4);
+        dst = dst.add(3);
+    }
+
+    decode_extra(n % 4, src, dst, table)?;
+
+    Ok(())
 }
 
 #[derive(Clone, Copy)]

@@ -3,6 +3,8 @@
 use crate::utils::{empty_slice_mut, read, write};
 use crate::{Base64, Base64Kind, Error, OutBuf, ERROR};
 
+use core::slice;
+
 pub(crate) const STANDARD_CHARSET: &[u8; 64] =
     b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -81,7 +83,7 @@ pub fn encode<'s, 'd>(
             encode_extra(n % 3, src, dst, charset, padding)
         }
 
-        Ok(core::slice::from_raw_parts_mut(dst.as_mut_ptr(), m))
+        Ok(slice::from_raw_parts_mut(dst.as_mut_ptr(), m))
     }
 }
 
@@ -139,71 +141,98 @@ pub fn decode<'s, 'd>(
             return Err(ERROR);
         }
 
-        let table = match base64.kind {
-            Base64Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
-            Base64Kind::UrlSafe => URL_SAFE_DECODE_TABLE.as_ptr(),
-        };
+        let src = src.as_ptr();
+        let dst = dst.as_mut_ptr();
+        decode_unchecked(base64, n, m, src, dst)?;
 
-        {
-            let mut src = src.as_ptr();
-            let mut dst = dst.as_mut_ptr();
+        Ok(slice::from_raw_parts_mut(dst, m))
+    }
+}
 
-            let src_end = src.add(n / 4 * 4);
+#[inline]
+pub fn decode_inplace<'b>(base64: &'_ Base64, buf: &'b mut [u8]) -> Result<&'b mut [u8], Error> {
+    unsafe {
+        if buf.is_empty() {
+            return Ok(empty_slice_mut(buf.as_mut_ptr()));
+        }
 
-            const UNROLL: usize = 4;
-            if m >= (UNROLL * 6 + 2) {
-                let end = dst.add(m - (UNROLL * 6 + 2));
-                while dst <= end {
-                    for _ in 0..UNROLL {
-                        let mut x = u64::from_le_bytes(src.cast::<[u8; 8]>().read());
-                        let mut y: u64 = 0;
-                        let mut flag = 0;
-                        for i in 0..8 {
-                            let bits = read(table, (x & 0xff) as usize);
-                            flag |= bits;
-                            x >>= 8;
-                            y |= (bits as u64) << (58 - i * 6);
-                        }
-                        if flag == 0xff {
-                            return Err(ERROR);
-                        }
-                        #[cfg(target_endian = "little")]
-                        {
-                            y = y.swap_bytes();
-                        }
-                        dst.cast::<u64>().write_unaligned(y);
+        let (n, m) = Base64::decoded_length_unchecked(buf, base64.padding)?;
 
-                        src = src.add(8);
-                        dst = dst.add(6);
-                    }
-                }
-            }
+        let src = buf.as_ptr();
+        let dst = buf.as_mut_ptr();
+        decode_unchecked(base64, n, m, src, dst)?;
 
-            while src < src_end {
-                let mut x = u32::from_le_bytes(src.cast::<[u8; 4]>().read());
-                let mut y: u32 = 0;
+        Ok(slice::from_raw_parts_mut(dst, m))
+    }
+}
+
+unsafe fn decode_unchecked(
+    base64: &'_ Base64,
+    n: usize,
+    m: usize,
+    mut src: *const u8,
+    mut dst: *mut u8,
+) -> Result<(), Error> {
+    let table = match base64.kind {
+        Base64Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
+        Base64Kind::UrlSafe => URL_SAFE_DECODE_TABLE.as_ptr(),
+    };
+
+    let src_end = src.add(n / 4 * 4);
+
+    const UNROLL: usize = 4;
+    if m >= (UNROLL * 6 + 2) {
+        let end = dst.add(m - (UNROLL * 6 + 2));
+        while dst <= end {
+            for _ in 0..UNROLL {
+                let mut x = u64::from_le_bytes(src.cast::<[u8; 8]>().read());
+                let mut y: u64 = 0;
                 let mut flag = 0;
-                for i in 0..4 {
+                for i in 0..8 {
                     let bits = read(table, (x & 0xff) as usize);
                     flag |= bits;
                     x >>= 8;
-                    y |= (bits as u32) << (18 - i * 6);
+                    y |= (bits as u64) << (58 - i * 6);
                 }
                 if flag == 0xff {
                     return Err(ERROR);
                 }
-                let y = y.to_be_bytes();
-                write(dst, 0, y[1]);
-                write(dst, 1, y[2]);
-                write(dst, 2, y[3]);
-                src = src.add(4);
-                dst = dst.add(3);
-            }
+                #[cfg(target_endian = "little")]
+                {
+                    y = y.swap_bytes();
+                }
+                dst.cast::<u64>().write_unaligned(y);
 
-            decode_extra(n % 4, src, dst, table)?;
+                src = src.add(8);
+                dst = dst.add(6);
+            }
         }
-        Ok(core::slice::from_raw_parts_mut(dst.as_mut_ptr(), m))
     }
+
+    while src < src_end {
+        let mut x = u32::from_le_bytes(src.cast::<[u8; 4]>().read());
+        let mut y: u32 = 0;
+        let mut flag = 0;
+        for i in 0..4 {
+            let bits = read(table, (x & 0xff) as usize);
+            flag |= bits;
+            x >>= 8;
+            y |= (bits as u32) << (18 - i * 6);
+        }
+        if flag == 0xff {
+            return Err(ERROR);
+        }
+        let y = y.to_be_bytes();
+        write(dst, 0, y[1]);
+        write(dst, 1, y[2]);
+        write(dst, 2, y[3]);
+        src = src.add(4);
+        dst = dst.add(3);
+    }
+
+    decode_extra(n % 4, src, dst, table)?;
+
+    Ok(())
 }
 
 pub(crate) unsafe fn decode_extra(
@@ -248,5 +277,5 @@ pub(crate) unsafe fn decode_extra(
 
 #[test]
 fn test() {
-    crate::tests::test(encode, decode);
+    crate::tests::test(encode, decode, decode_inplace);
 }
