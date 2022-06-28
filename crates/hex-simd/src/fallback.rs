@@ -22,6 +22,7 @@ unsafe fn write<T>(base: *mut T, offset: usize, value: T) {
 
 #[inline]
 pub fn check(src: &[u8]) -> bool {
+    #[inline(always)]
     unsafe fn check_unroll1(n: usize, src: *const u8) -> bool {
         let mut i = 0;
         let mut ans = 0;
@@ -31,6 +32,7 @@ pub fn check(src: &[u8]) -> bool {
         }
         ans != 0xff
     }
+    #[inline(always)]
     unsafe fn check_unroll4(n: usize, src: *const u8) -> bool {
         let mut i = 0;
         while i < n {
@@ -96,7 +98,7 @@ pub fn encode<'s, 'd>(
     }
 }
 
-#[inline]
+#[inline(always)]
 pub(crate) unsafe fn encode_unchecked(src: &[u8], dst: *mut u8, table: &[u16; 256]) {
     let (n, src) = (src.len(), src.as_ptr());
     let table = table.as_ptr();
@@ -139,7 +141,7 @@ pub fn decode_inplace(buf: &mut [u8]) -> Result<&mut [u8], Error> {
 }
 
 /// `src` and `dst` may alias
-#[inline]
+#[inline(always)]
 pub(crate) unsafe fn decode_unchecked(m: usize, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let mut i = 0;
     while i < m {

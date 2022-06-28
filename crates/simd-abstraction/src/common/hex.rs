@@ -109,8 +109,9 @@ pub enum AsciiCase {
     Upper,
 }
 
+/// A fixed-length hex string
 #[derive(Clone, PartialEq, Eq)]
-#[repr(transparent)]
+#[repr(C, align(2))]
 pub struct Hex<const N: usize>([u8; N]);
 
 impl<const N: usize> Hex<N> {

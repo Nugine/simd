@@ -1,8 +1,12 @@
+use core::mem::MaybeUninit;
+
 use crate::auto::*;
 use crate::{AsciiCase, Error, OutBuf, ERROR};
 
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
+
+pub use simd_abstraction::common::hex::Hex;
 
 #[cfg(feature = "alloc")]
 use simd_abstraction::tools::alloc_uninit_bytes;
@@ -106,4 +110,31 @@ fn test_str() {
         encode_as_str(src, dst, case).unwrap()
     };
     assert_eq!(ans, "68656c6c6f");
+}
+
+/// Encodes `src` to a hex string in network byte order
+#[inline]
+pub fn encode_u64(src: u64, case: AsciiCase) -> Hex<16> {
+    unsafe {
+        let mut this: MaybeUninit<Hex<16>> = MaybeUninit::uninit();
+        let src = &src.to_be_bytes();
+        let dst: *mut u8 = this.as_mut_ptr().cast();
+        let table = match case {
+            AsciiCase::Lower => crate::fallback::FULL_LOWER_TABLE,
+            AsciiCase::Upper => crate::fallback::FULL_UPPER_TABLE,
+        };
+        crate::fallback::encode_unchecked(src, dst, table);
+        this.assume_init()
+    }
+}
+
+#[test]
+fn test_hex_u64() {
+    let src = 0x1234_5678_9abc_def0;
+
+    let hex = encode_u64(src, AsciiCase::Lower);
+    assert_eq!(hex.as_str(), format!("{:x}", src));
+
+    let hex = encode_u64(src, AsciiCase::Upper);
+    assert_eq!(hex.as_str(), format!("{:X}", src));
 }
