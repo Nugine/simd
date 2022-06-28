@@ -16,7 +16,13 @@
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]
 //
-#![deny(clippy::all, clippy::cargo, missing_docs)]
+#![deny(
+    missing_debug_implementations,
+    missing_docs,
+    clippy::all,
+    clippy::cargo,
+    clippy::missing_inline_in_public_items
+)]
 #![warn(clippy::todo)]
 
 pub(crate) use simd_abstraction::common::hex as sa_hex;

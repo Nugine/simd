@@ -77,6 +77,7 @@ impl<'a> From<&'a mut [MaybeUninit<u8>]> for OutBuf<'a> {
 }
 
 impl fmt::Debug for OutBuf<'_> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("OutBuf")
             .field("data", &self.data)
@@ -139,6 +140,7 @@ use alloc::boxed::Box;
 /// + `len <= isize::MAX`
 ///
 #[cfg(feature = "alloc")]
+#[inline]
 pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
     #[cfg(any(debug_assertions, miri))]
     {

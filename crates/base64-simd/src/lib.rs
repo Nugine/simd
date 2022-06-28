@@ -20,10 +20,11 @@
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]
 //
 #![deny(
+    missing_debug_implementations,
+    missing_docs,
     clippy::all,
     clippy::cargo,
-    missing_debug_implementations,
-    missing_docs
+    clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
 
@@ -150,13 +151,14 @@ impl Base64 {
     /// This function panics if any of the conditions below is not satisfied:
     ///
     /// + `n <= isize::MAX`
-    ///
+    #[inline]
     pub const fn encoded_length(&self, n: usize) -> usize {
         assert!(n <= (isize::MAX as usize));
         unsafe { Self::encoded_length_unchecked(n, self.padding) }
     }
 
     /// Returns the character set used for encoding.
+    #[inline]
     pub const fn charset(&self) -> &[u8; 64] {
         match self.kind {
             Base64Kind::Standard => fallback::STANDARD_CHARSET,

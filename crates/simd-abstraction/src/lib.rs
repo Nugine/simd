@@ -1,7 +1,12 @@
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
 //
-#![deny(missing_debug_implementations, clippy::all, clippy::cargo)]
+#![deny(
+    missing_debug_implementations,
+    clippy::all,
+    clippy::cargo,
+    clippy::missing_inline_in_public_items
+)]
 #![warn(clippy::todo)]
 
 #[cfg(feature = "alloc")]

@@ -59,44 +59,48 @@ impl UuidExt for Uuid {
         crate::parse_hyphenated(src.as_ref()).map(Uuid::from_bytes)
     }
 
+    #[inline]
     fn format_simple(&self) -> Simple<'_> {
         Simple(self)
     }
 
+    #[inline]
     fn format_hyphenated(&self) -> Hyphenated<'_> {
         Hyphenated(self)
     }
 }
 
+#[derive(Debug)]
 pub struct Simple<'a>(&'a Uuid);
 
+#[derive(Debug)]
 pub struct Hyphenated<'a>(&'a Uuid);
 
 impl fmt::LowerHex for Simple<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let buf = crate::format_simple(self.0.as_bytes(), AsciiCase::Lower);
-        <&str as fmt::Display>::fmt(&buf.as_str(), f)
+        <str as fmt::Display>::fmt(buf.as_str(), f)
     }
 }
 
 impl fmt::LowerHex for Hyphenated<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let buf = crate::format_hyphenated(self.0.as_bytes(), AsciiCase::Lower);
-        <&str as fmt::Display>::fmt(&buf.as_str(), f)
+        <str as fmt::Display>::fmt(buf.as_str(), f)
     }
 }
 
 impl fmt::UpperHex for Simple<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let buf = crate::format_simple(self.0.as_bytes(), AsciiCase::Upper);
-        <&str as fmt::Display>::fmt(&buf.as_str(), f)
+        <str as fmt::Display>::fmt(buf.as_str(), f)
     }
 }
 
 impl fmt::UpperHex for Hyphenated<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let buf = crate::format_hyphenated(self.0.as_bytes(), AsciiCase::Upper);
-        <&str as fmt::Display>::fmt(&buf.as_str(), f)
+        <str as fmt::Display>::fmt(buf.as_str(), f)
     }
 }
 

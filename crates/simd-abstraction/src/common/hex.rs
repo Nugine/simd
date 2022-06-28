@@ -144,7 +144,8 @@ impl<const N: usize> Hex<N> {
 }
 
 impl<const N: usize> fmt::Debug for Hex<N> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        <&str as fmt::Debug>::fmt(&self.as_str(), f)
+        <str as fmt::Debug>::fmt(self.as_str(), f)
     }
 }

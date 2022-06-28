@@ -51,6 +51,7 @@ impl Base64 {
     /// This function returns `Err` if:
     ///
     /// + The length of `dst` is not enough.
+    #[inline]
     pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], dst: OutBuf<'d>) -> Result<&'d mut [u8], Error> {
         try_simd!(encode(self, src, dst));
         fallback::encode(self, src, dst)
@@ -63,6 +64,7 @@ impl Base64 {
     ///
     /// + The length of `dst` is not enough.
     /// + The content of `src` is invalid.
+    #[inline]
     pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], dst: OutBuf<'d>) -> Result<&'d mut [u8], Error> {
         try_simd!(decode(self, src, dst));
         fallback::decode(self, src, dst)
@@ -76,6 +78,7 @@ impl Base64 {
     /// + The content of `buf` is invalid.
     ///
     /// When this function returns `Err`, the content of `buf` should be considered as fully broken.
+    #[inline]
     pub fn decode_inplace<'b>(&'_ self, buf: &'b mut [u8]) -> Result<&'b mut [u8], Error> {
         try_simd!(decode_inplace(self, buf));
         fallback::decode_inplace(self, buf)
