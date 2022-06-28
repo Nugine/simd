@@ -1,7 +1,5 @@
 use crate::{Base64, Error, OutBuf};
 
-use core::ops::Not;
-
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
@@ -75,13 +73,50 @@ impl Base64 {
     }
 }
 
+const fn ascii_whitespace_table() -> [u8; 256] {
+    let mut ans = [0; 256];
+    let mut i: u8 = 0;
+    loop {
+        ans[i as usize] = if i.is_ascii_whitespace() { 0xff } else { 0 };
+        if i == 255 {
+            break;
+        }
+        i += 1;
+    }
+    ans
+}
+
+#[inline(always)]
+fn is_ascii_whitespace(c: u8) -> u8 {
+    const TABLE: &[u8; 256] = &ascii_whitespace_table();
+    unsafe { *TABLE.get_unchecked(c as usize) }
+}
+
+#[inline(always)]
 fn remove_ascii_whitespace(buf: &mut [u8]) -> &mut [u8] {
     unsafe {
+        let n = buf.len();
         let mut src = buf.as_ptr();
-        let end = src.add(buf.len());
+        let end = src.add(n);
+
+        {
+            const UNROLL: usize = 8;
+            let end = src.add(n / UNROLL * UNROLL);
+            while src < end {
+                let mut flag = 0;
+                for _ in 0..UNROLL {
+                    flag |= is_ascii_whitespace(src.read());
+                    src = src.add(1)
+                }
+                if flag != 0 {
+                    src = src.sub(UNROLL);
+                    break;
+                }
+            }
+        }
 
         while src < end {
-            if src.read().is_ascii_whitespace() {
+            if is_ascii_whitespace(src.read()) != 0 {
                 break;
             }
             src = src.add(1);
@@ -90,7 +125,7 @@ fn remove_ascii_whitespace(buf: &mut [u8]) -> &mut [u8] {
         let mut dst = src as *mut u8;
         while src < end {
             let byte = src.read();
-            if byte.is_ascii_whitespace().not() {
+            if is_ascii_whitespace(byte) == 0 {
                 dst.write(byte);
                 dst = dst.add(1);
             }
@@ -135,6 +170,7 @@ fn forgiving_discard2(ch: &mut u8) {
     unsafe { *ch = *TABLE.get_unchecked(*ch as usize) }
 }
 
+#[inline(always)]
 fn forgiving_fix_data(buf: &mut [u8]) -> &mut [u8] {
     let buf = remove_ascii_whitespace(buf);
 
