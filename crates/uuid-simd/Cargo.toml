@@ -1,6 +1,6 @@
 [package]
 name = "uuid-simd"
-version = "0.6.0"
+version = "0.6.1-dev"
 edition = "2021"
 description = "SIMD-accelerated UUID operations"
 license = "MIT"
@@ -24,7 +24,7 @@ optional = true
 
 [dependencies.simd-abstraction]
 path = "../simd-abstraction"
-version = "0.6.0"
+version = "0.6.1-dev"
 
 [dev-dependencies]
 faster-hex = "0.6.1"
