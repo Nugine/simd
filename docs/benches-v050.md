@@ -17,8 +17,8 @@ Benched with [Criterion.rs](https://github.com/bheisler/criterion.rs)
 
 Average Time (Lower is better)
 
-![violin plot](v050-uuid-simd-parse.svg)
-![violin plot](v050-uuid-simd-format.svg)
+![violin plot](v050/uuid-simd-parse.svg)
+![violin plot](v050/uuid-simd-format.svg)
 
 ## hex-simd
 
@@ -30,9 +30,9 @@ Average Time (Lower is better)
 
 Average Time (Lower is better)
 
-![line chart](v050-hex-simd-check.svg)
-![line chart](v050-hex-simd-encode.svg)
-![line chart](v050-hex-simd-decode.svg)
+![line chart](v050/hex-simd-check.svg)
+![line chart](v050/hex-simd-encode.svg)
+![line chart](v050/hex-simd-decode.svg)
 
 ## base64-simd
 
@@ -43,5 +43,5 @@ Average Time (Lower is better)
 
 Average Time (Lower is better)
 
-![line chart](v050-base64-simd-encode.svg)
-![line chart](v050-base64-simd-decode.svg)
+![line chart](v050/base64-simd-encode.svg)
+![line chart](v050/base64-simd-decode.svg)
