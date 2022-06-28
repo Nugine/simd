@@ -1,6 +1,6 @@
 [package]
 name = "simd-abstraction"
-version = "0.6.0-dev"
+version = "0.6.0"
 edition = "2021"
 description = "Abstract SIMD instruction sets"
 license = "MIT"
