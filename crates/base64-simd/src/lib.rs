@@ -155,4 +155,12 @@ impl Base64 {
         assert!(n <= (isize::MAX as usize));
         unsafe { Self::encoded_length_unchecked(n, self.padding) }
     }
+
+    /// Returns the character set used for encoding.
+    pub const fn charset(&self) -> &[u8; 64] {
+        match self.kind {
+            Base64Kind::Standard => fallback::STANDARD_CHARSET,
+            Base64Kind::UrlSafe => fallback::URL_SAFE_CHARSET,
+        }
+    }
 }
