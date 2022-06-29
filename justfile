@@ -57,7 +57,7 @@ test-all:
 sync-version:
     #!/bin/bash -e
     cd {{justfile_directory()}}
-    cargo set-version --workspace '0.6.2'
+    cargo set-version --workspace '0.6.3-dev'
 
 fmt:
     #!/bin/bash -ex
