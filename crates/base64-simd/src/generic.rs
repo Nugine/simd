@@ -1,6 +1,6 @@
 #![allow(clippy::missing_safety_doc)]
 
-use crate::fallback::{decode_extra, encode_extra};
+use crate::fallback::{self, decode_extra, encode_extra};
 use crate::fallback::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 use crate::fallback::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
 use crate::utils::{empty_slice_mut, read, write};
@@ -46,6 +46,13 @@ macro_rules! specialize_for {
         ) -> Result<&'b mut [u8], Error> {
             let s = <$ty as InstructionSet>::new_unchecked();
             crate::generic::decode_inplace(s, base64, buf)
+        }
+
+        #[inline]
+        #[target_feature(enable = $feature)]
+        pub(crate) unsafe fn find_non_ascii_whitespace(data: &[u8]) -> usize {
+            let s = <$ty as InstructionSet>::new_unchecked();
+            crate::generic::find_non_ascii_whitespace(s, data)
         }
     };
 }
@@ -432,4 +439,61 @@ unsafe fn decode_chunk<S: SIMDExt>(s: S, x: S::V256, r: B64Range<S>) -> Result<S
     ]);
     Ok(s.u8x16x2_swizzle(x4, s.load(SHUFFLE)))
     // {AAAB|BBCC|CDDD|????|EEEF|FFGG|GHHH|????}
+}
+
+pub(crate) fn find_non_ascii_whitespace<S: SIMD256>(s: S, data: &[u8]) -> usize {
+    let (prefix, chunks, suffix) = unsafe { data.align_to::<Bytes32>() };
+
+    let mut pos: usize = 0;
+
+    {
+        let offset = fallback::find_non_ascii_whitespace(prefix);
+        pos = pos.wrapping_add(offset);
+        if offset != prefix.len() {
+            return pos;
+        }
+    }
+
+    for chunk in chunks {
+        if check_non_ascii_whitespace_u8x32(s, s.load(chunk)) {
+            let offset = fallback::find_non_ascii_whitespace(&chunk.0);
+            pos += offset;
+            return pos;
+        }
+        pos += 32;
+    }
+
+    {
+        let offset = fallback::find_non_ascii_whitespace(suffix);
+        pos = pos.wrapping_add(offset);
+    }
+
+    pos
+}
+
+fn check_non_ascii_whitespace_u8x32<S: SIMD256>(s: S, a: S::V256) -> bool {
+    // ASCII whitespaces
+    // TAB      0x09    00001001
+    // LF       0x0a    00001010
+    // FF       0x0c    00001100
+    // CR       0x0d    00001101
+    // SPACE    0x20    00010000
+    //
+
+    const LUT: &Bytes32 = &Bytes32([
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //
+        0xff, 0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0xff, //
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //
+        0xff, 0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0xff, //
+    ]);
+
+    let lut: _ = s.load(LUT);
+
+    let m1: _ = s.u8x16x2_swizzle(lut, a);
+    let m2: _ = s.v256_and(a, s.u8x32_splat(0xf0));
+    let m3: _ = s.i8x32_cmp_eq(s.v256_or(m1, m2), s.v256_create_zero());
+    let m4: _ = s.i8x32_cmp_eq(a, s.i8x32_splat(0x20));
+    let m5: _ = s.v256_or(m3, m4);
+
+    !s.v256_all_zero(m5)
 }

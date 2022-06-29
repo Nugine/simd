@@ -84,3 +84,9 @@ impl Base64 {
         fallback::decode_inplace(self, buf)
     }
 }
+
+#[inline]
+pub(crate) fn find_non_ascii_whitespace(data: &[u8]) -> usize {
+    try_simd!(find_non_ascii_whitespace(data));
+    fallback::find_non_ascii_whitespace(data)
+}

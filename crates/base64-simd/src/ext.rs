@@ -73,59 +73,22 @@ impl Base64 {
     }
 }
 
-const fn ascii_whitespace_table() -> [u8; 256] {
-    let mut ans = [0; 256];
-    let mut i: u8 = 0;
-    loop {
-        ans[i as usize] = if i.is_ascii_whitespace() { 0xff } else { 0 };
-        if i == 255 {
-            break;
-        }
-        i += 1;
-    }
-    ans
-}
-
-#[inline(always)]
-fn is_ascii_whitespace(c: u8) -> u8 {
-    const TABLE: &[u8; 256] = &ascii_whitespace_table();
-    unsafe { *TABLE.get_unchecked(c as usize) }
-}
-
 #[inline(always)]
 fn remove_ascii_whitespace(buf: &mut [u8]) -> &mut [u8] {
+    let non_aw_pos = crate::auto::find_non_ascii_whitespace(buf);
+    if non_aw_pos >= buf.len() {
+        return buf;
+    }
+
     unsafe {
         let n = buf.len();
-        let mut src = buf.as_ptr();
+        let mut src = buf.as_ptr().add(non_aw_pos);
         let end = src.add(n);
-
-        {
-            const UNROLL: usize = 8;
-            let end = src.add(n / UNROLL * UNROLL);
-            while src < end {
-                let mut flag = 0;
-                for _ in 0..UNROLL {
-                    flag |= is_ascii_whitespace(src.read());
-                    src = src.add(1)
-                }
-                if flag != 0 {
-                    src = src.sub(UNROLL);
-                    break;
-                }
-            }
-        }
-
-        while src < end {
-            if is_ascii_whitespace(src.read()) != 0 {
-                break;
-            }
-            src = src.add(1);
-        }
 
         let mut dst = src as *mut u8;
         while src < end {
             let byte = src.read();
-            if is_ascii_whitespace(byte) == 0 {
+            if crate::fallback::is_ascii_whitespace(byte) == 0 {
                 dst.write(byte);
                 dst = dst.add(1);
             }
