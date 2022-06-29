@@ -83,9 +83,9 @@ fn remove_ascii_whitespace(buf: &mut [u8]) -> &mut [u8] {
     unsafe {
         let n = buf.len();
         let mut src = buf.as_ptr().add(non_aw_pos);
-        let end = src.add(n);
+        let mut dst = buf.as_mut_ptr().add(non_aw_pos);
+        let end = buf.as_ptr().add(n);
 
-        let mut dst = src as *mut u8;
         while src < end {
             let byte = src.read();
             if crate::fallback::is_ascii_whitespace(byte) == 0 {
@@ -187,5 +187,29 @@ fn test_forgiving() {
         let mut buf = src.to_owned().into_bytes();
         let ans = Base64::forgiving_decode_inplace(&mut buf).unwrap();
         assert_eq!(ans, expected, "src = {:?}, expected = {:?}", src, expected);
+    }
+}
+
+#[test]
+fn test_remove_ascii_whitespace() {
+    let cases = [
+        "abcd",
+        "ab\tcd",
+        "ab\ncd",
+        "ab\x0Ccd",
+        "ab\rcd",
+        "ab cd",
+        "ab\t\n\x0C\r cd",
+        "ab\t\n\x0C\r =\t\n\x0C\r =\t\n\x0C\r ",
+    ];
+    for case in cases {
+        let mut buf = case.to_owned().into_bytes();
+        let expected = {
+            let mut v = buf.clone();
+            v.retain(|c| !c.is_ascii_whitespace());
+            v
+        };
+        let ans = remove_ascii_whitespace(&mut buf);
+        assert_eq!(ans, &*expected, "case = {:?}", case);
     }
 }
