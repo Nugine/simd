@@ -1,6 +1,6 @@
 [package]
 name = "hex-simd"
-version = "0.6.1"
+version = "0.6.2-dev"
 edition = "2021"
 description = "SIMD-accelerated hex encoding and decoding"
 license = "MIT"
@@ -21,7 +21,7 @@ unstable = ["simd-abstraction/unstable"]
 
 [dependencies.simd-abstraction]
 path = "../simd-abstraction"
-version = "0.6.1"
+version = "0.6.2-dev"
 
 [dev-dependencies]
 faster-hex = "0.6.1"
