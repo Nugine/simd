@@ -1,6 +1,6 @@
 [package]
 name = "base64-simd"
-version = "0.6.1-dev"
+version = "0.6.1"
 edition = "2021"
 description = "SIMD-accelerated base64 encoding and decoding"
 license = "MIT"
@@ -21,7 +21,7 @@ unstable = ["simd-abstraction/unstable"]
 
 [dependencies.simd-abstraction]
 path = "../simd-abstraction"
-version = "0.6.1-dev"
+version = "0.6.1"
 
 [dev-dependencies]
 base64 = "0.13.0"
