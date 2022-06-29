@@ -57,14 +57,7 @@ test-all:
 sync-version:
     #!/bin/bash -e
     cd {{justfile_directory()}}
-    vers='0.6.2-dev'
-    for pkg in `ls crates`
-    do
-        echo $pkg $vers
-        pushd crates/$pkg > /dev/null
-        cargo set-version $vers
-        popd > /dev/null
-    done
+    cargo set-version --workspace '0.6.2'
 
 fmt:
     #!/bin/bash -ex
