@@ -57,7 +57,7 @@ impl<'a> OutBuf<'a> {
     }
 
     #[inline(always)]
-    pub fn as_mut_ptr(&self) -> *mut u8 {
+    pub fn as_mut_ptr(&mut self) -> *mut u8 {
         self.data.as_ptr().cast()
     }
 }

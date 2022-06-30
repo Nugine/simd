@@ -129,7 +129,7 @@ pub fn encode<'s, 'd, S: SIMDExt>(
     s: S,
     base64: &'_ Base64,
     src: &'s [u8],
-    dst: OutBuf<'d>,
+    mut dst: OutBuf<'d>,
 ) -> Result<&'d mut [u8], Error> {
     unsafe {
         if src.is_empty() {
@@ -233,7 +233,7 @@ pub fn decode<'s, 'd, S: SIMDExt>(
     s: S,
     base64: &'_ Base64,
     src: &'s [u8],
-    dst: OutBuf<'d>,
+    mut dst: OutBuf<'d>,
 ) -> Result<&'d mut [u8], Error> {
     unsafe {
         if src.is_empty() {
