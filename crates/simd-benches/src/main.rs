@@ -1,18 +1,18 @@
+use std::time::Instant;
+
 fn bench_base64(n: usize, src: &str) -> u128 {
     let encoded = base64_simd::Base64::STANDARD
         .encode_to_boxed_str(src.as_bytes())
         .into_boxed_bytes();
 
-    let mut time = 0;
-    for _ in 0..n {
-        let mut encoded = encoded.clone();
-        let t0 = std::time::Instant::now();
-        let dst = base64_simd::Base64::forgiving_decode_inplace(&mut encoded).unwrap();
-        let t1 = std::time::Instant::now();
-        assert_eq!(src.as_bytes(), dst);
-        time += (t1 - t0).as_nanos();
+    let mut bufs = vec![encoded; n];
+
+    let t0 = Instant::now();
+    for buf in &mut bufs {
+        let _ = base64_simd::Base64::forgiving_decode_inplace(buf).unwrap();
     }
-    time
+    let t1 = Instant::now();
+    (t1 - t0).as_nanos()
 }
 
 fn main() {
