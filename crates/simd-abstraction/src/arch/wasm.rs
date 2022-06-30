@@ -7,6 +7,7 @@ use core::arch::wasm32::*;
 pub struct SIMD128(());
 
 unsafe impl InstructionSet for SIMD128 {
+    #[inline(always)]
     fn detect() -> Option<Self> {
         #[cfg(target_feature = "simd128")]
         {
@@ -18,6 +19,7 @@ unsafe impl InstructionSet for SIMD128 {
         }
     }
 
+    #[inline(always)]
     unsafe fn new_unchecked() -> Self {
         Self(())
     }
