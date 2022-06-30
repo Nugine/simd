@@ -8,12 +8,19 @@ x86-bench *ARGS:
     cargo criterion {{ARGS}}
 
 js-bench:
-    #!/bin/bash -ex
+    #!/bin/bash -e
     cd {{invocation_directory()}}
-    node -v
+    echo "node" `node -v`
     node ./scripts/base64.js
+    echo
+
     deno -V
     deno run ./scripts/base64.js
+    echo
+
+    echo "bun" `bun --version`
+    bun ./scripts/base64.js
+    echo
 
 x86-test *ARGS:
     #!/bin/bash -ex

@@ -16,15 +16,15 @@ function bench(name, n, f) {
         `n = ${n},          \t`,
         `dt = ${dt.toFixed(3)}s, \t`,
         `freq = ${freq.toFixed(3)}/s, \t`,
-    ]
+    ];
 
     if (time >= 1) {
-        msg.push(`time = ${time.toFixed(3)}ms/op`)
+        msg.push(`time = ${time.toFixed(3)}ms/op`);
     } else {
-        msg.push(`time = ${(time * 1e6).toFixed(0)}ns/op`)
+        msg.push(`time = ${(time * 1e6).toFixed(0)}ns/op`);
     }
 
-    console.log(msg.join(""))
+    console.log(msg.join(""));
 }
 
 function b64Long() {
@@ -41,5 +41,21 @@ function b64Short() {
     });
 }
 
+function b64ShortE() {
+    const input = "123";
+    bench("b64ShortE", 1e6, () => {
+        btoa(input);
+    });
+}
+
+function b64ShortD() {
+    const input = btoa("123");
+    bench("b64ShortD", 1e6, () => {
+        atob(input);
+    });
+}
+
 b64Long();
 b64Short();
+b64ShortE();
+b64ShortD();
