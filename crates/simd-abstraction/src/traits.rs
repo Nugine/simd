@@ -5,6 +5,21 @@ pub unsafe trait InstructionSet: Copy {
     unsafe fn new_unchecked() -> Self;
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct Fallback(());
+
+unsafe impl InstructionSet for Fallback {
+    #[inline(always)]
+    fn detect() -> Option<Self> {
+        Some(Self(()))
+    }
+
+    #[inline(always)]
+    unsafe fn new_unchecked() -> Self {
+        Self(())
+    }
+}
+
 #[allow(unused_macros)]
 macro_rules! define_isa {
     ($ty:ident, $feature: tt, $detect: tt) => {
