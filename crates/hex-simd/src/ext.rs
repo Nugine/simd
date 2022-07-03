@@ -31,7 +31,7 @@ pub fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
         assert!(src.len() * 2 <= (isize::MAX as usize));
 
         let mut uninit_buf = alloc_uninit_bytes(src.len() * 2);
-        encode(src, OutBuf::uninit(&mut *uninit_buf), case).unwrap();
+        encode(src, OutBuf::uninit(&mut uninit_buf), case).unwrap();
 
         let len = uninit_buf.len();
         let ptr = Box::into_raw(uninit_buf).cast::<u8>();
@@ -61,7 +61,7 @@ pub fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
             return Err(ERROR);
         }
         let mut uninit_buf = alloc_uninit_bytes(src.len() / 2);
-        decode(src, OutBuf::uninit(&mut *uninit_buf))?;
+        decode(src, OutBuf::uninit(&mut uninit_buf))?;
 
         let len = uninit_buf.len();
         let ptr = Box::into_raw(uninit_buf).cast::<u8>();
