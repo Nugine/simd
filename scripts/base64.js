@@ -27,35 +27,54 @@ function bench(name, n, f) {
     console.log(msg.join(""));
 }
 
+const LONG = "helloworld".repeat(1e5);
+const SHORT = "123";
+
 function b64Long() {
-    const input = "helloworld".repeat(1e5);
+    const input = LONG;
     bench("b64Long", 100, () => {
         atob(btoa(input));
     });
 }
 
+function b64LongE() {
+    const input = LONG;
+    bench("b64LongE", 100, () => {
+        btoa(input);
+    });
+}
+
+function b64LongD() {
+    const input = btoa(LONG);
+    bench("b64LongD", 100, () => {
+        atob(input);
+    });
+}
+
 function b64Short() {
-    const input = "123";
+    const input = SHORT;
     bench("b64Short", 1e6, () => {
         atob(btoa(input));
     });
 }
 
 function b64ShortE() {
-    const input = "123";
+    const input = SHORT;
     bench("b64ShortE", 1e6, () => {
         btoa(input);
     });
 }
 
 function b64ShortD() {
-    const input = btoa("123");
+    const input = btoa(SHORT);
     bench("b64ShortD", 1e6, () => {
         atob(input);
     });
 }
 
 b64Long();
+b64LongE();
+b64LongD();
 b64Short();
 b64ShortE();
 b64ShortD();

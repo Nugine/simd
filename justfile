@@ -10,6 +10,11 @@ x86-bench *ARGS:
 js-bench:
     #!/bin/bash -e
     cd {{invocation_directory()}}
+
+    F=./scripts/base64.js
+    echo "running $F"
+    echo
+
     echo "node" `node -v`
     node ./scripts/base64.js
     echo
