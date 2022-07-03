@@ -1,4 +1,4 @@
-use crate::{AsciiCase, Error, Hex};
+use crate::{AsciiCase, Error, HexStr};
 
 fn ok_cases() -> &'static [(&'static str, &'static str)] {
     const A1: &str = "67e5504410b1426f9247bb680e5fe0c8";
@@ -88,7 +88,7 @@ fn format_cases() -> &'static [(&'static str, &'static str)] {
     ]
 }
 
-pub fn test_format_simple(f: impl Fn(&[u8; 16], AsciiCase) -> Hex<32>) {
+pub fn test_format_simple(f: impl Fn(&[u8; 16], AsciiCase) -> HexStr<32>) {
     for &(input, _) in format_cases() {
         let mut src: [u8; 16] = [0; 16];
         faster_hex::hex_decode(input.as_bytes(), &mut src).unwrap();
@@ -101,7 +101,7 @@ pub fn test_format_simple(f: impl Fn(&[u8; 16], AsciiCase) -> Hex<32>) {
     }
 }
 
-pub fn test_format_hypenated(f: impl Fn(&[u8; 16], AsciiCase) -> Hex<36>) {
+pub fn test_format_hypenated(f: impl Fn(&[u8; 16], AsciiCase) -> HexStr<36>) {
     for &(input, expected) in format_cases() {
         let mut src: [u8; 16] = [0; 16];
         faster_hex::hex_decode(input.as_bytes(), &mut src).unwrap();

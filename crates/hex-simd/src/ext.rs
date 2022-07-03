@@ -6,7 +6,7 @@ use crate::{AsciiCase, Error, OutBuf, ERROR};
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
-pub use simd_abstraction::common::hex::Hex;
+pub use crate::sa_hex::HexStr;
 
 #[cfg(feature = "alloc")]
 use simd_abstraction::tools::alloc_uninit_bytes;
@@ -114,9 +114,9 @@ fn test_str() {
 
 /// Encodes `src` to a hex string in network byte order
 #[inline]
-pub fn encode_u64(src: u64, case: AsciiCase) -> Hex<16> {
+pub fn encode_u64(src: u64, case: AsciiCase) -> HexStr<16> {
     unsafe {
-        let mut this: MaybeUninit<Hex<16>> = MaybeUninit::uninit();
+        let mut this: MaybeUninit<HexStr<16>> = MaybeUninit::uninit();
         let src = &src.to_be_bytes();
         let dst: *mut u8 = this.as_mut_ptr().cast();
         let table = match case {

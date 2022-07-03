@@ -1,4 +1,4 @@
-use crate::{AsciiCase, Error, Hex};
+use crate::{AsciiCase, Error, HexStr};
 
 macro_rules! try_simd {
     ($f:ident($($args:tt)*)) => {
@@ -87,14 +87,14 @@ pub fn parse_hyphenated(src: &[u8]) -> Result<[u8; 16], Error> {
 
 /// Formats `src` to a fixed length hex string.
 #[inline]
-pub fn format_simple(src: &[u8; 16], case: AsciiCase) -> Hex<32> {
+pub fn format_simple(src: &[u8; 16], case: AsciiCase) -> HexStr<32> {
     try_simd!(format_simple(src, case));
     crate::fallback::format_simple(src, case)
 }
 
 /// Formats `src` to a fixed length hex string.
 #[inline]
-pub fn format_hyphenated(src: &[u8; 16], case: AsciiCase) -> Hex<36> {
+pub fn format_hyphenated(src: &[u8; 16], case: AsciiCase) -> HexStr<36> {
     try_simd!(format_hyphenated(src, case));
     crate::fallback::format_hyphenated(src, case)
 }

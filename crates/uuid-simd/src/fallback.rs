@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
 
 use crate::sa_hex::unhex;
-use crate::{AsciiCase, Error, Hex, ERROR};
+use crate::{AsciiCase, Error, HexStr, ERROR};
 
 #[inline(always)]
 const fn shl4(x: u8) -> u8 {
@@ -83,7 +83,7 @@ const fn char_lut(case: AsciiCase) -> &'static [u8; 16] {
 }
 
 #[inline]
-pub const fn format_simple(src: &[u8; 16], case: AsciiCase) -> Hex<32> {
+pub const fn format_simple(src: &[u8; 16], case: AsciiCase) -> HexStr<32> {
     let lut = char_lut(case);
     let mut dst = [0; 32];
     let mut i = 0;
@@ -93,11 +93,11 @@ pub const fn format_simple(src: &[u8; 16], case: AsciiCase) -> Hex<32> {
         dst[i * 2 + 1] = lut[(x & 0x0f) as usize];
         i += 1;
     }
-    unsafe { Hex::new_unchecked(dst) }
+    unsafe { HexStr::new_unchecked(dst) }
 }
 
 #[inline]
-pub const fn format_hyphenated(src: &[u8; 16], case: AsciiCase) -> Hex<36> {
+pub const fn format_hyphenated(src: &[u8; 16], case: AsciiCase) -> HexStr<36> {
     let lut = char_lut(case);
     let groups = [(0, 8), (9, 13), (14, 18), (19, 23), (24, 36)];
     let mut dst = [0; 36];
@@ -120,7 +120,7 @@ pub const fn format_hyphenated(src: &[u8; 16], case: AsciiCase) -> Hex<36> {
         }
         group_idx += 1;
     }
-    unsafe { Hex::new_unchecked(dst) }
+    unsafe { HexStr::new_unchecked(dst) }
 }
 
 #[test]

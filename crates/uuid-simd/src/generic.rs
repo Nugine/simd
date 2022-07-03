@@ -1,7 +1,7 @@
 #![allow(unused_macros, clippy::missing_safety_doc)]
 
 use crate::sa_hex;
-use crate::{AsciiCase, Error, Hex, ERROR};
+use crate::{AsciiCase, Error, HexStr, ERROR};
 
 use core::mem::MaybeUninit;
 use core::ptr;
@@ -11,7 +11,7 @@ use simd_abstraction::traits::SIMD256;
 
 macro_rules! specialize_for {
     ($feature:literal, $ty: ty) => {
-        use crate::{AsciiCase, Error, Hex};
+        use crate::{AsciiCase, Error, HexStr};
         use simd_abstraction::traits::InstructionSet;
 
         #[inline]
@@ -37,14 +37,14 @@ macro_rules! specialize_for {
 
         #[inline]
         #[target_feature(enable = $feature)]
-        pub unsafe fn format_simple(src: &[u8; 16], case: AsciiCase) -> Hex<32> {
+        pub unsafe fn format_simple(src: &[u8; 16], case: AsciiCase) -> HexStr<32> {
             let s = <$ty as InstructionSet>::new_unchecked();
             crate::generic::format_simple(s, src, case)
         }
 
         #[inline]
         #[target_feature(enable = $feature)]
-        pub unsafe fn format_hyphenated(src: &[u8; 16], case: AsciiCase) -> Hex<36> {
+        pub unsafe fn format_hyphenated(src: &[u8; 16], case: AsciiCase) -> HexStr<36> {
             let s = <$ty as InstructionSet>::new_unchecked();
             crate::generic::format_hyphenated(s, src, case)
         }
@@ -143,16 +143,16 @@ const fn char_lut(case: AsciiCase) -> &'static Bytes32 {
     }
 }
 
-pub(crate) fn format_simple<S: SIMD256>(s: S, src: &[u8; 16], case: AsciiCase) -> Hex<32> {
+pub(crate) fn format_simple<S: SIMD256>(s: S, src: &[u8; 16], case: AsciiCase) -> HexStr<32> {
     unsafe {
         let lut = s.load(char_lut(case));
         let a = s.v128_load_unaligned(src.as_ptr());
         let buf = s.v256_to_bytes(sa_hex::encode_u8x16(s, a, lut));
-        Hex::new_unchecked(buf)
+        HexStr::new_unchecked(buf)
     }
 }
 
-pub(crate) fn format_hyphenated<S: SIMDExt>(s: S, src: &[u8; 16], case: AsciiCase) -> Hex<36> {
+pub(crate) fn format_hyphenated<S: SIMDExt>(s: S, src: &[u8; 16], case: AsciiCase) -> HexStr<36> {
     const SWIZZLE: &Bytes32 = &Bytes32([
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, //
         0x80, 0x08, 0x09, 0x0a, 0x0b, 0x80, 0x0c, 0x0d, //
@@ -186,6 +186,6 @@ pub(crate) fn format_hyphenated<S: SIMDExt>(s: S, src: &[u8; 16], case: AsciiCas
         let bytes_14_15 = s.i16x8_get_lane7(s.v256_get_low(a)) as u16;
         ptr::write_unaligned(dst.add(16).cast(), bytes_14_15);
         ptr::write_unaligned(dst.add(32).cast(), bytes_28_31);
-        Hex::new_unchecked(buf.assume_init())
+        HexStr::new_unchecked(buf.assume_init())
     }
 }

@@ -113,10 +113,10 @@ pub enum AsciiCase {
 /// A fixed-length hex string
 #[derive(Clone, PartialEq, Eq)]
 #[repr(C, align(2))]
-pub struct Hex<const N: usize>([u8; N]);
+pub struct HexStr<const N: usize>([u8; N]);
 
-impl<const N: usize> Hex<N> {
-    /// Returns [`Hex<N>`](Hex)
+impl<const N: usize> HexStr<N> {
+    /// Returns [`HexStr<N>`](HexStr)
     ///
     /// # Safety
     /// This function requires:
@@ -144,7 +144,7 @@ impl<const N: usize> Hex<N> {
     }
 }
 
-impl<const N: usize> fmt::Debug for Hex<N> {
+impl<const N: usize> fmt::Debug for HexStr<N> {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         <str as fmt::Debug>::fmt(self.as_str(), f)
