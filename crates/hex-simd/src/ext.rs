@@ -1,5 +1,3 @@
-use core::mem::MaybeUninit;
-
 use crate::auto::*;
 use crate::{AsciiCase, Error, OutBuf, ERROR};
 
@@ -112,29 +110,29 @@ fn test_str() {
     assert_eq!(ans, "68656c6c6f");
 }
 
-/// Encodes `src` to a hex string in network byte order
-#[inline]
-pub fn encode_u64(src: u64, case: AsciiCase) -> HexStr<16> {
-    unsafe {
-        let mut this: MaybeUninit<HexStr<16>> = MaybeUninit::uninit();
-        let src = &src.to_be_bytes();
-        let dst: *mut u8 = this.as_mut_ptr().cast();
-        let table = match case {
-            AsciiCase::Lower => crate::fallback::FULL_LOWER_TABLE,
-            AsciiCase::Upper => crate::fallback::FULL_UPPER_TABLE,
-        };
-        crate::fallback::encode_unchecked(src, dst, table);
-        this.assume_init()
-    }
-}
+// /// Encodes `src` to a hex string in network byte order
+// #[inline]
+// pub fn encode_u64(src: u64, case: AsciiCase) -> HexStr<16> {
+//     unsafe {
+//         let mut this: MaybeUninit<HexStr<16>> = MaybeUninit::uninit();
+//         let src = &src.to_be_bytes();
+//         let dst: *mut u8 = this.as_mut_ptr().cast();
+//         let table = match case {
+//             AsciiCase::Lower => crate::fallback::FULL_LOWER_TABLE,
+//             AsciiCase::Upper => crate::fallback::FULL_UPPER_TABLE,
+//         };
+//         crate::fallback::encode_unchecked(src, dst, table);
+//         this.assume_init()
+//     }
+// }
 
-#[test]
-fn test_hex_u64() {
-    let src = 0x1234_5678_9abc_def0;
+// #[test]
+// fn test_hex_u64() {
+//     let src = 0x1234_5678_9abc_def0;
 
-    let hex = encode_u64(src, AsciiCase::Lower);
-    assert_eq!(hex.as_str(), format!("{:x}", src));
+//     let hex = encode_u64(src, AsciiCase::Lower);
+//     assert_eq!(hex.as_str(), format!("{:x}", src));
 
-    let hex = encode_u64(src, AsciiCase::Upper);
-    assert_eq!(hex.as_str(), format!("{:X}", src));
-}
+//     let hex = encode_u64(src, AsciiCase::Upper);
+//     assert_eq!(hex.as_str(), format!("{:X}", src));
+// }
