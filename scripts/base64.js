@@ -1,30 +1,35 @@
-// Extracted from <https://github.com/denoland/deno/blob/main/cli/bench/deno_common.js>
+const now = (() => {
+    // https://github.com/evanwashere/mitata/blob/master/src/time.mjs
+
+    if ("Deno" in globalThis) {
+        return () => (Deno.core.opSync("op_now") * 1e6);
+    }
+    if ("Bun" in globalThis) {
+        return Bun.nanoseconds;
+    }
+    return () => Number(process.hrtime.bigint());
+})();
 
 function bench(name, n, f) {
-    const t1 = performance.now();
+    const t1 = now();
     for (let i = 0; i < n; ++i) {
         f(i);
     }
-    const t2 = performance.now();
+    const t2 = now();
 
-    const dt = (t2 - t1) / 1e3;
+    const dt = (t2 - t1) / 1e9;
     const freq = n / dt;
     const time = (t2 - t1) / n;
 
     const msg = [
-        `${name}:     \t`,
-        `n = ${n},          \t`,
-        `dt = ${dt.toFixed(3)}s, \t`,
-        `freq = ${freq.toFixed(3)}/s, \t`,
+        `${name.padEnd(12)}|`,
+        `n = ${n.toString().padStart(7)},`,
+        `dt = ${dt.toFixed(3).toString().padStart(5)}s,`,
+        `freq = ${freq.toFixed(3).toString().padStart(12)}/s,`,
+        `time = ${time.toFixed(0).toString().padStart(10)}ns/op`
     ];
 
-    if (time >= 1) {
-        msg.push(`time = ${time.toFixed(3)}ms/op`);
-    } else {
-        msg.push(`time = ${(time * 1e6).toFixed(0)}ns/op`);
-    }
-
-    console.log(msg.join(""));
+    console.log(msg.join("    "));
 }
 
 const LONG = "helloworld".repeat(1e5);
