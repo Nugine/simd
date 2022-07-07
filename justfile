@@ -9,7 +9,7 @@ x86-bench *ARGS:
 
 js-bench:
     #!/bin/bash -e
-    cd {{invocation_directory()}}
+    cd {{justfile_directory()}}
 
     F=./scripts/base64.js
     echo "running $F"
@@ -25,6 +25,26 @@ js-bench:
 
     echo "bun" `bun --version`
     bun ./scripts/base64.js
+    echo
+
+wasi-bench:
+    #!/bin/bash -e
+    cd {{justfile_directory()}}
+
+    export RUSTFLAGS="-C target-feature=+simd128"
+    cargo build --release --bins -p simd-benches --target wasm32-wasi
+    F=./target/wasm32-wasi/release/simd-benches.wasm
+
+    wasmer -V
+    wasmer run --enable-all $F
+    echo
+
+    wasmtime -V
+    wasmtime --wasm-features simd $F
+    echo
+
+    echo "node" `node -v`
+    node --experimental-wasi-unstable-preview1 ./scripts/node-wasi.js $F
     echo
 
 x86-test *ARGS:
