@@ -278,58 +278,12 @@ pub(crate) unsafe fn decode_extra(
     Ok(())
 }
 
-const fn ascii_whitespace_table() -> [u8; 256] {
-    let mut ans = [0; 256];
-    let mut i: u8 = 0;
-    loop {
-        ans[i as usize] = if i.is_ascii_whitespace() { 0xff } else { 0 };
-        if i == 255 {
-            break;
-        }
-        i += 1;
-    }
-    ans
-}
-
-#[inline(always)]
-pub(crate) fn is_ascii_whitespace(c: u8) -> u8 {
-    const TABLE: &[u8; 256] = &ascii_whitespace_table();
-    unsafe { *TABLE.get_unchecked(c as usize) }
-}
-
-#[inline(always)]
-pub(crate) fn find_non_ascii_whitespace(data: &[u8]) -> usize {
-    unsafe {
-        let n = data.len();
-        let mut src = data.as_ptr();
-
-        const UNROLL: usize = 8;
-        let end = src.add(n / UNROLL * UNROLL);
-        while src < end {
-            let mut flag = 0;
-            for _ in 0..UNROLL {
-                flag |= is_ascii_whitespace(src.read());
-                src = src.add(1)
-            }
-            if flag != 0 {
-                src = src.sub(UNROLL);
-                break;
-            }
-        }
-
-        let end = data.as_ptr().add(n);
-        while src < end {
-            if is_ascii_whitespace(src.read()) != 0 {
-                break;
-            }
-            src = src.add(1);
-        }
-
-        src.offset_from(data.as_ptr()) as usize
-    }
-}
-
 #[test]
 fn test() {
-    crate::tests::test(encode, decode, decode_inplace, find_non_ascii_whitespace);
+    crate::tests::test(
+        encode,
+        decode,
+        decode_inplace,
+        crate::sa_ascii::find_non_ascii_whitespace_fallback,
+    );
 }

@@ -31,6 +31,8 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+pub(crate) use simd_abstraction::ascii as sa_ascii;
+
 pub use simd_abstraction::tools::OutBuf;
 
 mod error;

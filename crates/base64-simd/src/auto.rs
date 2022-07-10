@@ -88,5 +88,5 @@ impl Base64 {
 #[inline]
 pub(crate) fn find_non_ascii_whitespace(data: &[u8]) -> usize {
     try_simd!(find_non_ascii_whitespace(data));
-    fallback::find_non_ascii_whitespace(data)
+    crate::sa_ascii::find_non_ascii_whitespace_fallback(data)
 }

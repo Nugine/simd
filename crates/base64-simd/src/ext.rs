@@ -88,7 +88,7 @@ fn remove_ascii_whitespace(buf: &mut [u8]) -> &mut [u8] {
 
         while src < end {
             let byte = src.read();
-            if crate::fallback::is_ascii_whitespace(byte) == 0 {
+            if crate::sa_ascii::lookup_ascii_whitespace(byte) == 0 {
                 dst.write(byte);
                 dst = dst.add(1);
             }
