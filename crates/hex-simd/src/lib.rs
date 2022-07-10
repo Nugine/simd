@@ -32,7 +32,7 @@ extern crate alloc;
 
 pub(crate) use simd_abstraction::common::hex as sa_hex;
 
-pub use sa_hex::AsciiCase;
+pub use simd_abstraction::ascii::AsciiCase;
 pub use simd_abstraction::tools::OutBuf;
 
 mod error;

@@ -103,13 +103,6 @@ pub const fn unhex(x: u8) -> u8 {
     UNHEX_TABLE[x as usize]
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum AsciiCase {
-    Lower = 0,
-    Upper = 1,
-}
-
 /// A fixed-length hex string
 #[derive(Clone, PartialEq, Eq)]
 #[repr(C, align(2))]

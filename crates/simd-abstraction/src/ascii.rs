@@ -1,6 +1,13 @@
 use crate::tools::{Bytes32, Load};
 use crate::traits::SIMD256;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum AsciiCase {
+    Lower = 0,
+    Upper = 1,
+}
+
 #[inline]
 pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
     let (prefix, chunks, suffix) = unsafe { data.align_to::<Bytes32>() };

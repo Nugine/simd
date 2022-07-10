@@ -27,7 +27,8 @@
 
 pub(crate) use simd_abstraction::common::hex as sa_hex;
 
-pub use sa_hex::{AsciiCase, HexStr};
+pub use sa_hex::HexStr;
+pub use simd_abstraction::ascii::AsciiCase;
 
 mod error;
 pub use self::error::Error;
