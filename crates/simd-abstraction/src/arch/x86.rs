@@ -1,4 +1,5 @@
-use crate::traits::{InstructionSet, CRC32, POLYNOMIAL_CRC32C, SIMD128, SIMD256};
+use crate::crc32::{CRC32, POLYNOMIAL_CRC32C};
+use crate::traits::{InstructionSet, SIMD128, SIMD256};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;

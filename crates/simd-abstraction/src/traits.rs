@@ -266,13 +266,3 @@ pub unsafe trait SIMD256: SIMD128 {
         self.v256_from_v128x2(self.u32x4_shr::<IMM8>(a.0), self.u32x4_shr::<IMM8>(a.1))
     }
 }
-
-pub unsafe trait CRC32<const P: u32>: InstructionSet {
-    fn crc32_u8(self, crc: u32, value: u8) -> u32;
-    fn crc32_u16(self, crc: u32, value: u16) -> u32;
-    fn crc32_u32(self, crc: u32, value: u32) -> u32;
-    fn crc32_u64(self, crc: u32, value: u64) -> u32;
-}
-
-pub const POLYNOMIAL_CRC32_IEEE: u32 = 0x04C11DB7;
-pub const POLYNOMIAL_CRC32C: u32 = 0x1EDC6F41;

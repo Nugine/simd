@@ -40,8 +40,8 @@ pub mod arch {
 }
 
 pub mod common {
-    pub mod crc32;
     pub mod hex;
 }
 
 pub mod ascii;
+pub mod crc32;

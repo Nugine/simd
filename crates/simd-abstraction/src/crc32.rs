@@ -1,7 +1,21 @@
-use crate::traits::{CRC32, POLYNOMIAL_CRC32C, POLYNOMIAL_CRC32_IEEE};
+use crate::traits::InstructionSet;
+
+#[allow(clippy::missing_safety_doc)]
+pub unsafe trait CRC32<const P: u32>: InstructionSet {
+    fn crc32_u8(self, crc: u32, value: u8) -> u32;
+    fn crc32_u16(self, crc: u32, value: u16) -> u32;
+    fn crc32_u32(self, crc: u32, value: u32) -> u32;
+    fn crc32_u64(self, crc: u32, value: u64) -> u32;
+}
+
+pub const POLYNOMIAL_CRC32_IEEE: u32 = 0x04C11DB7;
+pub const POLYNOMIAL_CRC32C: u32 = 0x1EDC6F41;
 
 #[inline]
-pub fn compute<S: CRC32<P>, const P: u32>(s: S, init: u32, data: &[u8]) -> u32 {
+pub fn compute<S, const P: u32>(s: S, init: u32, data: &[u8]) -> u32
+where
+    S: CRC32<P>,
+{
     let mut crc = !init;
 
     let (prefix, middle, suffix) = unsafe { data.align_to::<u64>() };
@@ -24,14 +38,4 @@ pub fn compute<S: CRC32<P>, const P: u32>(s: S, init: u32, data: &[u8]) -> u32 {
 
 fn fold_copied<T: Copy, B>(slice: &[T], init: B, f: impl Fn(B, T) -> B) -> B {
     slice.iter().copied().fold(init, f)
-}
-
-#[inline]
-pub fn compute_crc32_ieee<S: CRC32<POLYNOMIAL_CRC32_IEEE>>(s: S, init: u32, data: &[u8]) -> u32 {
-    compute::<S, POLYNOMIAL_CRC32_IEEE>(s, init, data)
-}
-
-#[inline]
-pub fn compute_crc32c<S: CRC32<POLYNOMIAL_CRC32C>>(s: S, init: u32, data: &[u8]) -> u32 {
-    compute::<S, POLYNOMIAL_CRC32C>(s, init, data)
 }
