@@ -2,13 +2,13 @@ use crate::tools::{Bytes32, Load};
 use crate::traits::SIMD256;
 
 #[inline]
-pub fn is_ascii_ct<S: SIMD256>(s: S, data: &[u8]) -> bool {
+pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
     let (prefix, chunks, suffix) = unsafe { data.align_to::<Bytes32>() };
 
     let mut ans;
 
     {
-        ans = check_fallback_ct(prefix);
+        ans = is_ascii_ct_fallback(prefix);
     }
 
     {
@@ -21,14 +21,14 @@ pub fn is_ascii_ct<S: SIMD256>(s: S, data: &[u8]) -> bool {
     }
 
     {
-        ans &= check_fallback_ct(suffix);
+        ans &= is_ascii_ct_fallback(suffix);
     }
 
     ans
 }
 
-#[inline(always)]
-fn check_fallback_ct(data: &[u8]) -> bool {
+#[inline]
+pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
     let mut ans = 0;
     for &x in data {
         ans |= x;
