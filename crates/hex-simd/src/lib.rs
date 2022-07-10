@@ -30,7 +30,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-pub(crate) use simd_abstraction::common::hex as sa_hex;
+pub(crate) use simd_abstraction::hex as sa_hex;
 
 pub use simd_abstraction::ascii::AsciiCase;
 pub use simd_abstraction::tools::OutBuf;

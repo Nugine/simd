@@ -25,7 +25,7 @@
 )]
 #![warn(clippy::todo)]
 
-pub(crate) use simd_abstraction::common::hex as sa_hex;
+pub(crate) use simd_abstraction::hex as sa_hex;
 
 pub use sa_hex::HexStr;
 pub use simd_abstraction::ascii::AsciiCase;
