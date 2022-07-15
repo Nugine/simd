@@ -1,6 +1,6 @@
 use crate::{Base64, Error, OutBuf};
 
-use rand::{Rng, RngCore};
+use rand::RngCore;
 
 fn rand_bytes(n: usize) -> Vec<u8> {
     let mut bytes = vec![0u8; n];
@@ -12,7 +12,7 @@ pub fn test(
     encode: impl for<'s, 'd> Fn(&'_ Base64, &'s [u8], OutBuf<'d>) -> Result<&'d mut [u8], Error>,
     decode: impl for<'s, 'd> Fn(&'_ Base64, &'s [u8], OutBuf<'d>) -> Result<&'d mut [u8], Error>,
     decode_inplace: impl for<'b> Fn(&'_ Base64, &'b mut [u8]) -> Result<&'b mut [u8], Error>,
-    find_non_ascii_whitespace: impl for<'a> Fn(&'a [u8]) -> usize,
+    // find_non_ascii_whitespace: impl for<'a> Fn(&'a [u8]) -> usize,
 ) {
     #[cfg(miri)]
     use std::io::Write;
@@ -73,32 +73,32 @@ pub fn test(
         }
     }
 
-    {
-        println!();
-        for n in 1..128 {
-            dbg_msg!(@1 "n = {}", n);
+    // {
+    //     println!();
+    //     for n in 1..128 {
+    //         dbg_msg!(@1 "n = {}", n);
 
-            let mut bytes = vec![b'a'; n];
+    //         let mut bytes = vec![b'a'; n];
 
-            for c in [b'\r', b' '] {
-                dbg_msg!(@2 "c = 0x{:>02x}", c);
+    //         for c in [b'\r', b' '] {
+    //             dbg_msg!(@2 "c = 0x{:>02x}", c);
 
-                let pos = rand::thread_rng().gen_range(0..bytes.len());
-                bytes[pos] = c;
+    //             let pos = rand::thread_rng().gen_range(0..bytes.len());
+    //             bytes[pos] = c;
 
-                let expected = bytes
-                    .iter()
-                    .position(|c| c.is_ascii_whitespace())
-                    .unwrap_or(bytes.len());
-                let ans = find_non_ascii_whitespace(&bytes);
-                assert_eq!(ans, expected);
+    //             let expected = bytes
+    //                 .iter()
+    //                 .position(|c| c.is_ascii_whitespace())
+    //                 .unwrap_or(bytes.len());
+    //             let ans = find_non_ascii_whitespace(&bytes);
+    //             assert_eq!(ans, expected);
 
-                bytes[pos] = b'a';
+    //             bytes[pos] = b'a';
 
-                dbg_msg!(@3 "find_non_ascii_whitespace ... ok");
-            }
-        }
-    }
+    //             dbg_msg!(@3 "find_non_ascii_whitespace ... ok");
+    //         }
+    //     }
+    // }
 
     println!();
     for n in 0..128 {
@@ -148,14 +148,14 @@ pub fn test(
             }
         }
 
-        {
-            let expected = bytes
-                .iter()
-                .position(|c| c.is_ascii_whitespace())
-                .unwrap_or(bytes.len());
-            let ans = find_non_ascii_whitespace(&bytes);
-            assert_eq!(ans, expected);
-            dbg_msg!(@3 "find_non_ascii_whitespace ... ok");
-        }
+        // {
+        //     let expected = bytes
+        //         .iter()
+        //         .position(|c| c.is_ascii_whitespace())
+        //         .unwrap_or(bytes.len());
+        //     let ans = find_non_ascii_whitespace(&bytes);
+        //     assert_eq!(ans, expected);
+        //     dbg_msg!(@3 "find_non_ascii_whitespace ... ok");
+        // }
     }
 }

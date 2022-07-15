@@ -47,13 +47,6 @@ macro_rules! specialize_for {
             let s = <$ty as InstructionSet>::new();
             crate::generic::decode_inplace(s, base64, buf)
         }
-
-        #[inline]
-        #[target_feature(enable = $feature)]
-        pub(crate) unsafe fn find_non_ascii_whitespace(data: &[u8]) -> usize {
-            let s = <$ty as InstructionSet>::new();
-            crate::sa_ascii::find_non_ascii_whitespace_simd(s, data)
-        }
     };
 }
 

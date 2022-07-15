@@ -74,8 +74,13 @@ impl Base64 {
 }
 
 #[inline(always)]
+fn find_non_ascii_whitespace(data: &[u8]) -> usize {
+    crate::sa_ascii::multiversion::find_non_ascii_whitespace::auto_indirect(data)
+}
+
+#[inline(always)]
 fn remove_ascii_whitespace(buf: &mut [u8]) -> &mut [u8] {
-    let non_aw_pos = crate::auto::find_non_ascii_whitespace(buf);
+    let non_aw_pos = find_non_ascii_whitespace(buf);
     if non_aw_pos >= buf.len() {
         return buf;
     }

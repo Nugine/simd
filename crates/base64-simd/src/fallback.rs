@@ -280,10 +280,5 @@ pub(crate) unsafe fn decode_extra(
 
 #[test]
 fn test() {
-    crate::tests::test(
-        encode,
-        decode,
-        decode_inplace,
-        crate::sa_ascii::find_non_ascii_whitespace_fallback,
-    );
+    crate::tests::test(encode, decode, decode_inplace);
 }

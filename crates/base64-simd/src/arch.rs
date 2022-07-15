@@ -10,7 +10,6 @@ macro_rules! unit_tests_for {
                 |base64, src, dst| unsafe { encode(base64, src, dst) },
                 |base64, src, dst| unsafe { decode(base64, src, dst) },
                 |base64, buf| unsafe { decode_inplace(base64, buf) },
-                |data| unsafe { find_non_ascii_whitespace(data) },
             );
         }
     };
@@ -26,7 +25,6 @@ macro_rules! unit_tests_for {
                 |base64, src, dst| unsafe { encode(base64, src, dst) },
                 |base64, src, dst| unsafe { decode(base64, src, dst) },
                 |base64, buf| unsafe { decode_inplace(base64, buf) },
-                |data| unsafe { find_non_ascii_whitespace(data) },
             );
         }
     };
