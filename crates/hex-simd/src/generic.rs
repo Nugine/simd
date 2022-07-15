@@ -17,7 +17,7 @@ macro_rules! specialize_for {
         #[inline]
         #[target_feature(enable = $feature)]
         pub unsafe fn check(src: &[u8]) -> bool {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::check(s, src)
         }
 
@@ -28,7 +28,7 @@ macro_rules! specialize_for {
             dst: OutBuf<'d>,
             case: AsciiCase,
         ) -> Result<&'d mut [u8], Error> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::encode(s, src, dst, case)
         }
 
@@ -38,14 +38,14 @@ macro_rules! specialize_for {
             src: &'s [u8],
             dst: OutBuf<'d>,
         ) -> Result<&'d mut [u8], Error> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::decode(s, src, dst)
         }
 
         #[inline]
         #[target_feature(enable = $feature)]
         pub unsafe fn decode_inplace(buf: &mut [u8]) -> Result<&mut [u8], Error> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::decode_inplace(s, buf)
         }
     };

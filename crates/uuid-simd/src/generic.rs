@@ -17,35 +17,35 @@ macro_rules! specialize_for {
         #[inline]
         #[target_feature(enable = $feature)]
         pub unsafe fn parse(src: &[u8]) -> Result<[u8; 16], Error> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::parse(s, src)
         }
 
         #[inline]
         #[target_feature(enable = $feature)]
         pub unsafe fn parse_simple(src: &[u8]) -> Result<[u8; 16], Error> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::parse_simple(s, src)
         }
 
         #[inline]
         #[target_feature(enable = $feature)]
         pub unsafe fn parse_hyphenated(src: &[u8]) -> Result<[u8; 16], Error> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::parse_hyphenated(s, src)
         }
 
         #[inline]
         #[target_feature(enable = $feature)]
         pub unsafe fn format_simple(src: &[u8; 16], case: AsciiCase) -> HexStr<32> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::format_simple(s, src, case)
         }
 
         #[inline]
         #[target_feature(enable = $feature)]
         pub unsafe fn format_hyphenated(src: &[u8; 16], case: AsciiCase) -> HexStr<36> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::format_hyphenated(s, src, case)
         }
     };

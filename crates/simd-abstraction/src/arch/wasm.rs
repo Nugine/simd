@@ -8,19 +8,12 @@ pub struct SIMD128(());
 
 unsafe impl InstructionSet for SIMD128 {
     #[inline(always)]
-    fn detect() -> Option<Self> {
-        #[cfg(target_feature = "simd128")]
-        {
-            Some(Self(()))
-        }
-        #[cfg(not(target_feature = "simd128"))]
-        {
-            None
-        }
+    fn is_enabled() -> bool {
+        cfg!(target_feature = "simd128")
     }
 
     #[inline(always)]
-    unsafe fn new_unchecked() -> Self {
+    unsafe fn new() -> Self {
         Self(())
     }
 }

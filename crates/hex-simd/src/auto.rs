@@ -6,10 +6,10 @@ macro_rules! try_simd {
         {
             use simd_abstraction::traits::InstructionSet;
             use simd_abstraction::arch::x86::*;
-            if AVX2::detect().is_some() {
+            if AVX2::is_enabled() {
                 return unsafe { $crate::arch::x86::avx2::$f($($args)*) };
             }
-            if SSE41::detect().is_some() {
+            if SSE41::is_enabled() {
                 return unsafe { $crate::arch::x86::sse41::$f($($args)*) };
             }
         }
@@ -26,7 +26,7 @@ macro_rules! try_simd {
             #[cfg(target_arch="aarch64")]
             use simd_abstraction::arch::aarch64::*;
 
-            if NEON::detect().is_some() {
+            if NEON::is_enabled() {
                 return unsafe { $crate::arch::arm::neon::$f($($args)*) };
             }
         }
@@ -36,7 +36,7 @@ macro_rules! try_simd {
 
             use simd_abstraction::arch::wasm::*;
 
-            if SIMD128::detect().is_some() {
+            if SIMD128::is_enabled() {
                 return unsafe { $crate::arch::wasm::simd128::$f($($args)*) };
             }
         }

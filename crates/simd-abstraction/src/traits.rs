@@ -1,8 +1,14 @@
 #![allow(clippy::missing_safety_doc)]
 
 pub unsafe trait InstructionSet: Copy {
-    fn detect() -> Option<Self>;
-    unsafe fn new_unchecked() -> Self;
+    fn is_enabled() -> bool;
+
+    unsafe fn new() -> Self;
+
+    #[inline(always)]
+    fn detect() -> Option<Self> {
+        Self::is_enabled().then(|| unsafe { Self::new() })
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -10,12 +16,12 @@ pub struct Fallback(());
 
 unsafe impl InstructionSet for Fallback {
     #[inline(always)]
-    fn detect() -> Option<Self> {
-        Some(Self(()))
+    fn is_enabled() -> bool {
+        true
     }
 
     #[inline(always)]
-    unsafe fn new_unchecked() -> Self {
+    unsafe fn new() -> Self {
         Self(())
     }
 }
@@ -28,23 +34,23 @@ macro_rules! define_isa {
 
         unsafe impl InstructionSet for $ty {
             #[inline(always)]
-            fn detect() -> Option<Self> {
+            fn is_enabled() -> bool {
                 #[cfg(target_feature = $feature)]
                 {
-                    Some(Self(()))
+                    true
                 }
                 #[cfg(not(target_feature = $feature))]
                 {
                     #[cfg(feature = "std")]
                     if std::arch::$detect!($feature) {
-                        return Some(Self(()));
+                        return true;
                     }
-                    None
+                    false
                 }
             }
 
             #[inline(always)]
-            unsafe fn new_unchecked() -> Self {
+            unsafe fn new() -> Self {
                 Self(())
             }
         }

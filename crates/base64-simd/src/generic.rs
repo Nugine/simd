@@ -23,7 +23,7 @@ macro_rules! specialize_for {
             src: &'s [u8],
             dst: OutBuf<'d>,
         ) -> Result<&'d mut [u8], Error> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::encode(s, base64, src, dst)
         }
 
@@ -34,7 +34,7 @@ macro_rules! specialize_for {
             src: &'s [u8],
             dst: OutBuf<'d>,
         ) -> Result<&'d mut [u8], Error> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::decode(s, base64, src, dst)
         }
 
@@ -44,14 +44,14 @@ macro_rules! specialize_for {
             base64: &'_ Base64,
             buf: &'b mut [u8],
         ) -> Result<&'b mut [u8], Error> {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::generic::decode_inplace(s, base64, buf)
         }
 
         #[inline]
         #[target_feature(enable = $feature)]
         pub(crate) unsafe fn find_non_ascii_whitespace(data: &[u8]) -> usize {
-            let s = <$ty as InstructionSet>::new_unchecked();
+            let s = <$ty as InstructionSet>::new();
             crate::sa_ascii::find_non_ascii_whitespace_simd(s, data)
         }
     };
