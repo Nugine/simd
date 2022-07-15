@@ -71,7 +71,7 @@ wasm-test:
 miri *ARGS:
     #!/bin/bash
     cd {{invocation_directory()}}
-    cargo miri test -- --nocapture --test-threads=1 {{ARGS}}
+    time cargo miri test -- --nocapture --test-threads=1 {{ARGS}}
 
 test-all:
     #!/bin/bash -ex
