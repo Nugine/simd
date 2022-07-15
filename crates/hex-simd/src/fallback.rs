@@ -133,8 +133,8 @@ pub fn decode_inplace(buf: &mut [u8]) -> Result<&mut [u8], Error> {
         return Err(ERROR);
     }
     unsafe {
-        let src = buf.as_ptr();
-        let dst = buf.as_mut_ptr();
+        let dst: *mut u8 = buf.as_mut_ptr();
+        let src: *const u8 = dst;
         decode_unchecked(m, src, dst)?;
         Ok(slice::from_raw_parts_mut(dst, m))
     }
