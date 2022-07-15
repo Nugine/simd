@@ -9,6 +9,15 @@ pub enum AsciiCase {
 }
 
 #[inline]
+pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
+    let mut ans = 0;
+    for &x in data {
+        ans |= x;
+    }
+    ans < 0x80
+}
+
+#[inline]
 pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
     let (prefix, chunks, suffix) = unsafe { data.align_to::<Bytes32>() };
 
@@ -32,15 +41,6 @@ pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
     }
 
     ans
-}
-
-#[inline]
-pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
-    let mut ans = 0;
-    for &x in data {
-        ans |= x;
-    }
-    ans < 0x80
 }
 
 #[inline(always)]
@@ -92,6 +92,34 @@ pub fn find_non_ascii_whitespace_fallback(data: &[u8]) -> usize {
     }
 }
 
+#[inline(always)]
+fn check_non_ascii_whitespace_u8x32<S: SIMD256>(s: S, a: S::V256) -> bool {
+    // ASCII whitespaces
+    // TAB      0x09    00001001
+    // LF       0x0a    00001010
+    // FF       0x0c    00001100
+    // CR       0x0d    00001101
+    // SPACE    0x20    00010000
+    //
+
+    const LUT: &Bytes32 = &Bytes32([
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //
+        0xff, 0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0xff, //
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //
+        0xff, 0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0xff, //
+    ]);
+
+    let lut: _ = s.load(LUT);
+
+    let m1: _ = s.u8x16x2_swizzle(lut, a);
+    let m2: _ = s.v256_and(a, s.u8x32_splat(0xf0));
+    let m3: _ = s.i8x32_cmp_eq(s.v256_or(m1, m2), s.v256_create_zero());
+    let m4: _ = s.i8x32_cmp_eq(a, s.i8x32_splat(0x20));
+    let m5: _ = s.v256_or(m3, m4);
+
+    !s.v256_all_zero(m5)
+}
+
 #[inline]
 pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
     let (prefix, chunks, suffix) = unsafe { data.align_to::<Bytes32>() };
@@ -123,30 +151,20 @@ pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
     pos
 }
 
-#[inline(always)]
-fn check_non_ascii_whitespace_u8x32<S: SIMD256>(s: S, a: S::V256) -> bool {
-    // ASCII whitespaces
-    // TAB      0x09    00001001
-    // LF       0x0a    00001010
-    // FF       0x0c    00001100
-    // CR       0x0d    00001101
-    // SPACE    0x20    00010000
-    //
+pub mod multiversion {
+    use super::*;
 
-    const LUT: &Bytes32 = &Bytes32([
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //
-        0xff, 0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0xff, //
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //
-        0xff, 0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0xff, //
-    ]);
+    crate::simd_dispatch! (
+        name        = is_ascii_ct,
+        signature   = fn(data: &[u8]) -> bool,
+        fallback    = is_ascii_ct_fallback,
+        simd        = is_ascii_ct_simd,
+    );
 
-    let lut: _ = s.load(LUT);
-
-    let m1: _ = s.u8x16x2_swizzle(lut, a);
-    let m2: _ = s.v256_and(a, s.u8x32_splat(0xf0));
-    let m3: _ = s.i8x32_cmp_eq(s.v256_or(m1, m2), s.v256_create_zero());
-    let m4: _ = s.i8x32_cmp_eq(a, s.i8x32_splat(0x20));
-    let m5: _ = s.v256_or(m3, m4);
-
-    !s.v256_all_zero(m5)
+    crate::simd_dispatch!(
+        name        = find_non_ascii_whitespace,
+        signature   = fn(data: &[u8]) -> usize,
+        fallback    = find_non_ascii_whitespace_fallback,
+        simd        = find_non_ascii_whitespace_simd,
+    );
 }

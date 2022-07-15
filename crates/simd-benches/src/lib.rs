@@ -8,15 +8,9 @@ pub fn rand_bytes(len: usize) -> Vec<u8> {
     buf
 }
 
-use simd_abstraction::ascii::{is_ascii_ct_fallback, is_ascii_ct_simd};
-
-simd_abstraction::simd_dispatch! {
-    is_ascii_ct = fn(data: &[u8]) -> bool,
-    fallback    = is_ascii_ct_fallback,
-    simd        = is_ascii_ct_simd,
-}
+use simd_abstraction::ascii::multiversion as sa_ascii_mv;
 
 #[inline(always)]
 pub fn is_ascii_ct(data: &[u8]) -> bool {
-    is_ascii_ct::auto_indirect(data)
+    sa_ascii_mv::is_ascii_ct::auto_indirect(data)
 }

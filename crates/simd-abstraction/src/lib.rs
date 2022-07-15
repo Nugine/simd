@@ -1,5 +1,6 @@
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
+#![cfg_attr(feature = "unstable", feature(arm_target_feature))]
 //
 #![deny(
     missing_debug_implementations,
@@ -45,11 +46,12 @@ pub mod hex;
 
 #[macro_export]
 macro_rules! simd_dispatch {
-    {
-        $name:ident = fn($($arg_name: ident: $arg_type: ty),*) -> $ret:ty,
-        fallback = $fallback_fn: path,
-        simd = $simd_fn: ident,
-    } => {
+    (
+        name        = $name:ident,
+        signature   = fn($($arg_name: ident: $arg_type: ty),*) -> $ret:ty,
+        fallback    = $fallback_fn:ident,
+        simd        = $simd_fn:ident,
+    ) => {
         pub mod $name {
             #![allow(clippy::missing_safety_doc)]
 
@@ -61,6 +63,7 @@ macro_rules! simd_dispatch {
 
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             $crate::item_group!{
+                #[inline]
                 #[target_feature(enable = "avx2")]
                 pub unsafe fn avx2($($arg_name:$arg_type),*) -> $ret {
                     use $crate::arch::x86::AVX2;
@@ -68,6 +71,7 @@ macro_rules! simd_dispatch {
                     $simd_fn(AVX2::new() $(,$arg_name)*)
                 }
 
+                #[inline]
                 #[target_feature(enable = "sse4.1")]
                 pub unsafe fn sse41($($arg_name:$arg_type),*) -> $ret {
                     use $crate::arch::x86::SSE41;
@@ -78,6 +82,7 @@ macro_rules! simd_dispatch {
 
             #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
             $crate::item_group!{
+                #[inline]
                 #[target_feature(enable = "neon")]
                 pub unsafe fn neon($($arg_name:$arg_type),*) -> $ret {
                     #[cfg(target_arch = "aarch64")]
@@ -92,6 +97,7 @@ macro_rules! simd_dispatch {
 
             #[cfg(target_arch = "wasm32")]
             $crate::item_group!{
+                #[inline]
                 #[target_feature(enable = "simd128")]
                 pub unsafe fn simd128($($arg_name:$arg_type),*) -> $ret {
                     use $crate::arch::wasm;
