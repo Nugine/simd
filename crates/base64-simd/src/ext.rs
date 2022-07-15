@@ -87,9 +87,11 @@ fn remove_ascii_whitespace(buf: &mut [u8]) -> &mut [u8] {
 
     unsafe {
         let n = buf.len();
-        let mut src = buf.as_ptr().add(non_aw_pos);
-        let mut dst = buf.as_mut_ptr().add(non_aw_pos);
-        let end = buf.as_ptr().add(n);
+        let buf = buf.as_mut_ptr();
+
+        let mut src: *const u8 = buf.add(non_aw_pos);
+        let mut dst: *mut u8 = buf.add(non_aw_pos);
+        let end: *const u8 = buf.add(n);
 
         while src < end {
             let byte = src.read();
@@ -100,8 +102,8 @@ fn remove_ascii_whitespace(buf: &mut [u8]) -> &mut [u8] {
             src = src.add(1);
         }
 
-        let len = dst.offset_from(buf.as_ptr()) as usize;
-        buf.get_unchecked_mut(..len)
+        let len = dst.offset_from(buf) as usize;
+        core::slice::from_raw_parts_mut(buf, len)
     }
 }
 

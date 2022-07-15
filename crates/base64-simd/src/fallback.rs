@@ -159,8 +159,8 @@ pub fn decode_inplace<'b>(base64: &'_ Base64, buf: &'b mut [u8]) -> Result<&'b m
 
         let (n, m) = Base64::decoded_length_unchecked(buf, base64.padding)?;
 
-        let src = buf.as_ptr();
-        let dst = buf.as_mut_ptr();
+        let dst: *mut u8 = buf.as_mut_ptr();
+        let src: *const u8 = dst;
         decode_unchecked(base64, n, m, src, dst)?;
 
         Ok(slice::from_raw_parts_mut(dst, m))
