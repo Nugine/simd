@@ -14,8 +14,8 @@ rust-version = "1.61"
 
 [features]
 default = ["std", "detect", "uuid"]
-std = []
-detect = ["simd-abstraction/std"]
+std = ["simd-abstraction/std"]
+detect = ["simd-abstraction/detect"]
 unstable = ["simd-abstraction/unstable"]
 
 [dependencies.uuid]

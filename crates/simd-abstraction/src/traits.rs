@@ -41,7 +41,7 @@ macro_rules! define_isa {
                 }
                 #[cfg(not(target_feature = $feature))]
                 {
-                    #[cfg(feature = "std")]
+                    #[cfg(feature = "detect")]
                     if std::arch::$detect!($feature) {
                         return true;
                     }

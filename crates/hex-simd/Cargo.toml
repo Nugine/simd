@@ -14,9 +14,9 @@ rust-version = "1.61"
 
 [features]
 default = ["std", "detect"]
-std = ["alloc"]
-detect = ["simd-abstraction/std"]
 alloc = ["simd-abstraction/alloc"]
+std = ["alloc", "simd-abstraction/std"]
+detect = ["simd-abstraction/detect"]
 unstable = ["simd-abstraction/unstable"]
 
 [dependencies.simd-abstraction]

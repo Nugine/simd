@@ -13,6 +13,7 @@ rust-version = "1.61"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-std = []
-unstable = []
 alloc = []
+std = ["alloc"]
+detect = ["std"]
+unstable = []
