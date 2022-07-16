@@ -52,6 +52,7 @@ x86-test *ARGS:
     cd {{invocation_directory()}}
     function x86test(){
         cargo test --no-default-features --features 'std,unstable' $@ {{ARGS}}
+        cargo test --features 'unstable' $@ {{ARGS}}
     }
     export RUSTFLAGS="-Zsanitizer=address -C target-feature=+avx2"
     x86test --lib
@@ -73,6 +74,10 @@ arm-test *ARGS:
             --no-default-features --features 'std,unstable' {{ARGS}}
         cross test --target aarch64-unknown-linux-gnu \
             --no-default-features --features 'std,unstable' {{ARGS}}
+        cross test --target armv7-unknown-linux-gnueabihf \
+            --features 'unstable' {{ARGS}}
+        cross test --target aarch64-unknown-linux-gnu \
+            --features 'unstable' {{ARGS}}
     }
 
     export RUSTFLAGS="-C target-feature=+neon"
