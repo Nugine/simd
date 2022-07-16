@@ -5,7 +5,7 @@ use crate::fallback::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 use crate::fallback::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
 use crate::{Base64, Base64Kind, Error, OutBuf, ERROR};
 
-use simd_abstraction::tools::{empty_slice_mut, read, write};
+use simd_abstraction::tools::{read, slice_mut, write};
 use simd_abstraction::tools::{Bytes32, Load};
 use simd_abstraction::traits::SIMD256;
 
@@ -126,7 +126,7 @@ pub fn encode<'s, 'd, S: SIMDExt>(
 ) -> Result<&'d mut [u8], Error> {
     unsafe {
         if src.is_empty() {
-            return Ok(empty_slice_mut(dst.as_mut_ptr()));
+            return Ok(slice_mut(dst.as_mut_ptr(), 0));
         }
         let n = src.len();
         let m = Base64::encoded_length_unchecked(n, base64.padding);
@@ -230,7 +230,7 @@ pub fn decode<'s, 'd, S: SIMDExt>(
 ) -> Result<&'d mut [u8], Error> {
     unsafe {
         if src.is_empty() {
-            return Ok(empty_slice_mut(dst.as_mut_ptr()));
+            return Ok(slice_mut(dst.as_mut_ptr(), 0));
         }
 
         let (n, m) = Base64::decoded_length_unchecked(src, base64.padding)?;
@@ -254,7 +254,7 @@ pub fn decode_inplace<'b, S: SIMDExt>(
 ) -> Result<&'b mut [u8], Error> {
     unsafe {
         if buf.is_empty() {
-            return Ok(empty_slice_mut(buf.as_mut_ptr()));
+            return Ok(slice_mut(buf.as_mut_ptr(), 0));
         }
 
         let (n, m) = Base64::decoded_length_unchecked(buf, base64.padding)?;
