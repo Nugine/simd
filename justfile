@@ -50,16 +50,29 @@ wasi-bench:
 x86-test *ARGS:
     #!/bin/bash -ex
     cd {{invocation_directory()}}
-    export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1 -Zsanitizer=address"
-    cargo test --lib {{ARGS}}
-    export RUSTFLAGS=""
-    cargo test {{ARGS}}
+    function x86test(){
+        cargo test --no-default-features --features 'std,unstable' {{ARGS}}
+    }
+    export RUSTFLAGS="-Zsanitizer=address -C target-feature=+avx2"
+    x86test
+    export RUSTFLAGS="-Zsanitizer=address -C target-feature=+sse4.1"
+    x86test
+    export RUSTFLAGS="-Zsanitizer=address"
+    x86test
 
 arm-test *ARGS:
     #!/bin/bash -ex
+    function armtest(){
+        cross test --target armv7-unknown-linux-gnueabihf \
+            --no-default-features --features 'std,unstable' {{ARGS}}
+        cross test --target aarch64-unknown-linux-gnu \
+            --no-default-features --features 'std,unstable' {{ARGS}}
+    }
+
     export RUSTFLAGS="-C target-feature=+neon"
-    cross test --target armv7-unknown-linux-gnueabihf --features unstable {{ARGS}}
-    cross test --target aarch64-unknown-linux-gnu --features unstable {{ARGS}}
+    armtest
+    export RUSTFLAGS=""
+    armtest
 
 wasm-test:
     #!/bin/bash -ex

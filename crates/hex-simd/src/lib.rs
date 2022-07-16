@@ -24,13 +24,17 @@ mod encode;
 
 pub mod multiversion;
 
+#[cfg(test)]
+mod tests;
+
 pub use simd_abstraction::ascii::AsciiCase;
-use simd_abstraction::item_group;
 pub use simd_abstraction::tools::OutBuf;
 
 // -------------------------------------------------------------------------------------------------
 
 use self::error::ERROR;
+
+use simd_abstraction::item_group;
 use simd_abstraction::tools::slice_mut;
 
 /// Checks whether `data` is a hex string.
@@ -179,36 +183,5 @@ pub fn decode_to_boxed_bytes(data: &[u8]) -> Result<Box<[u8]>, Error> {
         let len = uninit_buf.len();
         let ptr = Box::into_raw(uninit_buf).cast::<u8>();
         Ok(Box::from_raw(core::ptr::slice_from_raw_parts_mut(ptr, len)))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_str() {
-        use core::mem::MaybeUninit;
-        let src = "hello";
-        let mut dst = [MaybeUninit::uninit(); 10];
-        let ans = {
-            let src = src.as_bytes();
-            let dst = OutBuf::uninit(&mut dst);
-            let case = AsciiCase::Lower;
-            encode_as_str(src, dst, case).unwrap()
-        };
-        assert_eq!(ans, "68656c6c6f");
-    }
-
-    #[cfg(feature = "alloc")]
-    #[test]
-    fn test_alloc() {
-        let src = "hello".as_bytes();
-
-        let ans = encode_to_boxed_str(src, AsciiCase::Lower);
-        assert_eq!(&*ans, "68656c6c6f");
-
-        let ans = decode_to_boxed_bytes(ans.as_bytes()).unwrap();
-        assert_eq!(&*ans, src);
     }
 }
