@@ -5,7 +5,7 @@ x86-bench *ARGS:
     #!/bin/bash -ex
     cd {{invocation_directory()}}
     export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1"
-    cargo criterion {{ARGS}}
+    time cargo criterion {{ARGS}}
 
 js-bench:
     #!/bin/bash -e

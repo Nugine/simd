@@ -38,9 +38,9 @@ radix64 = "0.6.2"
 name = "uuid"
 harness = false
 
-# [[bench]]
-# name = "hex"
-# harness = false
+[[bench]]
+name = "hex"
+harness = false
 
 [[bench]]
 name = "base64"
