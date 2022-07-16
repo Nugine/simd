@@ -3,12 +3,15 @@
 //! # Examples
 //!
 //! ```
+//! # #[cfg(feature="uuid")]
+//! # {
 //! use uuid::Uuid;
 //! use uuid_simd::UuidExt;
 //!
 //! let text = "67e55044-10b1-426f-9247-bb680e5fe0c8";
 //! let uuid: Uuid = Uuid::parse(text.as_bytes()).unwrap();
 //! println!("{}", uuid.format_simple())
+//! # }
 //! ```
 //!
 
@@ -49,10 +52,8 @@ pub mod arch;
 mod auto;
 pub use self::auto::*;
 
-use simd_abstraction::item_group;
-
 #[cfg(feature = "uuid")]
-item_group! {
+simd_abstraction::item_group! {
     mod ext;
     pub use self::ext::UuidExt;
 }
