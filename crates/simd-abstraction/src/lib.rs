@@ -59,7 +59,11 @@ macro_rules! simd_dispatch {
 
             use $crate::traits::InstructionSet;
 
-            const _: fn($($arg_type),*) -> $ret = $fallback_fn;
+            #[inline]
+            pub fn fallback($($arg_name:$arg_type),*) -> $ret {
+                const _: fn($($arg_type),*) -> $ret = $fallback_fn;
+                $fallback_fn($($arg_name),*)
+            }
 
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             $crate::item_group!{
