@@ -19,6 +19,7 @@ mod error;
 pub use self::error::Error;
 
 mod check;
+mod decode;
 mod encode;
 
 pub mod multiversion;
