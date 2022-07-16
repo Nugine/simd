@@ -19,5 +19,6 @@ mod error;
 pub use self::error::Error;
 
 mod check;
+mod encode;
 
 pub mod multiversion;
