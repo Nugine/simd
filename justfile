@@ -73,7 +73,7 @@ miri *ARGS:
     cd {{invocation_directory()}}
     time cargo miri test -- --nocapture --test-threads=1 {{ARGS}}
 
-test-all:
+test-all: fmt
     #!/bin/bash -ex
     cd {{justfile_directory()}}
     members=("simd-abstraction" "uuid-simd" "hex-simd" "base64-simd")
