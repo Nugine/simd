@@ -44,7 +44,7 @@ pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
 }
 
 #[inline(always)]
-pub fn lookup_ascii_whitespace(c: u8) -> u8 {
+fn lookup_ascii_whitespace(c: u8) -> u8 {
     const TABLE: &[u8; 256] = &{
         let mut ans = [0; 256];
         let mut i: u8 = 0;
@@ -149,6 +149,25 @@ pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
     }
 
     pos
+}
+
+#[allow(clippy::missing_safety_doc)]
+#[inline]
+pub unsafe fn remove_ascii_whitespace_raw_fallback(data: *mut u8, len: usize) -> usize {
+    let mut src: *const u8 = data;
+    let mut dst: *mut u8 = data;
+    let end: *const u8 = data.add(len);
+
+    while src < end {
+        let byte = src.read();
+        if lookup_ascii_whitespace(byte) == 0 {
+            dst.write(byte);
+            dst = dst.add(1);
+        }
+        src = src.add(1);
+    }
+
+    dst.offset_from(data) as usize
 }
 
 pub mod multiversion {

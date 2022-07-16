@@ -1,4 +1,4 @@
-use crate::{Base64, Error, OutBuf};
+use crate::{sa_ascii, Base64, Error, OutBuf};
 
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
@@ -75,35 +75,23 @@ impl Base64 {
 
 #[inline(always)]
 fn find_non_ascii_whitespace(data: &[u8]) -> usize {
-    crate::sa_ascii::multiversion::find_non_ascii_whitespace::auto_indirect(data)
+    sa_ascii::multiversion::find_non_ascii_whitespace::auto_indirect(data)
 }
 
 #[inline(always)]
-fn remove_ascii_whitespace(buf: &mut [u8]) -> &mut [u8] {
-    let non_aw_pos = find_non_ascii_whitespace(buf);
-    if non_aw_pos >= buf.len() {
-        return buf;
+fn remove_ascii_whitespace(data: &mut [u8]) -> &mut [u8] {
+    let non_aw_pos = find_non_ascii_whitespace(data);
+    if non_aw_pos >= data.len() {
+        return data;
     }
 
     unsafe {
-        let n = buf.len();
-        let buf = buf.as_mut_ptr();
+        let dirty_len = data.len() - non_aw_pos;
+        let dirty_data = data.as_mut_ptr().add(non_aw_pos);
 
-        let mut src: *const u8 = buf.add(non_aw_pos);
-        let mut dst: *mut u8 = buf.add(non_aw_pos);
-        let end: *const u8 = buf.add(n);
+        let clean_len = sa_ascii::remove_ascii_whitespace_raw_fallback(dirty_data, dirty_len);
 
-        while src < end {
-            let byte = src.read();
-            if crate::sa_ascii::lookup_ascii_whitespace(byte) == 0 {
-                dst.write(byte);
-                dst = dst.add(1);
-            }
-            src = src.add(1);
-        }
-
-        let len = dst.offset_from(buf) as usize;
-        core::slice::from_raw_parts_mut(buf, len)
+        data.get_unchecked_mut(..(non_aw_pos + clean_len))
     }
 }
 
