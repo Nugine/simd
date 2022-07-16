@@ -39,8 +39,6 @@ mod error;
 pub use self::error::Error;
 pub(crate) use self::error::ERROR;
 
-mod utils;
-
 #[cfg(test)]
 mod tests;
 

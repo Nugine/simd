@@ -156,3 +156,21 @@ pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
     let ptr = p.cast();
     Box::from_raw(slice::from_raw_parts_mut(ptr, len))
 }
+
+#[allow(clippy::missing_safety_doc)]
+#[inline(always)]
+pub unsafe fn read<T>(base: *const T, offset: usize) -> T {
+    base.add(offset).read()
+}
+
+#[allow(clippy::missing_safety_doc)]
+#[inline(always)]
+pub unsafe fn write<T>(base: *mut T, offset: usize, value: T) {
+    base.add(offset).write(value)
+}
+
+#[allow(clippy::missing_safety_doc)]
+#[inline(always)]
+pub unsafe fn empty_slice_mut<'a, T>(base: *mut T) -> &'a mut [T] {
+    core::slice::from_raw_parts_mut(base, 0)
+}

@@ -1,7 +1,8 @@
 #![allow(missing_docs)]
 
-use crate::utils::{empty_slice_mut, read, write};
 use crate::{Base64, Base64Kind, Error, OutBuf, ERROR};
+
+use simd_abstraction::tools::{empty_slice_mut, read, write};
 
 use core::slice;
 

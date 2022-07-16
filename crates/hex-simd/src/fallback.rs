@@ -3,21 +3,13 @@
 use crate::sa_hex::unhex;
 use crate::{AsciiCase, Error, OutBuf, ERROR};
 
+use simd_abstraction::tools::{read, write};
+
 use core::slice;
 
 #[inline(always)]
 fn shl4(x: u8) -> u8 {
     x.wrapping_shl(4)
-}
-
-#[inline(always)]
-unsafe fn read<T>(base: *const T, offset: usize) -> T {
-    base.add(offset).read()
-}
-
-#[inline(always)]
-unsafe fn write<T>(base: *mut T, offset: usize, value: T) {
-    base.add(offset).write(value)
 }
 
 #[inline]

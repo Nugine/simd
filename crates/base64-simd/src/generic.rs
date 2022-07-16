@@ -3,9 +3,9 @@
 use crate::fallback::{decode_extra, encode_extra};
 use crate::fallback::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 use crate::fallback::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
-use crate::utils::{empty_slice_mut, read, write};
 use crate::{Base64, Base64Kind, Error, OutBuf, ERROR};
 
+use simd_abstraction::tools::{empty_slice_mut, read, write};
 use simd_abstraction::tools::{Bytes32, Load};
 use simd_abstraction::traits::SIMD256;
 
