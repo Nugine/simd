@@ -178,6 +178,7 @@ pub mod multiversion {
         signature   = fn(data: &[u8]) -> bool,
         fallback    = is_ascii_ct_fallback,
         simd        = is_ascii_ct_simd,
+        safety      = {},
     );
 
     crate::simd_dispatch!(
@@ -185,5 +186,6 @@ pub mod multiversion {
         signature   = fn(data: &[u8]) -> usize,
         fallback    = find_non_ascii_whitespace_fallback,
         simd        = find_non_ascii_whitespace_simd,
+        safety      = {},
     );
 }
