@@ -51,13 +51,19 @@ x86-test *ARGS:
     #!/bin/bash -ex
     cd {{invocation_directory()}}
     function x86test(){
-        cargo test --no-default-features --features 'std,unstable' {{ARGS}}
+        cargo test --no-default-features --features 'std,unstable' $@ {{ARGS}}
     }
     export RUSTFLAGS="-Zsanitizer=address -C target-feature=+avx2"
-    x86test
+    x86test --lib
     export RUSTFLAGS="-Zsanitizer=address -C target-feature=+sse4.1"
-    x86test
+    x86test --lib
     export RUSTFLAGS="-Zsanitizer=address"
+    x86test --lib
+    export RUSTFLAGS="-C target-feature=+avx2"
+    x86test
+    export RUSTFLAGS="-C target-feature=+sse4.1"
+    x86test
+    export RUSTFLAGS=""
     x86test
 
 arm-test *ARGS:
