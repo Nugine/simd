@@ -1,6 +1,56 @@
+use simd_abstraction::traits::SIMD256;
+
+#[allow(missing_docs, clippy::missing_safety_doc)]
+pub unsafe trait SIMDExt: SIMD256 {
+    fn base64_split_bits(self, a: Self::V256) -> Self::V256 {
+        // a : {bbbbcccc|aaaaaabb|ccdddddd|bbbbcccc} x8 (1021)
+
+        let m1 = self.u32x8_splat(u32::from_le_bytes([0x00, 0xfc, 0x00, 0x00]));
+        let a1 = self.u16x16_shr::<10>(self.v256_and(a, m1));
+        // a1: {00aaaaaa|000000000|00000000|00000000} x8
+
+        let m2 = self.u32x8_splat(u32::from_le_bytes([0xf0, 0x03, 0x00, 0x00]));
+        let a2 = self.u16x16_shl::<4>(self.v256_and(a, m2));
+        // a2: {00000000|00bbbbbb|00000000|00000000} x8
+
+        let m3 = self.u32x8_splat(u32::from_le_bytes([0x00, 0x00, 0xc0, 0x0f]));
+        let a3 = self.u16x16_shr::<6>(self.v256_and(a, m3));
+        // a3: {00000000|00000000|00cccccc|00000000} x8
+
+        let m4 = self.u32x8_splat(u32::from_le_bytes([0x00, 0x00, 0x3f, 0x00]));
+        let a4 = self.u16x16_shl::<8>(self.v256_and(a, m4));
+        // a4: {00000000|00000000|00000000|00dddddd} x8
+
+        self.v256_or(self.v256_or(a1, a2), self.v256_or(a3, a4))
+        // {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
+    }
+
+    fn base64_merge_bits(self, a: Self::V256) -> Self::V256 {
+        // a : {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
+
+        let m1 = self.u32x8_splat(u32::from_le_bytes([0x3f, 0x00, 0x3f, 0x00]));
+        let a1 = self.v256_and(a, m1);
+        // a1: {00aaaaaa|00000000|00cccccc|00000000} x8
+
+        let m2 = self.u32x8_splat(u32::from_le_bytes([0x00, 0x3f, 0x00, 0x3f]));
+        let a2 = self.v256_and(a, m2);
+        // a2: {00000000|00bbbbbb|00000000|00dddddd} x8
+
+        let a3 = self.v256_or(self.u32x8_shl::<18>(a1), self.u32x8_shr::<10>(a1));
+        // a3: {cc000000|0000cccc|aaaaaa00|00000000} x8
+
+        let a4 = self.v256_or(self.u32x8_shl::<4>(a2), self.u32x8_shr::<24>(a2));
+        // a4: {00dddddd|bbbb0000|000000bb|dddd0000}
+
+        let mask = self.u32x8_splat(u32::from_le_bytes([0xff, 0xff, 0xff, 0x00]));
+        self.v256_and(self.v256_or(a3, a4), mask)
+        // {ccdddddd|bbbbcccc|aaaaaabb|00000000} x8
+    }
+}
+
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod x86 {
-    use crate::generic::SIMDExt;
+    use super::SIMDExt;
 
     #[cfg(target_arch = "x86")]
     use core::arch::x86::*;
@@ -100,7 +150,8 @@ mod x86 {
 
 #[cfg(target_arch = "wasm32")]
 mod wasm {
-    use crate::generic::SIMDExt;
+    use super::SIMDExt;
+
     use simd_abstraction::arch::wasm::*;
 
     unsafe impl SIMDExt for SIMD128 {}
@@ -111,7 +162,7 @@ mod wasm {
     any(target_arch = "arm", target_arch = "aarch64")
 ))]
 mod arm {
-    use crate::generic::SIMDExt;
+    use super::SIMDExt;
 
     #[cfg(target_arch = "arm")]
     use simd_abstraction::arch::arm::*;
