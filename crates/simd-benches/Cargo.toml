@@ -42,6 +42,6 @@ harness = false
 name = "hex"
 harness = false
 
-[[bench]]
-name = "base64"
-harness = false
+# [[bench]]
+# name = "base64"
+# harness = false
