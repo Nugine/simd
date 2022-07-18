@@ -19,12 +19,12 @@ const STANDARD_DECODE_TABLE: &[u8; 256] = &decode_table(STANDARD_CHARSET);
 const URL_SAFE_DECODE_TABLE: &[u8; 256] = &decode_table(URL_SAFE_CHARSET);
 
 #[inline(always)]
-pub unsafe fn decoded_length_unchecked(src: &[u8], padding: bool) -> Result<(usize, usize), Error> {
+pub fn decoded_length(src: &[u8], padding: bool) -> Result<(usize, usize), Error> {
     if src.is_empty() {
         return Ok((0, 0));
     }
 
-    let n = {
+    let n = unsafe {
         let len = src.len();
         if padding {
             if len % 4 != 0 {
@@ -44,7 +44,7 @@ pub unsafe fn decoded_length_unchecked(src: &[u8], padding: bool) -> Result<(usi
         1 => return Err(ERROR),
         2 => n / 4 * 3 + 1,
         3 => n / 4 * 3 + 2,
-        _ => core::hint::unreachable_unchecked(),
+        _ => unsafe { core::hint::unreachable_unchecked() },
     };
 
     Ok((n, m))

@@ -34,97 +34,6 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-// pub(crate) use simd_abstraction::ascii as sa_ascii;
-
-// pub use simd_abstraction::tools::OutBuf;
-
-// pub(crate) use self::error::ERROR;
-
-// #[cfg(test)]
-// mod tests;
-
-// pub mod fallback;
-
-// #[macro_use]
-// mod generic;
-
-// mod polyfill;
-
-// pub mod arch;
-
-// mod auto;
-
-// mod ext;
-
-// impl Base64 {
-//     const PAD: u8 = b'=';
-
-//     #[inline(always)]
-//     const unsafe fn encoded_length_unchecked(n: usize, padding: bool) -> usize {
-//         let extra = n % 3;
-//         if extra == 0 {
-//             n / 3 * 4
-//         } else if padding {
-//             n / 3 * 4 + 4
-//         } else {
-//             n / 3 * 4 + extra + 1
-//         }
-//     }
-
-//     /// # Safety
-//     /// This function requires:
-//     ///
-//     /// + `src.len() > 0`
-//     #[inline(always)]
-//     unsafe fn decoded_length_unchecked(src: &[u8], padding: bool) -> Result<(usize, usize), Error> {
-//         let n = {
-//             let len = src.len();
-//             if padding {
-//                 if len % 4 != 0 {
-//                     return Err(ERROR);
-//                 }
-//                 let last1 = *src.get_unchecked(len - 1);
-//                 let last2 = *src.get_unchecked(len - 2);
-//                 let count = (last1 == Base64::PAD) as usize + (last2 == Base64::PAD) as usize;
-//                 len - count
-//             } else {
-//                 len
-//             }
-//         };
-
-//         let m = match n % 4 {
-//             0 => n / 4 * 3,
-//             1 => return Err(ERROR),
-//             2 => n / 4 * 3 + 1,
-//             3 => n / 4 * 3 + 2,
-//             _ => core::hint::unreachable_unchecked(),
-//         };
-
-//         Ok((n, m))
-//     }
-
-//     /// Calcuates the encoding length.
-//     ///
-//     /// # Panics
-//     /// This function panics if any of the conditions below is not satisfied:
-//     ///
-//     /// + `n <= isize::MAX`
-//     #[inline]
-//     pub const fn encoded_length(&self, n: usize) -> usize {
-//         assert!(n <= (isize::MAX as usize));
-//         unsafe { Self::encoded_length_unchecked(n, self.padding) }
-//     }
-
-//     /// Returns the character set used for encoding.
-//     #[inline]
-//     pub const fn charset(&self) -> &[u8; 64] {
-//         match self.kind {
-//             Base64Kind::Standard => fallback::STANDARD_CHARSET,
-//             Base64Kind::UrlSafe => fallback::URL_SAFE_CHARSET,
-//         }
-//     }
-// }
-
 mod error;
 pub use self::error::Error;
 
@@ -196,7 +105,7 @@ impl Base64 {
         }
     }
 
-    /// Calcuates the encoded length.
+    /// Calculates the encoded length.
     ///
     /// # Panics
     /// This function panics if any of the conditions below is not satisfied:
@@ -218,5 +127,14 @@ impl Base64 {
         } else {
             (n / 4 + 1) * 3
         }
+    }
+
+    /// Calculates the decoded length.
+    ///
+    /// The result is a precise value which can be used for allocation.
+    #[inline]
+    pub fn decoded_length(&self, data: &[u8]) -> Result<usize, Error> {
+        let (_, m) = self::decode::decoded_length(data, self.padding)?;
+        Ok(m)
     }
 }
