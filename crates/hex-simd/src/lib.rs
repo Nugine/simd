@@ -37,7 +37,7 @@ mod check;
 mod decode;
 mod encode;
 
-pub mod multiversion;
+mod multiversion;
 
 #[cfg(test)]
 mod tests;
@@ -51,6 +51,12 @@ use self::error::ERROR;
 
 use simd_abstraction::item_group;
 use simd_abstraction::tools::slice_mut;
+
+#[cfg(feature = "alloc")]
+item_group! {
+    use alloc::boxed::Box;
+    use simd_abstraction::tools::alloc_uninit_bytes;
+}
 
 /// Checks whether `data` is a hex string.
 #[inline]
@@ -135,12 +141,6 @@ pub fn encode_as_str<'s, 'd>(
 ) -> Result<&'d mut str, Error> {
     let ans = encode(src, dst, case)?;
     Ok(unsafe { core::str::from_utf8_unchecked_mut(ans) })
-}
-
-#[cfg(feature = "alloc")]
-item_group! {
-    use alloc::boxed::Box;
-    use simd_abstraction::tools::alloc_uninit_bytes;
 }
 
 /// Encodes `data` and returns [`Box<str>`].

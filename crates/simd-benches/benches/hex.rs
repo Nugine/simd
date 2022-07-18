@@ -24,20 +24,12 @@ pub fn bench_check(c: &mut Criterion) {
 
     #[allow(clippy::type_complexity)]
     let functions: &[(&str, fn(&mut Bencher, &[u8]))] = &[
-        #[cfg(target_feature = "avx2")]
-        ("hex-simd/avx2", |b, src| {
-            b.iter(|| unsafe { assert!(hex_simd::multiversion::check::avx2(black_box(src))) })
-        }),
-        #[cfg(target_feature = "sse4.1")]
-        ("hex-simd/sse4.1", |b, src| {
-            b.iter(|| unsafe { assert!(hex_simd::multiversion::check::sse41(black_box(src))) })
+        ("hex-simd/auto-indirect", |b, src| {
+            b.iter(|| assert!(hex_simd::check(black_box(src))))
         }),
         #[cfg(target_feature = "sse4.1")]
         ("faster-hex/sse4.1", |b, src| {
             b.iter(|| unsafe { assert!(faster_hex::hex_check_sse(black_box(src))) })
-        }),
-        ("hex-simd/fallback", |b, src| {
-            b.iter(|| assert!(hex_simd::multiversion::check::fallback(black_box(src))))
         }),
         ("faster-hex/fallback", |b, src| {
             b.iter(|| assert!(faster_hex::hex_check_fallback(black_box(src))))
