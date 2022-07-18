@@ -38,8 +38,12 @@ mod spec;
 
 mod decode;
 mod encode;
+mod forgiving;
 
 mod multiversion;
+
+#[cfg(test)]
+mod tests;
 
 pub use simd_abstraction::tools::OutBuf;
 
@@ -271,5 +275,14 @@ impl Base64 {
 
             Ok(assume_init(uninit_buf))
         }
+    }
+
+    /// Forgiving decodes `data` and writes inplace.
+    ///
+    /// See <https://infra.spec.whatwg.org/#forgiving-base64>
+    #[inline]
+    pub fn forgiving_decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
+        let data = crate::forgiving::normalize(data);
+        Self::STANDARD_NO_PAD.decode_inplace(data)
     }
 }
