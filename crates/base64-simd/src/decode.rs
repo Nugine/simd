@@ -17,6 +17,38 @@ const STANDARD_DECODE_TABLE: &[u8; 256] = &decode_table(STANDARD_CHARSET);
 const URL_SAFE_DECODE_TABLE: &[u8; 256] = &decode_table(URL_SAFE_CHARSET);
 
 #[inline(always)]
+pub unsafe fn decoded_length_unchecked(src: &[u8], padding: bool) -> Result<(usize, usize), Error> {
+    if src.is_empty() {
+        return Ok((0, 0));
+    }
+
+    let n = {
+        let len = src.len();
+        if padding {
+            if len % 4 != 0 {
+                return Err(ERROR);
+            }
+            let last1 = *src.get_unchecked(len - 1);
+            let last2 = *src.get_unchecked(len - 2);
+            let count = (last1 == b'=') as usize + (last2 == b'=') as usize;
+            len - count
+        } else {
+            len
+        }
+    };
+
+    let m = match n % 4 {
+        0 => n / 4 * 3,
+        1 => return Err(ERROR),
+        2 => n / 4 * 3 + 1,
+        3 => n / 4 * 3 + 2,
+        _ => core::hint::unreachable_unchecked(),
+    };
+
+    Ok((n, m))
+}
+
+#[inline(always)]
 pub unsafe fn decode_raw_fallback(
     base64: &Base64,
     n: usize,

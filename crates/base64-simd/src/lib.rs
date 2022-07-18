@@ -195,4 +195,28 @@ impl Base64 {
             Base64Kind::UrlSafe => URL_SAFE_CHARSET,
         }
     }
+
+    /// Calcuates the encoded length.
+    ///
+    /// # Panics
+    /// This function panics if any of the conditions below is not satisfied:
+    ///
+    /// + `n <= isize::MAX`
+    #[inline]
+    pub const fn encoded_length(&self, n: usize) -> usize {
+        assert!(n < usize::MAX / 2);
+        unsafe { self::encode::encoded_length_unchecked(n, self.padding) }
+    }
+
+    /// Estimates the decoded length.
+    ///
+    /// The result is an upper bound which can be used for allocation.
+    #[inline]
+    pub const fn estimated_decoded_length(&self, n: usize) -> usize {
+        if n % 4 == 0 {
+            n / 4 * 3
+        } else {
+            (n / 4 + 1) * 3
+        }
+    }
 }

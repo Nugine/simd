@@ -2,6 +2,18 @@ use crate::Base64;
 
 use simd_abstraction::tools::{read, write};
 
+#[inline(always)]
+pub const unsafe fn encoded_length_unchecked(n: usize, padding: bool) -> usize {
+    let extra = n % 3;
+    if extra == 0 {
+        n / 3 * 4
+    } else if padding {
+        n / 3 * 4 + 4
+    } else {
+        n / 3 * 4 + extra + 1
+    }
+}
+
 pub unsafe fn encode_raw_fallback(base64: &Base64, src: &[u8], dst: *mut u8) {
     let charset: *const u8 = base64.charset().as_ptr();
     let padding = base64.padding;
