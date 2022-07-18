@@ -56,51 +56,8 @@ extern crate alloc;
 
 // mod ext;
 
-// #[derive(Debug)]
-// enum Base64Kind {
-//     Standard,
-//     UrlSafe,
-// }
-
-// /// Base64 variants
-// ///
-// /// + [`Base64::STANDARD`](crate::Base64::STANDARD)
-// /// + [`Base64::STANDARD_NO_PAD`](crate::Base64::STANDARD_NO_PAD)
-// /// + [`Base64::URL_SAFE`](crate::Base64::URL_SAFE)
-// /// + [`Base64::URL_SAFE_NO_PAD`](crate::Base64::URL_SAFE_NO_PAD)
-// ///
-// #[derive(Debug)]
-// pub struct Base64 {
-//     kind: Base64Kind,
-//     padding: bool,
-// }
-
 // impl Base64 {
 //     const PAD: u8 = b'=';
-
-//     /// Standard charset with padding.
-//     pub const STANDARD: Self = Self {
-//         kind: Base64Kind::Standard,
-//         padding: true,
-//     };
-
-//     /// Standard charset without padding.
-//     pub const STANDARD_NO_PAD: Self = Self {
-//         kind: Base64Kind::Standard,
-//         padding: false,
-//     };
-
-//     /// URL-safe charset with padding.
-//     pub const URL_SAFE: Self = Self {
-//         kind: Base64Kind::UrlSafe,
-//         padding: true,
-//     };
-
-//     /// URL-safe charset without padding.
-//     pub const URL_SAFE_NO_PAD: Self = Self {
-//         kind: Base64Kind::UrlSafe,
-//         padding: false,
-//     };
 
 //     #[inline(always)]
 //     const unsafe fn encoded_length_unchecked(n: usize, padding: bool) -> usize {
@@ -170,3 +127,70 @@ extern crate alloc;
 
 mod error;
 pub use self::error::Error;
+
+mod decode;
+mod encode;
+
+pub mod multiversion;
+
+// -------------------------------------------------------------------------------------------------
+
+#[derive(Debug)]
+enum Base64Kind {
+    Standard,
+    UrlSafe,
+}
+
+const STANDARD_CHARSET: &[u8; 64] =
+    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+const URL_SAFE_CHARSET: &[u8; 64] =
+    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+/// Base64 variants
+///
+/// + [`Base64::STANDARD`](crate::Base64::STANDARD)
+/// + [`Base64::STANDARD_NO_PAD`](crate::Base64::STANDARD_NO_PAD)
+/// + [`Base64::URL_SAFE`](crate::Base64::URL_SAFE)
+/// + [`Base64::URL_SAFE_NO_PAD`](crate::Base64::URL_SAFE_NO_PAD)
+///
+#[derive(Debug)]
+pub struct Base64 {
+    kind: Base64Kind,
+    padding: bool,
+}
+
+impl Base64 {
+    /// Standard charset with padding.
+    pub const STANDARD: Self = Self {
+        kind: Base64Kind::Standard,
+        padding: true,
+    };
+
+    /// Standard charset without padding.
+    pub const STANDARD_NO_PAD: Self = Self {
+        kind: Base64Kind::Standard,
+        padding: false,
+    };
+
+    /// URL-safe charset with padding.
+    pub const URL_SAFE: Self = Self {
+        kind: Base64Kind::UrlSafe,
+        padding: true,
+    };
+
+    /// URL-safe charset without padding.
+    pub const URL_SAFE_NO_PAD: Self = Self {
+        kind: Base64Kind::UrlSafe,
+        padding: false,
+    };
+
+    /// Returns the character set used for encoding.
+    #[inline]
+    pub const fn charset(&self) -> &[u8; 64] {
+        match self.kind {
+            Base64Kind::Standard => STANDARD_CHARSET,
+            Base64Kind::UrlSafe => URL_SAFE_CHARSET,
+        }
+    }
+}
