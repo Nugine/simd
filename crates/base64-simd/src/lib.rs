@@ -175,6 +175,22 @@ impl Base64 {
         }
     }
 
+    /// Encodes `src` to `dst` and returns [`&mut str`](str).
+    ///
+    /// # Errors
+    /// This function returns `Err` if:
+    ///
+    /// + The length of `dst` is not enough.
+    #[inline]
+    pub fn encode_as_str<'s, 'd>(
+        &'_ self,
+        src: &'s [u8],
+        dst: OutBuf<'d>,
+    ) -> Result<&'d mut str, Error> {
+        let ans = self.encode(src, dst)?;
+        Ok(unsafe { core::str::from_utf8_unchecked_mut(ans) })
+    }
+
     /// Decodes `src` and writes to `dst`.
     ///
     /// # Errors
