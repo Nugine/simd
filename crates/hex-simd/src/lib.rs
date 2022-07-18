@@ -55,7 +55,7 @@ use simd_abstraction::tools::slice_mut;
 #[cfg(feature = "alloc")]
 item_group! {
     use alloc::boxed::Box;
-    use simd_abstraction::tools::alloc_uninit_bytes;
+    use simd_abstraction::tools::{alloc_uninit_bytes, assume_init};
 }
 
 /// Checks whether `data` is a hex string.
@@ -195,8 +195,6 @@ pub fn decode_to_boxed_bytes(data: &[u8]) -> Result<Box<[u8]>, Error> {
         let len = data.len();
         crate::multiversion::decode_raw::auto_indirect(src, len, dst)?;
 
-        let len = uninit_buf.len();
-        let ptr = Box::into_raw(uninit_buf).cast::<u8>();
-        Ok(Box::from_raw(core::ptr::slice_from_raw_parts_mut(ptr, len)))
+        Ok(assume_init(uninit_buf))
     }
 }
