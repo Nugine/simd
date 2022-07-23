@@ -34,8 +34,8 @@ macro_rules! dbgmsg {
 
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
-    encode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutBuf<'d>) -> Result<&'d mut [u8], Error>,
-    decode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutBuf<'d>) -> Result<&'d mut [u8], Error>,
+    encode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutBuf<'d, u8>) -> Result<&'d mut [u8], Error>,
+    decode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutBuf<'d, u8>) -> Result<&'d mut [u8], Error>,
     decode_inplace: for<'b> fn(&'_ Base64, &'b mut [u8]) -> Result<&'b mut [u8], Error>,
 ) {
     // canonicity tests

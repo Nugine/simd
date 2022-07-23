@@ -159,7 +159,11 @@ impl Base64 {
     ///
     /// + The length of `dst` is not enough.
     #[inline]
-    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], dst: OutBuf<'d>) -> Result<&'d mut [u8], Error> {
+    pub fn encode<'s, 'd>(
+        &'_ self,
+        src: &'s [u8],
+        dst: OutBuf<'d, u8>,
+    ) -> Result<&'d mut [u8], Error> {
         unsafe {
             let m = crate::encode::encoded_length_unchecked(src.len(), self.padding);
             if dst.len() < m {
@@ -185,7 +189,7 @@ impl Base64 {
     pub fn encode_as_str<'s, 'd>(
         &'_ self,
         src: &'s [u8],
-        dst: OutBuf<'d>,
+        dst: OutBuf<'d, u8>,
     ) -> Result<&'d mut str, Error> {
         let ans = self.encode(src, dst)?;
         Ok(unsafe { core::str::from_utf8_unchecked_mut(ans) })
@@ -199,7 +203,11 @@ impl Base64 {
     /// + The length of `dst` is not enough.
     /// + The content of `src` is invalid.
     #[inline]
-    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], dst: OutBuf<'d>) -> Result<&'d mut [u8], Error> {
+    pub fn decode<'s, 'd>(
+        &'_ self,
+        src: &'s [u8],
+        dst: OutBuf<'d, u8>,
+    ) -> Result<&'d mut [u8], Error> {
         unsafe {
             let (n, m) = crate::decode::decoded_length(src, self.padding)?;
 

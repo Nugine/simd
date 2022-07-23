@@ -73,7 +73,7 @@ pub fn check(data: &[u8]) -> bool {
 #[inline]
 pub fn encode<'s, 'd>(
     src: &'s [u8],
-    mut dst: OutBuf<'d>,
+    mut dst: OutBuf<'d, u8>,
     case: AsciiCase,
 ) -> Result<&'d mut [u8], Error> {
     if dst.len() / 2 < src.len() {
@@ -94,7 +94,7 @@ pub fn encode<'s, 'd>(
 /// + The length of `dst` is not enough.
 /// + The content of `src` is invalid.
 #[inline]
-pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutBuf<'d>) -> Result<&'d mut [u8], Error> {
+pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
     let len = src.len();
     if len % 2 != 0 || dst.len() < len / 2 {
         return Err(ERROR);
@@ -136,7 +136,7 @@ pub fn decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
 #[inline]
 pub fn encode_as_str<'s, 'd>(
     src: &'s [u8],
-    dst: OutBuf<'d>,
+    dst: OutBuf<'d, u8>,
     case: AsciiCase,
 ) -> Result<&'d mut str, Error> {
     let ans = encode(src, dst, case)?;

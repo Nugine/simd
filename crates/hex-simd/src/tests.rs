@@ -43,8 +43,8 @@ macro_rules! dbgmsg {
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
     check: fn(&[u8]) -> bool,
-    decode: for<'s, 'd> fn(&'s [u8], OutBuf<'d>) -> Result<&'d mut [u8], Error>,
-    encode: for<'s, 'd> fn(&'s [u8], OutBuf<'d>, AsciiCase) -> Result<&'d mut [u8], Error>,
+    decode: for<'s, 'd> fn(&'s [u8], OutBuf<'d, u8>) -> Result<&'d mut [u8], Error>,
+    encode: for<'s, 'd> fn(&'s [u8], OutBuf<'d, u8>, AsciiCase) -> Result<&'d mut [u8], Error>,
     decode_inplace: fn(&mut [u8]) -> Result<&mut [u8], Error>,
 ) {
     println!();
