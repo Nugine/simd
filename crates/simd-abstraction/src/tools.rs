@@ -6,7 +6,7 @@ item_group! {
     use alloc::boxed::Box;
 }
 
-pub use ::outref::OutBuf;
+pub use ::outref::{OutBuf, OutRef};
 
 #[derive(Debug)]
 #[repr(C, align(16))]
