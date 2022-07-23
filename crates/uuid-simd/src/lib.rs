@@ -18,4 +18,5 @@ pub use self::error::Error;
 
 mod spec;
 
+mod format;
 mod parse;
