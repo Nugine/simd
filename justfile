@@ -121,6 +121,7 @@ sync-version:
     cargo set-version -p uuid-simd '0.7.0'
     cargo set-version -p hex-simd '0.7.0'
     cargo set-version -p base64-simd '0.7.0'
+    cargo set-version -p simd-benches '0.7.0'
 
 fmt:
     #!/bin/bash -ex

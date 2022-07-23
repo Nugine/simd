@@ -10,17 +10,11 @@ categories = ["no-std", "parser-implementations"]
 readme = "../../README.md"
 rust-version = "1.61"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [features]
 default = ["std", "detect", "uuid"]
 std = ["simd-abstraction/std"]
 detect = ["simd-abstraction/detect"]
 unstable = ["simd-abstraction/unstable"]
-
-[dependencies.uuid]
-version = "1.1.2"
-optional = true
 
 [dependencies.simd-abstraction]
 path = "../simd-abstraction"
@@ -28,6 +22,10 @@ version = "0.7.0"
 
 [dev-dependencies]
 hex-simd = { path = "../hex-simd", version = "0.7.0" }
+
+[dependencies.uuid]
+version = "1.1.2"
+optional = true
 
 [target.'cfg(target_arch="wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.31"

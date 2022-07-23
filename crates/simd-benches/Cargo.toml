@@ -1,13 +1,28 @@
 [package]
 name = "simd-benches"
-version = "0.6.3-dev"
+version = "0.7.0"
 edition = "2021"
 publish = false
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [features]
 unstable = ["simd-abstraction/unstable"]
+
+[dependencies.base64-simd]
+path = "../base64-simd"
+version = "0.7.0"
+
+[dependencies.hex-simd]
+path = "../hex-simd"
+version = "0.7.0"
+
+[dependencies]
+base64 = "0.13.0"
+criterion = "0.3.6"
+faster-hex = "0.6.1"
+getrandom = { version = "0.2.7", features = ["js"] }
+radix64 = "0.6.2"
+rand = "0.8.5"
+uuid = "1.1.2"
 
 [dependencies.simd-abstraction]
 path = "../simd-abstraction"
@@ -17,23 +32,6 @@ version = "0.7.0"
 path = "../uuid-simd"
 version = "0.7.0"
 features = ["uuid"]
-
-[dependencies.hex-simd]
-path = "../hex-simd"
-version = "0.7.0"
-
-[dependencies.base64-simd]
-path = "../base64-simd"
-version = "0.7.0"
-
-[dependencies]
-getrandom = { version = "0.2.7", features = ["js"] }
-rand = "0.8.5"
-criterion = "0.3.6"
-faster-hex = "0.6.1"
-uuid = "1.1.2"
-base64 = "0.13.0"
-radix64 = "0.6.2"
 
 [[bench]]
 name = "uuid"
