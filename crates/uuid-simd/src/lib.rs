@@ -23,6 +23,9 @@ mod parse;
 
 mod multiversion;
 
+#[cfg(test)]
+mod tests;
+
 pub use simd_abstraction::ascii::AsciiCase;
 pub use simd_abstraction::tools::OutRef;
 
