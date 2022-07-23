@@ -16,6 +16,7 @@ version = "0.7.0"
 [dependencies.uuid-simd]
 path = "../uuid-simd"
 version = "0.7.0"
+features = ["uuid"]
 
 [dependencies.hex-simd]
 path = "../hex-simd"
@@ -34,9 +35,9 @@ uuid = "1.1.2"
 base64 = "0.13.0"
 radix64 = "0.6.2"
 
-# [[bench]]
-# name = "uuid"
-# harness = false
+[[bench]]
+name = "uuid"
+harness = false
 
 [[bench]]
 name = "hex"
