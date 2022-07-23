@@ -17,6 +17,7 @@
 
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 //
 #![deny(
     missing_debug_implementations,
@@ -149,6 +150,7 @@ pub fn encode_as_str<'s, 'd>(
 /// This function panics if:
 ///
 /// + The encoded length of `data` is greater than `isize::MAX`.
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 #[cfg(feature = "alloc")]
 #[inline]
 pub fn encode_to_boxed_str(data: &[u8], case: AsciiCase) -> Box<str> {
@@ -176,6 +178,7 @@ pub fn encode_to_boxed_str(data: &[u8], case: AsciiCase) -> Box<str> {
 /// This function returns `Err` if:
 ///
 /// + The content of `data` is invalid.
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 #[cfg(feature = "alloc")]
 #[inline]
 pub fn decode_to_boxed_bytes(data: &[u8]) -> Result<Box<[u8]>, Error> {

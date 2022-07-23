@@ -3,6 +3,7 @@
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 //
 #![deny(
     missing_debug_implementations,
@@ -29,7 +30,7 @@ mod tests;
 #[cfg(feature = "uuid")]
 simd_abstraction::item_group! {
     mod ext;
-    pub use self::ext::UuidExt;
+    pub use self::ext::*;
 }
 
 pub use simd_abstraction::ascii::AsciiCase;

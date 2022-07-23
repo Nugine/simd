@@ -1,6 +1,7 @@
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 //
 #![deny(
     missing_debug_implementations,

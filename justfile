@@ -1,5 +1,9 @@
+dev:
+    just fmt
+    just test-all
+
 doc:
-    cargo doc --open --no-deps --all-features
+    RUSTDOCFLAGS="--cfg docsrs" cargo doc --open --no-deps --all-features
 
 x86-bench *ARGS:
     #!/bin/bash -ex
@@ -97,7 +101,7 @@ miri *ARGS:
     cd {{invocation_directory()}}
     time cargo miri test -- --nocapture --test-threads=1 {{ARGS}}
 
-test-all: fmt
+test-all:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
     members=("simd-abstraction" "uuid-simd" "hex-simd" "base64-simd")

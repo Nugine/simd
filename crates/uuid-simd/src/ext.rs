@@ -8,6 +8,7 @@ use core::mem::MaybeUninit;
 use uuid::Uuid;
 
 /// An extension trait for [`uuid::Uuid`]
+#[cfg_attr(docsrs, doc(cfg(feature = "uuid")))]
 pub trait UuidExt: Sized {
     /// Parses an UUID from arbitrary bytes.
     ///
@@ -85,9 +86,13 @@ impl UuidExt for Uuid {
     }
 }
 
+/// A simple UUID
+#[cfg_attr(docsrs, doc(cfg(feature = "uuid")))]
 #[derive(Debug)]
 pub struct Simple<'a>(&'a Uuid);
 
+/// A hyphenated UUID
+#[cfg_attr(docsrs, doc(cfg(feature = "uuid")))]
 #[derive(Debug)]
 pub struct Hyphenated<'a>(&'a Uuid);
 
@@ -107,6 +112,7 @@ unsafe fn format_uuid<R, const N: usize>(
 }
 
 impl fmt::LowerHex for Simple<'_> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let case = AsciiCase::Lower;
         unsafe {
@@ -118,6 +124,7 @@ impl fmt::LowerHex for Simple<'_> {
 }
 
 impl fmt::LowerHex for Hyphenated<'_> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let case = AsciiCase::Lower;
         unsafe {
@@ -129,6 +136,7 @@ impl fmt::LowerHex for Hyphenated<'_> {
 }
 
 impl fmt::UpperHex for Simple<'_> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let case = AsciiCase::Upper;
         unsafe {
@@ -140,6 +148,7 @@ impl fmt::UpperHex for Simple<'_> {
 }
 
 impl fmt::UpperHex for Hyphenated<'_> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let case = AsciiCase::Upper;
         unsafe {
@@ -151,12 +160,14 @@ impl fmt::UpperHex for Hyphenated<'_> {
 }
 
 impl fmt::Display for Simple<'_> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         <Self as fmt::LowerHex>::fmt(self, f)
     }
 }
 
 impl fmt::Display for Hyphenated<'_> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         <Self as fmt::LowerHex>::fmt(self, f)
     }
