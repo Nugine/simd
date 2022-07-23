@@ -26,6 +26,12 @@ mod multiversion;
 #[cfg(test)]
 mod tests;
 
+#[cfg(feature = "uuid")]
+simd_abstraction::item_group! {
+    mod ext;
+    pub use self::ext::UuidExt;
+}
+
 pub use simd_abstraction::ascii::AsciiCase;
 pub use simd_abstraction::tools::OutRef;
 
