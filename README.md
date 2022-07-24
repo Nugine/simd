@@ -43,3 +43,15 @@ References:
 
 + <http://0x80.pl/notesen/2016-01-12-sse-base64-encoding.html>
 + <http://0x80.pl/notesen/2016-01-17-sse-base64-decoding.html>
+
+## unicode-simd
+
+[![Crates.io](https://img.shields.io/crates/v/unicode-simd.svg)](https://crates.io/crates/unicode-simd)
+[![Docs](https://docs.rs/unicode-simd/badge.svg)](https://docs.rs/unicode-simd/)
+
+SIMD-accelerated Unicode validation and transcoding.
+
+References:
+
++ Daniel Lemire, Wojciech Muła,  [Transcoding Billions of Unicode Characters per Second with SIMD Instructions](https://arxiv.org/abs/2109.10433), Software: Practice and Experience (to appear)
++ <https://github.com/simdutf/simdutf>

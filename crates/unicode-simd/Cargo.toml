@@ -1,0 +1,33 @@
+[package]
+name = "unicode-simd"
+version = "0.0.1"
+edition = "2021"
+description = "SIMD-accelerated Unicode validation and transcoding"
+license = "MIT"
+repository = "https://github.com/Nugine/simd"
+keywords = ["utf8", "unicode", "string", "validation", "simd"]
+categories = ["encoding", "algorithms", "no-std", "text-processing"]
+readme = "../../README.md"
+rust-version = "1.61"
+
+[features]
+default = ["std", "detect"]
+alloc = ["simd-abstraction/alloc"]
+std = ["alloc", "simd-abstraction/std"]
+detect = ["simd-abstraction/detect"]
+unstable = ["simd-abstraction/unstable"]
+
+[dev-dependencies]
+rand = "0.8.5"
+
+[dependencies.simd-abstraction]
+path = "../simd-abstraction"
+version = "0.7.0"
+
+[target.'cfg(target_arch="wasm32")'.dev-dependencies]
+getrandom = { version = "0.2.7", features = ["js"] }
+wasm-bindgen-test = "0.3.31"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -104,7 +104,12 @@ miri *ARGS:
 test-all:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    members=("simd-abstraction" "uuid-simd" "hex-simd" "base64-simd")
+    declare -a members
+    members[0]="simd-abstraction"
+    members[1]="uuid-simd"
+    members[2]="hex-simd"
+    members[3]="base64-simd"
+    members[4]="unicode-simd"
     just arm-test
     for member in "${members[@]}"
     do
@@ -117,11 +122,12 @@ test-all:
 sync-version:
     #!/bin/bash -e
     cd {{justfile_directory()}}
-    cargo set-version -p simd-abstraction '0.7.0'
-    cargo set-version -p uuid-simd '0.7.0'
-    cargo set-version -p hex-simd '0.7.0'
-    cargo set-version -p base64-simd '0.7.0'
-    cargo set-version -p simd-benches '0.7.0'
+    cargo set-version -p simd-abstraction   '0.7.0'
+    cargo set-version -p simd-benches       '0.7.0'
+    cargo set-version -p uuid-simd          '0.7.0'
+    cargo set-version -p hex-simd           '0.7.0'
+    cargo set-version -p base64-simd        '0.7.0'
+    cargo set-version -p unicode-simd       '0.0.1'
 
 fmt:
     #!/bin/bash -ex
