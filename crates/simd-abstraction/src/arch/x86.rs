@@ -149,6 +149,16 @@ macro_rules! impl_simd128 {
             fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
                 unsafe { _mm_srli_epi32::<IMM8>(a) }
             }
+
+            #[inline(always)]
+            fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                unsafe { _mm_add_epi32(a, b) }
+            }
+
+            #[inline(always)]
+            fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                unsafe { _mm_sub_epi32(a, b) }
+            }
         }
     };
 }
@@ -355,6 +365,16 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         unsafe { _mm256_srli_epi32::<IMM8>(a) }
+    }
+
+    #[inline(always)]
+    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_add_epi32(a, b) }
+    }
+
+    #[inline(always)]
+    fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_sub_epi32(a, b) }
     }
 }
 

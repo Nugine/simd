@@ -151,6 +151,16 @@ unsafe impl traits::SIMD128 for SIMD128 {
     fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         u32x4_shr(a, IMM8 as u32)
     }
+
+    #[inline(always)]
+    fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u32x4_add(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u32x4_sub(a, b)
+    }
 }
 
 unsafe impl traits::SIMD256 for SIMD128 {

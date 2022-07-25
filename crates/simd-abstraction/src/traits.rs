@@ -91,6 +91,8 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u32x4_splat(self, x: u32) -> Self::V128;
     fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
+    fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
 }
 
 #[inline(always)]
@@ -278,5 +280,19 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         let a = self.v256_to_v128x2(a);
         self.v256_from_v128x2(self.u32x4_shr::<IMM8>(a.0), self.u32x4_shr::<IMM8>(a.1))
+    }
+
+    #[inline(always)]
+    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        split_merge(self, a, b, |a, b| {
+            (self.u32x4_add(a.0, b.0), self.u32x4_add(a.1, b.1))
+        })
+    }
+
+    #[inline(always)]
+    fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        split_merge(self, a, b, |a, b| {
+            (self.u32x4_sub(a.0, b.0), self.u32x4_sub(a.1, b.1))
+        })
     }
 }
