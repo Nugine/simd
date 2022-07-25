@@ -34,6 +34,11 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
+    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { veorq_u8(a, b) }
+    }
+
+    #[inline(always)]
     fn v128_to_bytes(self, a: Self::V128) -> [u8; 16] {
         unsafe { core::mem::transmute(a) }
     }

@@ -68,6 +68,11 @@ unsafe impl traits::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
+    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        v128_xor(a, b)
+    }
+
+    #[inline(always)]
     fn u8x16_splat(self, x: u8) -> Self::V128 {
         u8x16_splat(x)
     }

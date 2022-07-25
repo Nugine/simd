@@ -70,6 +70,7 @@ pub unsafe trait SIMD128: InstructionSet {
     fn v128_create_zero(self) -> Self::V128;
     fn v128_all_zero(self, a: Self::V128) -> bool;
     fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u8x16_splat(self, x: u8) -> Self::V128;
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128;
@@ -156,6 +157,13 @@ pub unsafe trait SIMD256: SIMD128 {
     fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
             (self.v128_andnot(a.0, b.0), self.v128_andnot(a.1, b.1))
+        })
+    }
+
+    #[inline(always)]
+    fn v256_xor(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        split_merge(self, a, b, |a, b| {
+            (self.v128_xor(a.0, b.0), self.v128_xor(a.1, b.1))
         })
     }
 
