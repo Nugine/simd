@@ -160,6 +160,15 @@ unsafe impl SIMD128 for NEON {
             g(vsubq_u32(f(a), f(b)))
         }
     }
+
+    #[inline(always)]
+    fn i32x4_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vcltq_s32(f(a), f(b)))
+        }
+    }
 }
 
 unsafe impl SIMD256 for NEON {
