@@ -14,3 +14,15 @@
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
+
+/// Checks if `data` is a valid ASCII string, in constant-time.
+///
+/// This function always scans the entire input
+/// without data-dependent branches or lookup tables.
+///
+/// This function is faster than the short-circuiting version
+/// if the inputs are mostly valid ASCII strings.
+#[inline]
+pub fn is_ascii_ct(data: &[u8]) -> bool {
+    simd_abstraction::ascii::multiversion::is_ascii_ct::auto_indirect(data)
+}

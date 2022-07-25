@@ -18,7 +18,7 @@ fn bench_base64(n: usize, src: &str) -> u128 {
 fn bench_ascii(n: usize, data: &[u8]) -> u128 {
     let t0 = Instant::now();
     for _ in 0..n {
-        assert!(simd_benches::is_ascii_ct(data));
+        assert!(unicode_simd::is_ascii_ct(data));
     }
     let t1 = Instant::now();
     (t1 - t0).as_nanos()

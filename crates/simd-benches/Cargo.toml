@@ -28,6 +28,10 @@ uuid = "1.1.2"
 path = "../simd-abstraction"
 version = "0.7.0"
 
+[dependencies.unicode-simd]
+path = "../unicode-simd"
+version = "0.0.1"
+
 [dependencies.uuid-simd]
 path = "../uuid-simd"
 version = "0.7.0"
