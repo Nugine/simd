@@ -15,6 +15,10 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+mod utf32;
+
+mod multiversion;
+
 /// Checks if `data` is a valid ASCII string, in constant-time.
 ///
 /// This function always scans the entire input
@@ -25,4 +29,10 @@ extern crate alloc;
 #[inline]
 pub fn is_ascii_ct(data: &[u8]) -> bool {
     simd_abstraction::ascii::multiversion::is_ascii_ct::auto_indirect(data)
+}
+
+/// TODO: test, bench
+#[inline]
+pub fn is_utf32le_ct(data: &[u32]) -> bool {
+    crate::multiversion::is_utf32le_ct::auto_indirect(data)
 }
