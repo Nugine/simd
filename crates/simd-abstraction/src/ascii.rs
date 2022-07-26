@@ -1,6 +1,8 @@
 use crate::tools::{Bytes32, Load};
 use crate::traits::SIMD256;
 
+use self::spec::SIMDExt;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum AsciiCase {
@@ -16,14 +18,14 @@ pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
 }
 
 #[inline]
-pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
+pub fn is_ascii_ct_simd<S: SIMDExt>(s: S, data: &[u8]) -> bool {
     let (prefix, middle, suffix) = unsafe { data.align_to::<Bytes32>() };
 
     let mut ans = is_ascii_ct_fallback(prefix);
 
     let mut mask = s.v256_create_zero();
     unroll(middle, 8, |chunk| mask = s.v256_or(mask, s.load(chunk)));
-    ans &= s.v256_all_zero(s.i8x32_cmp_lt(mask, s.v256_create_zero()));
+    ans &= s.is_ascii_u8x32(mask);
 
     ans &= is_ascii_ct_fallback(suffix);
     ans
@@ -187,4 +189,78 @@ pub mod multiversion {
         simd        = find_non_ascii_whitespace_simd,
         safety      = {},
     );
+}
+
+mod spec {
+    use crate::traits::SIMD256;
+
+    #[allow(clippy::missing_safety_doc)]
+    pub unsafe trait SIMDExt: SIMD256 {
+        fn is_ascii_u8x32(self, a: Self::V256) -> bool {
+            self.v256_all_zero(self.i8x32_cmp_lt(a, self.v256_create_zero()))
+        }
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    mod x86 {
+        use super::*;
+
+        #[cfg(target_arch = "x86")]
+        use core::arch::x86::*;
+
+        #[cfg(target_arch = "x86_64")]
+        use core::arch::x86_64::*;
+
+        use crate::arch::x86::*;
+
+        unsafe impl SIMDExt for AVX2 {
+            fn is_ascii_u8x32(self, a: Self::V256) -> bool {
+                unsafe { _mm256_movemask_epi8(a) == 0 }
+            }
+        }
+
+        unsafe impl SIMDExt for SSE41 {
+            fn is_ascii_u8x32(self, a: Self::V256) -> bool {
+                unsafe {
+                    let m1 = _mm_movemask_epi8(a.0);
+                    let m2 = _mm_movemask_epi8(a.1);
+                    m1 | m2 == 0
+                }
+            }
+        }
+    }
+
+    #[cfg(all(
+        feature = "unstable",
+        any(target_arch = "arm", target_arch = "aarch64")
+    ))]
+    mod arm {
+        use super::*;
+
+        // #[cfg(target_arch = "arm")]
+        // use core::arch::arm::*;
+
+        // #[cfg(target_arch = "aarch64")]
+        // use core::arch::aarch64::*;
+
+        #[cfg(target_arch = "arm")]
+        use crate::arch::arm::*;
+
+        #[cfg(target_arch = "aarch64")]
+        use crate::arch::aarch64::*;
+
+        unsafe impl SIMDExt for NEON {}
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    mod wasm {
+        use super::*;
+
+        // #[cfg(target_arch = "wasm32")]
+        // use core::arch::wasm32::*;
+
+        use crate::arch::wasm::*;
+
+        unsafe impl SIMDExt for SIMD128 {}
+    }
 }
