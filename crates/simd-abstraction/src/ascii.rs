@@ -11,36 +11,35 @@ pub enum AsciiCase {
 #[inline]
 pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
     let mut ans = 0;
-    for &x in data {
-        ans |= x;
-    }
+    unroll(data, 8, |&x| ans |= x);
     ans < 0x80
 }
 
 #[inline]
 pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
-    let (prefix, chunks, suffix) = unsafe { data.align_to::<Bytes32>() };
+    let (prefix, middle, suffix) = unsafe { data.align_to::<Bytes32>() };
 
-    let mut ans;
+    let mut ans = is_ascii_ct_fallback(prefix);
 
-    {
-        ans = is_ascii_ct_fallback(prefix);
-    }
+    let mut mask = s.v256_create_zero();
+    unroll(middle, 8, |chunk| mask = s.v256_or(mask, s.load(chunk)));
+    ans &= s.v256_all_zero(s.i8x32_cmp_lt(mask, s.v256_create_zero()));
 
-    {
-        let mut mask = s.v256_create_zero();
-        for chunk in chunks {
-            let a = s.load(chunk);
-            mask = s.v256_or(mask, a);
-        }
-        ans &= s.v256_all_zero(s.i8x32_cmp_lt(mask, s.v256_create_zero()));
-    }
-
-    {
-        ans &= is_ascii_ct_fallback(suffix);
-    }
-
+    ans &= is_ascii_ct_fallback(suffix);
     ans
+}
+
+#[inline(always)]
+fn unroll<T>(slice: &[T], chunk_size: usize, mut f: impl FnMut(&T)) {
+    let mut iter = slice.chunks_exact(chunk_size);
+    for chunks in &mut iter {
+        for chunk in chunks {
+            f(chunk);
+        }
+    }
+    for chunk in iter.remainder() {
+        f(chunk);
+    }
 }
 
 #[inline(always)]
