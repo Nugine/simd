@@ -1,6 +1,6 @@
 dev:
     just fmt
-    just test-all
+    time just test-all
 
 doc:
     RUSTDOCFLAGS="--cfg docsrs" cargo doc --open --no-deps --all-features
