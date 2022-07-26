@@ -164,16 +164,16 @@ pub mod multiversion {
     crate::simd_dispatch! (
         name        = is_ascii_ct,
         signature   = fn(data: &[u8]) -> bool,
-        fallback    = is_ascii_ct_fallback,
-        simd        = is_ascii_ct_simd,
+        fallback    = {is_ascii_ct_fallback},
+        simd        = {is_ascii_ct_simd},
         safety      = {},
     );
 
     crate::simd_dispatch!(
         name        = find_non_ascii_whitespace,
         signature   = fn(data: &[u8]) -> usize,
-        fallback    = find_non_ascii_whitespace_fallback,
-        simd        = find_non_ascii_whitespace_simd,
+        fallback    = {find_non_ascii_whitespace_fallback},
+        simd        = {find_non_ascii_whitespace_simd},
         safety      = {},
     );
 }

@@ -50,8 +50,8 @@ macro_rules! simd_dispatch {
     (
         name        = $name:ident,
         signature   = $(for<$($lifetime:lifetime),+>)? fn($($arg_name: ident: $arg_type: ty),*) -> $ret:ty,
-        fallback    = $fallback_fn:ident,
-        simd        = $simd_fn:ident,
+        fallback    = {$($fallback_fn:tt)+},
+        simd        = {$($simd_fn:tt)+},
         safety      = {$($unsafe:ident)?},
     ) => {
         pub mod $name {
@@ -64,30 +64,30 @@ macro_rules! simd_dispatch {
 
             use $crate::traits::InstructionSet;
 
-            const _: $(for<$($lifetime),+>)? $($unsafe)? fn($($arg_type),*) -> $ret = $fallback_fn;
+            const _: $(for<$($lifetime),+>)? $($unsafe)? fn($($arg_type),*) -> $ret = $($fallback_fn)+;
 
             #[inline]
             pub $($unsafe)? fn fallback$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
-                $fallback_fn($($arg_name),*)
+                $($fallback_fn)+($($arg_name),*)
             }
 
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             $crate::item_group!{
                 use $crate::arch::x86::{AVX2, SSE41};
 
-                const _: $(for<$($lifetime),+>)? $($unsafe)? fn(AVX2 $(,$arg_type)*) -> $ret = $simd_fn::<AVX2>;
-                const _: $(for<$($lifetime),+>)? $($unsafe)? fn(SSE41$(,$arg_type)*) -> $ret = $simd_fn::<SSE41>;
+                const _: $(for<$($lifetime),+>)? $($unsafe)? fn(AVX2 $(,$arg_type)*) -> $ret = $($simd_fn)+::<AVX2>;
+                const _: $(for<$($lifetime),+>)? $($unsafe)? fn(SSE41$(,$arg_type)*) -> $ret = $($simd_fn)+::<SSE41>;
 
                 #[inline]
                 #[target_feature(enable = "avx2")]
                 pub unsafe fn avx2$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
-                    $simd_fn(AVX2::new() $(,$arg_name)*)
+                    $($simd_fn)+(AVX2::new() $(,$arg_name)*)
                 }
 
                 #[inline]
                 #[target_feature(enable = "sse4.1")]
                 pub unsafe fn sse41$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
-                    $simd_fn(SSE41::new() $(,$arg_name)*)
+                    $($simd_fn)+(SSE41::new() $(,$arg_name)*)
                 }
             }
 
@@ -98,12 +98,12 @@ macro_rules! simd_dispatch {
                 #[cfg(target_arch = "arm")]
                 use $crate::arch::arm::NEON;
 
-                const _: $(for<$($lifetime),+>)? $($unsafe)? fn(NEON$(,$arg_type)*) -> $ret = $simd_fn::<NEON>;
+                const _: $(for<$($lifetime),+>)? $($unsafe)? fn(NEON$(,$arg_type)*) -> $ret = $($simd_fn)+::<NEON>;
 
                 #[inline]
                 #[target_feature(enable = "neon")]
                 pub unsafe fn neon$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
-                    $simd_fn(NEON::new() $(,$arg_name)*)
+                    $($simd_fn)+(NEON::new() $(,$arg_name)*)
                 }
             }
 
@@ -111,12 +111,12 @@ macro_rules! simd_dispatch {
             $crate::item_group!{
                 use $crate::arch::wasm;
 
-                const _: $(for<$($lifetime),+>)? $($unsafe)? fn(wasm::SIMD128$(,$arg_type)*) -> $ret = $simd_fn::<wasm::SIMD128>;
+                const _: $(for<$($lifetime),+>)? $($unsafe)? fn(wasm::SIMD128$(,$arg_type)*) -> $ret = $($simd_fn)+::<wasm::SIMD128>;
 
                 #[inline]
                 #[target_feature(enable = "simd128")]
                 pub unsafe fn simd128$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
-                    $simd_fn(wasm::SIMD128::new() $(,$arg_name)*)
+                    $($simd_fn)+(wasm::SIMD128::new() $(,$arg_name)*)
                 }
             }
 
@@ -142,7 +142,7 @@ macro_rules! simd_dispatch {
                 if $crate::arch::wasm::SIMD128::is_enabled() {
                     return simd128;
                 }
-                $fallback_fn
+                $($fallback_fn)+
             }
 
             use core::sync::atomic::{AtomicPtr, Ordering::Relaxed};
