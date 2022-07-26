@@ -170,6 +170,15 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
+    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vmaxq_u32(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
     fn i32x4_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe {
             let f = vreinterpretq_s32_u8;

@@ -163,6 +163,11 @@ unsafe impl traits::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
+    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u32x4_max(a, b)
+    }
+
+    #[inline(always)]
     fn i32x4_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         i32x4_lt(a, b)
     }
