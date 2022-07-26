@@ -1,4 +1,4 @@
-use crate::tools::{Bytes32, Load};
+use crate::tools::{unroll, Bytes32, Load};
 use crate::traits::SIMD256;
 
 use self::spec::SIMDExt;
@@ -29,19 +29,6 @@ pub fn is_ascii_ct_simd<S: SIMDExt>(s: S, data: &[u8]) -> bool {
 
     ans &= is_ascii_ct_fallback(suffix);
     ans
-}
-
-#[inline(always)]
-fn unroll<T>(slice: &[T], chunk_size: usize, mut f: impl FnMut(&T)) {
-    let mut iter = slice.chunks_exact(chunk_size);
-    for chunks in &mut iter {
-        for chunk in chunks {
-            f(chunk);
-        }
-    }
-    for chunk in iter.remainder() {
-        f(chunk);
-    }
 }
 
 #[inline(always)]

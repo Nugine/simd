@@ -101,3 +101,12 @@ pub unsafe fn write<T>(base: *mut T, offset: usize, value: T) {
 pub unsafe fn slice_mut<'a, T>(data: *mut T, len: usize) -> &'a mut [T] {
     core::slice::from_raw_parts_mut(data, len)
 }
+
+#[inline(always)]
+pub fn unroll<T>(slice: &[T], chunk_size: usize, mut f: impl FnMut(&T)) {
+    let mut iter = slice.chunks_exact(chunk_size);
+    for chunk in &mut iter {
+        chunk.iter().for_each(&mut f)
+    }
+    iter.remainder().iter().for_each(&mut f);
+}
