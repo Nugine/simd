@@ -48,7 +48,7 @@ mod tests;
 
 pub(crate) use simd_abstraction::common::ascii as sa_ascii;
 
-pub use simd_abstraction::tools::OutBuf;
+pub use simd_abstraction::OutBuf;
 
 // -------------------------------------------------------------------------------------------------
 

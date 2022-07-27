@@ -1,7 +1,7 @@
 use crate::error::Error;
 use crate::sa_ascii::AsciiCase;
 
-use simd_abstraction::tools::{OutBuf, OutRef};
+use simd_abstraction::{OutBuf, OutRef};
 
 fn ok_cases() -> &'static [(&'static str, &'static str)] {
     const A1: &str = "67e5504410b1426f9247bb680e5fe0c8";

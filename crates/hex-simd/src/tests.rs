@@ -1,7 +1,7 @@
 use crate::sa_ascii::AsciiCase;
 use crate::Error;
 
-use simd_abstraction::tools::OutBuf;
+use simd_abstraction::OutBuf;
 
 #[test]
 fn test_str() {

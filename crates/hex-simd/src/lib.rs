@@ -47,7 +47,7 @@ pub(crate) use simd_abstraction::common::ascii as sa_ascii;
 pub(crate) use simd_abstraction::common::hex as sa_hex;
 
 pub use sa_ascii::AsciiCase;
-pub use simd_abstraction::tools::OutBuf;
+pub use simd_abstraction::OutBuf;
 
 // -------------------------------------------------------------------------------------------------
 

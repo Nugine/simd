@@ -40,3 +40,5 @@ pub mod common {
     pub mod crc32;
     pub mod hex;
 }
+
+pub use outref::{OutBuf, OutRef};
