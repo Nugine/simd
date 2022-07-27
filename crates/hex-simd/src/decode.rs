@@ -1,6 +1,6 @@
 use crate::error::{Error, ERROR};
+use crate::sa_hex::{self, unhex};
 
-use simd_abstraction::hex::{decode_u8x32, unhex};
 use simd_abstraction::tools::{read, write};
 use simd_abstraction::traits::SIMD256;
 
@@ -32,7 +32,7 @@ pub unsafe fn decode_raw_simd<S: SIMD256>(
 ) -> Result<(), Error> {
     while len >= 32 {
         let chunk = s.v256_load_unaligned(src);
-        let ans = decode_u8x32(s, chunk).map_err(|()| ERROR)?;
+        let ans = sa_hex::decode_u8x32(s, chunk).map_err(|()| ERROR)?;
         s.v128_store_unaligned(dst, ans);
         src = src.add(32);
         dst = dst.add(16);

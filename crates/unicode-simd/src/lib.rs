@@ -19,6 +19,8 @@ mod utf32;
 
 mod multiversion;
 
+pub(crate) use simd_abstraction::common::ascii as sa_ascii;
+
 /// Checks if `data` is a valid ASCII string, in constant-time.
 ///
 /// This function always scans the entire input
@@ -28,7 +30,7 @@ mod multiversion;
 /// if the inputs are mostly valid ASCII strings.
 #[inline]
 pub fn is_ascii_ct(data: &[u8]) -> bool {
-    simd_abstraction::ascii::multiversion::is_ascii_ct::auto_indirect(data)
+    sa_ascii::multiversion::is_ascii_ct::auto_indirect(data)
 }
 
 /// TODO: test, bench

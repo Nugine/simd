@@ -1,6 +1,6 @@
+use crate::sa_ascii::AsciiCase;
 use crate::Error;
 
-use simd_abstraction::ascii::AsciiCase;
 use simd_abstraction::tools::OutBuf;
 
 #[test]

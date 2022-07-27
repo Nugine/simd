@@ -1,7 +1,7 @@
 use crate::error::{Error, ERROR};
+use crate::sa_hex::{self, unhex};
 use crate::spec::SIMDExt;
 
-use simd_abstraction::hex::{decode_u8x32, unhex};
 use simd_abstraction::tools::{read, write, Bytes32, Load};
 use simd_abstraction::traits::SIMD256;
 
@@ -32,7 +32,7 @@ pub unsafe fn parse_simple_raw_simd<S: SIMD256>(
     dst: *mut u8,
 ) -> Result<(), Error> {
     let a = s.v256_load_unaligned(src);
-    let ans = decode_u8x32(s, a).map_err(|()| ERROR)?;
+    let ans = sa_hex::decode_u8x32(s, a).map_err(|()| ERROR)?;
     s.v128_store_unaligned(dst, ans);
     Ok(())
 }
@@ -83,7 +83,7 @@ pub unsafe fn parse_hyphenated_raw_simd<S: SIMDExt>(
     let a1 = s.u8x16x2_swizzle(a0, s.load(SWIZZLE));
     let a2 = s.i16x16_set_lane7(a1, src.add(16).cast::<i16>().read_unaligned());
     let a3 = s.i32x8_set_lane7(a2, src.add(32).cast::<i32>().read_unaligned());
-    let ans = decode_u8x32(s, a3).map_err(|()| ERROR)?;
+    let ans = sa_hex::decode_u8x32(s, a3).map_err(|()| ERROR)?;
     s.v128_store_unaligned(dst, ans);
     Ok(())
 }

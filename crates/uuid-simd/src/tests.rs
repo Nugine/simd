@@ -1,6 +1,6 @@
 use crate::error::Error;
+use crate::sa_ascii::AsciiCase;
 
-use simd_abstraction::ascii::AsciiCase;
 use simd_abstraction::tools::{OutBuf, OutRef};
 
 fn ok_cases() -> &'static [(&'static str, &'static str)] {

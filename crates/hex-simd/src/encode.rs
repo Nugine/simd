@@ -1,5 +1,6 @@
-use simd_abstraction::ascii::AsciiCase;
-use simd_abstraction::hex::{encode_u8x16, ENCODE_LOWER_LUT, ENCODE_UPPER_LUT};
+use crate::sa_ascii::AsciiCase;
+use crate::sa_hex;
+
 use simd_abstraction::tools::{read, Bytes16, Load};
 use simd_abstraction::traits::SIMD256;
 
@@ -39,8 +40,8 @@ pub unsafe fn encode_raw_fallback(src: &[u8], mut dst: *mut u8, case: AsciiCase)
 #[inline(always)]
 pub unsafe fn encode_raw_simd<S: SIMD256>(s: S, src: &[u8], dst: *mut u8, case: AsciiCase) {
     let simd_lut = match case {
-        AsciiCase::Lower => ENCODE_LOWER_LUT,
-        AsciiCase::Upper => ENCODE_UPPER_LUT,
+        AsciiCase::Lower => sa_hex::ENCODE_LOWER_LUT,
+        AsciiCase::Upper => sa_hex::ENCODE_UPPER_LUT,
     };
     let mut cur: *mut u8 = dst;
     let (prefix, chunks, suffix) = src.align_to::<Bytes16>();
@@ -52,7 +53,7 @@ pub unsafe fn encode_raw_simd<S: SIMD256>(s: S, src: &[u8], dst: *mut u8, case: 
 
     let lut = s.load(simd_lut);
     for chunk in chunks {
-        let ans = encode_u8x16(s, s.load(chunk), lut);
+        let ans = sa_hex::encode_u8x16(s, s.load(chunk), lut);
         s.v256_store_unaligned(cur, ans);
         cur = cur.add(32);
     }

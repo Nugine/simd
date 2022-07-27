@@ -1,4 +1,5 @@
-use simd_abstraction::hex::{check_u8x32, unhex};
+use crate::sa_hex::{self, unhex};
+
 use simd_abstraction::tools::{read, Bytes32, Load};
 use simd_abstraction::traits::SIMD256;
 
@@ -49,7 +50,7 @@ pub fn check_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
         return false;
     }
     for chunk in chunks {
-        if !check_u8x32(s, s.load(chunk)) {
+        if !sa_hex::check_u8x32(s, s.load(chunk)) {
             return false;
         }
     }

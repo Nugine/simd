@@ -1,7 +1,7 @@
+use crate::sa_ascii::AsciiCase;
+use crate::sa_hex;
 use crate::spec::SIMDExt;
 
-use simd_abstraction::ascii::AsciiCase;
-use simd_abstraction::hex::encode_u8x16;
 use simd_abstraction::tools::{read, write, Bytes32, Load};
 use simd_abstraction::traits::SIMD256;
 
@@ -19,8 +19,8 @@ const fn char_lut_fallback(case: AsciiCase) -> &'static [u8; 16] {
 #[inline(always)]
 const fn char_lut_simd(case: AsciiCase) -> &'static Bytes32 {
     match case {
-        AsciiCase::Lower => simd_abstraction::hex::ENCODE_LOWER_LUT,
-        AsciiCase::Upper => simd_abstraction::hex::ENCODE_UPPER_LUT,
+        AsciiCase::Lower => sa_hex::ENCODE_LOWER_LUT,
+        AsciiCase::Upper => sa_hex::ENCODE_UPPER_LUT,
     }
 }
 
@@ -45,7 +45,7 @@ pub unsafe fn format_simple_raw_simd<S: SIMD256>(
 ) {
     let lut = s.load(char_lut_simd(case));
     let a = s.v128_load_unaligned(src);
-    let ans = encode_u8x16(s, a, lut);
+    let ans = sa_hex::encode_u8x16(s, a, lut);
     s.v256_store_unaligned(dst, ans);
 }
 
@@ -92,7 +92,7 @@ pub unsafe fn format_hyphenated_raw_simd<S: SIMDExt>(
     ]);
 
     let lut = s.load(char_lut_simd(case));
-    let a = encode_u8x16(s, s.v128_load_unaligned(src), lut);
+    let a = sa_hex::encode_u8x16(s, s.v128_load_unaligned(src), lut);
 
     let a1 = s.u8x16x2_swizzle(a, s.load(SWIZZLE));
     let a2 = s.v256_or(a1, s.load(DASH));

@@ -43,7 +43,10 @@ mod multiversion;
 #[cfg(test)]
 mod tests;
 
-pub use simd_abstraction::ascii::AsciiCase;
+pub(crate) use simd_abstraction::common::ascii as sa_ascii;
+pub(crate) use simd_abstraction::common::hex as sa_hex;
+
+pub use sa_ascii::AsciiCase;
 pub use simd_abstraction::tools::OutBuf;
 
 // -------------------------------------------------------------------------------------------------

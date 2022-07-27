@@ -238,7 +238,6 @@ mod spec {
         use crate::arch::aarch64::*;
 
         use core::arch::aarch64::*;
-        use core::cmp::max;
 
         unsafe impl SIMDExt for NEON {
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {

@@ -1,4 +1,4 @@
-use simd_abstraction::ascii as sa_ascii;
+use crate::sa_ascii;
 
 #[inline(always)]
 fn find_non_ascii_whitespace(data: &[u8]) -> usize {
