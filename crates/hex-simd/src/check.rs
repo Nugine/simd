@@ -1,8 +1,10 @@
 use crate::sa_hex::{self, unhex};
 
-use simd_abstraction::scalar::Bytes32;
+use simd_abstraction::scalar::align32;
 use simd_abstraction::tools::read;
 use simd_abstraction::traits::{SimdLoad, SIMD256};
+
+// TODO: refactor check_fallback
 
 #[inline]
 pub fn check_fallback(data: &[u8]) -> bool {
@@ -46,15 +48,18 @@ pub fn check_fallback(data: &[u8]) -> bool {
 
 #[inline]
 pub fn check_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
-    let (prefix, chunks, suffix) = unsafe { data.align_to::<Bytes32>() };
+    let (prefix, middle, suffix) = align32(data);
+
     if !check_fallback(prefix) {
         return false;
     }
-    for chunk in chunks {
+
+    for chunk in middle {
         if !sa_hex::check_u8x32(s, s.load(chunk)) {
             return false;
         }
     }
+
     if !check_fallback(suffix) {
         return false;
     }

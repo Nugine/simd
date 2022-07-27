@@ -1,3 +1,4 @@
+use crate::scalar::align;
 use crate::traits::InstructionSet;
 
 #[allow(clippy::missing_safety_doc)]
@@ -18,12 +19,13 @@ where
 {
     let mut crc = !init;
 
-    let (prefix, middle, suffix) = unsafe { data.align_to::<u64>() };
+    let (prefix, middle, suffix) = align::<u8, u64>(data);
 
     let fold_u8 = |crc, value| s.crc32_u8(crc, value);
     crc = fold_copied(prefix, crc, fold_u8);
 
     crc = {
+        // TODO: refactor this
         let fold_u64 = |crc, value| s.crc32_u64(crc, value);
         let fold_chunk = |crc, chunk: &[u64]| fold_copied(chunk, crc, fold_u64);
         let mut iter = middle.chunks_exact(8);

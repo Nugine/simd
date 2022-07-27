@@ -1,4 +1,4 @@
-use simd_abstraction::scalar::Bytes32;
+use simd_abstraction::scalar::align32;
 use simd_abstraction::tools::unroll;
 use simd_abstraction::traits::{SimdLoad, SIMD256};
 
@@ -14,7 +14,7 @@ pub fn is_utf32le_ct_fallback(data: &[u32]) -> bool {
 
 #[inline]
 pub fn is_utf32le_ct_simd<S: SIMD256>(s: S, data: &[u32]) -> bool {
-    let (prefix, middle, suffix) = unsafe { data.align_to::<Bytes32>() };
+    let (prefix, middle, suffix) = align32(data);
 
     let mut ans = is_utf32le_ct_fallback(prefix);
 

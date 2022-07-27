@@ -1,4 +1,4 @@
-use crate::scalar::Bytes32;
+use crate::scalar::{align32, Bytes32};
 use crate::tools::unroll;
 use crate::traits::{SimdLoad, SIMD256};
 
@@ -20,7 +20,7 @@ pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
 
 #[inline]
 pub fn is_ascii_ct_simd<S: SIMDExt>(s: S, data: &[u8]) -> bool {
-    let (prefix, middle, suffix) = unsafe { data.align_to::<Bytes32>() };
+    let (prefix, middle, suffix) = align32(data);
 
     let mut ans = is_ascii_ct_fallback(prefix);
 
@@ -111,7 +111,7 @@ fn check_non_ascii_whitespace_u8x32<S: SIMD256>(s: S, a: S::V256) -> bool {
 
 #[inline]
 pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
-    let (prefix, chunks, suffix) = unsafe { data.align_to::<Bytes32>() };
+    let (prefix, middle, suffix) = align32(data);
 
     let mut pos: usize = 0;
 
@@ -123,7 +123,7 @@ pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
         }
     }
 
-    for chunk in chunks {
+    for chunk in middle {
         if check_non_ascii_whitespace_u8x32(s, s.load(chunk)) {
             let offset = find_non_ascii_whitespace_fallback(&chunk.0);
             pos += offset;
