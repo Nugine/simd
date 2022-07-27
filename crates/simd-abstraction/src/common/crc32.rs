@@ -1,4 +1,5 @@
 use crate::scalar::align;
+use crate::tools::unroll;
 use crate::traits::InstructionSet;
 
 #[allow(clippy::missing_safety_doc)]
@@ -24,14 +25,7 @@ where
     let fold_u8 = |crc, value| s.crc32_u8(crc, value);
     crc = fold_copied(prefix, crc, fold_u8);
 
-    crc = {
-        // TODO: refactor this
-        let fold_u64 = |crc, value| s.crc32_u64(crc, value);
-        let fold_chunk = |crc, chunk: &[u64]| fold_copied(chunk, crc, fold_u64);
-        let mut iter = middle.chunks_exact(8);
-        let crc = iter.by_ref().fold(crc, fold_chunk);
-        fold_copied(iter.remainder(), crc, fold_u64)
-    };
+    unroll(middle, 8, |&value| crc = s.crc32_u64(crc, value));
 
     crc = fold_copied(suffix, crc, fold_u8);
 
