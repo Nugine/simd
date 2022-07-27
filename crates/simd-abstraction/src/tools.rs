@@ -40,16 +40,6 @@ impl<S: SIMD256> Load<&'_ Bytes32> for S {
     }
 }
 
-#[allow(unused_macros)]
-macro_rules! debug_assert_ptr_align {
-    ($ptr:expr, $align:literal) => {{
-        let align: usize = $align;
-        let ptr = $ptr as *const _ as *const ();
-        let addr = ptr as usize;
-        debug_assert!(addr % align == 0)
-    }};
-}
-
 /// Allocates uninit bytes
 ///
 /// # Safety

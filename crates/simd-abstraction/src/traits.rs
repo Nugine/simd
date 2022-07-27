@@ -26,37 +26,6 @@ unsafe impl InstructionSet for Fallback {
     }
 }
 
-#[allow(unused_macros)]
-macro_rules! define_isa {
-    ($ty:ident, $feature: tt, $detect: tt) => {
-        #[derive(Debug, Clone, Copy)]
-        pub struct $ty(());
-
-        unsafe impl InstructionSet for $ty {
-            #[inline(always)]
-            fn is_enabled() -> bool {
-                #[cfg(target_feature = $feature)]
-                {
-                    true
-                }
-                #[cfg(not(target_feature = $feature))]
-                {
-                    #[cfg(feature = "detect")]
-                    if std::arch::$detect!($feature) {
-                        return true;
-                    }
-                    false
-                }
-            }
-
-            #[inline(always)]
-            unsafe fn new() -> Self {
-                Self(())
-            }
-        }
-    };
-}
-
 pub unsafe trait SIMD128: InstructionSet {
     type V128: Copy;
 
