@@ -2,48 +2,21 @@ use crate::sa_hex::{self, unhex};
 
 use simd_abstraction::isa::{SimdLoad, SIMD256};
 use simd_abstraction::scalar::align32;
-use simd_abstraction::tools::read;
-
-// TODO: refactor check_fallback
 
 #[inline]
 pub fn check_fallback(data: &[u8]) -> bool {
-    #[inline(always)]
-    unsafe fn check_unroll1(n: usize, src: *const u8) -> bool {
-        let mut i = 0;
-        let mut ans = 0;
-        while i < n {
-            ans |= unhex(read(src, i));
-            i += 1;
-        }
-        ans != 0xff
-    }
-    #[inline(always)]
-    unsafe fn check_unroll4(n: usize, src: *const u8) -> bool {
-        let mut i = 0;
-        while i < n {
-            let y1 = unhex(read(src, i));
-            let y2 = unhex(read(src, i + 1));
-            let y3 = unhex(read(src, i + 2));
-            let y4 = unhex(read(src, i + 3));
-            if y1 | y2 | y3 | y4 == 0xff {
-                return false;
-            }
-            i += 4;
-        }
-        true
-    }
-
-    let n = data.len();
-    let src = data.as_ptr();
-    unsafe {
-        let n1 = n & 3;
-        let n4 = n - n1;
-        if n4 > 0 && !check_unroll4(n4, src) {
+    let mut iter = data.chunks_exact(4);
+    for chunk in &mut iter {
+        let y1 = unhex(chunk[0]);
+        let y2 = unhex(chunk[1]);
+        let y3 = unhex(chunk[2]);
+        let y4 = unhex(chunk[3]);
+        if y1 | y2 | y3 | y4 == 0xff {
             return false;
         }
-        check_unroll1(n1, src.add(n4))
     }
+    let flag = iter.remainder().iter().fold(0, |acc, &x| acc | unhex(x));
+    flag != 0xff
 }
 
 #[inline]
