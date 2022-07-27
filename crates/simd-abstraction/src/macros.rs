@@ -62,9 +62,6 @@ macro_rules! simd_dispatch {
 
             #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
             $crate::item_group!{
-                #[cfg(target_arch = "aarch64")]
-                use $crate::arch::aarch64::NEON;
-                #[cfg(target_arch = "arm")]
                 use $crate::arch::arm::NEON;
 
                 const _: $(for<$($lifetime),+>)? $($unsafe)? fn(NEON$(,$arg_type)*) -> $ret = $($simd_fn)+::<NEON>;
@@ -99,11 +96,7 @@ macro_rules! simd_dispatch {
                 if $crate::arch::x86::SSE41::is_enabled() {
                     return sse41;
                 }
-                #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
-                if $crate::arch::aarch64::NEON::is_enabled() {
-                    return neon;
-                }
-                #[cfg(all(feature = "unstable", target_arch = "arm"))]
+                #[cfg(all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")))]
                 if $crate::arch::arm::NEON::is_enabled() {
                     return neon;
                 }

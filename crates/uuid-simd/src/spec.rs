@@ -78,11 +78,7 @@ mod arm {
     #[cfg(target_arch = "aarch64")]
     use core::arch::aarch64::*;
 
-    #[cfg(target_arch = "arm")]
     use simd_abstraction::arch::arm::*;
-
-    #[cfg(target_arch = "aarch64")]
-    use simd_abstraction::arch::aarch64::*;
 
     unsafe impl SIMDExt for NEON {
         #[inline(always)]

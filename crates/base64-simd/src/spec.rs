@@ -164,11 +164,8 @@ mod wasm {
 mod arm {
     use super::SIMDExt;
 
-    #[cfg(target_arch = "arm")]
     use simd_abstraction::arch::arm::*;
 
-    #[cfg(target_arch = "aarch64")]
-    use simd_abstraction::arch::aarch64::*;
-
-    unsafe impl SIMDExt for NEON {} // TODO: better ways?
+    // TODO: optimize this
+    unsafe impl SIMDExt for NEON {}
 }

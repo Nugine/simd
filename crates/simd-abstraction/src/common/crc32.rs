@@ -76,11 +76,11 @@ mod spec {
     mod aarch64 {
         use super::super::{CRC32, POLYNOMIAL_CRC32C, POLYNOMIAL_CRC32_IEEE};
 
-        use crate::arch::aarch64;
+        use crate::arch::arm;
 
         use core::arch::aarch64::*;
 
-        unsafe impl CRC32<POLYNOMIAL_CRC32_IEEE> for aarch64::CRC32 {
+        unsafe impl CRC32<POLYNOMIAL_CRC32_IEEE> for arm::CRC32 {
             #[inline(always)]
             fn crc32_u8(self, crc: u32, value: u8) -> u32 {
                 unsafe { __crc32b(crc, value) }
@@ -102,7 +102,7 @@ mod spec {
             }
         }
 
-        unsafe impl CRC32<POLYNOMIAL_CRC32C> for aarch64::CRC32 {
+        unsafe impl CRC32<POLYNOMIAL_CRC32C> for arm::CRC32 {
             #[inline(always)]
             fn crc32_u8(self, crc: u32, value: u8) -> u32 {
                 unsafe { __crc32cb(crc, value) }
