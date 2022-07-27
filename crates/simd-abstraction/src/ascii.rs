@@ -183,9 +183,7 @@ mod spec {
 
     #[allow(clippy::missing_safety_doc)]
     pub unsafe trait SIMDExt: SIMD256 {
-        fn is_ascii_u8x32(self, a: Self::V256) -> bool {
-            self.v256_all_zero(self.i8x32_cmp_lt(a, self.v256_create_zero()))
-        }
+        fn is_ascii_u8x32(self, a: Self::V256) -> bool;
     }
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -217,37 +215,56 @@ mod spec {
         }
     }
 
-    #[cfg(all(
-        feature = "unstable",
-        any(target_arch = "arm", target_arch = "aarch64")
-    ))]
+    #[cfg(all(feature = "unstable", target_arch = "arm"))]
     mod arm {
         use super::*;
 
-        // #[cfg(target_arch = "arm")]
-        // use core::arch::arm::*;
-
-        // #[cfg(target_arch = "aarch64")]
-        // use core::arch::aarch64::*;
-
-        #[cfg(target_arch = "arm")]
         use crate::arch::arm::*;
 
-        #[cfg(target_arch = "aarch64")]
+        // use core::arch::arm::*;
+
+        unsafe impl SIMDExt for NEON {
+            fn is_ascii_u8x32(self, a: Self::V256) -> bool {
+                // TODO: optimize this
+                self.v256_all_zero(self.i8x32_cmp_lt(a, self.v256_create_zero()))
+            }
+        }
+    }
+
+    #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+    mod aarch64 {
+        use super::*;
+
         use crate::arch::aarch64::*;
 
-        unsafe impl SIMDExt for NEON {}
+        use core::arch::aarch64::*;
+        use core::cmp::max;
+
+        unsafe impl SIMDExt for NEON {
+            fn is_ascii_u8x32(self, a: Self::V256) -> bool {
+                unsafe {
+                    let m1 = vmaxvq_u8(a.0);
+                    let m2 = vmaxvq_u8(a.1);
+                    (m1 | m2) < 0x80
+                }
+            }
+        }
     }
 
     #[cfg(target_arch = "wasm32")]
     mod wasm {
         use super::*;
 
-        // #[cfg(target_arch = "wasm32")]
-        // use core::arch::wasm32::*;
-
         use crate::arch::wasm::*;
 
-        unsafe impl SIMDExt for SIMD128 {}
+        use core::arch::wasm32::*;
+
+        unsafe impl SIMDExt for SIMD128 {
+            fn is_ascii_u8x32(self, a: Self::V256) -> bool {
+                let m1 = i8x16_bitmask(a.0);
+                let m2 = i8x16_bitmask(a.1);
+                (m1 | m2) == 0
+            }
+        }
     }
 }
