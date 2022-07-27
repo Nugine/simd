@@ -1,7 +1,8 @@
 use crate::sa_hex::{self, unhex};
 
-use simd_abstraction::tools::{read, Bytes32, Load};
-use simd_abstraction::traits::SIMD256;
+use simd_abstraction::scalar::Bytes32;
+use simd_abstraction::tools::read;
+use simd_abstraction::traits::{SimdLoad, SIMD256};
 
 #[inline]
 pub fn check_fallback(data: &[u8]) -> bool {

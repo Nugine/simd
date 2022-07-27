@@ -2,8 +2,9 @@ use crate::sa_ascii::AsciiCase;
 use crate::sa_hex;
 use crate::spec::SIMDExt;
 
-use simd_abstraction::tools::{read, write, Bytes32, Load};
-use simd_abstraction::traits::SIMD256;
+use simd_abstraction::scalar::Bytes32;
+use simd_abstraction::tools::{read, write};
+use simd_abstraction::traits::{SimdLoad, SIMD256};
 
 #[inline(always)]
 const fn char_lut_fallback(case: AsciiCase) -> &'static [u8; 16] {

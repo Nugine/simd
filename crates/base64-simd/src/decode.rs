@@ -2,8 +2,9 @@ use crate::error::{Error, ERROR};
 use crate::spec::SIMDExt;
 use crate::{Base64, Base64Kind, STANDARD_CHARSET, URL_SAFE_CHARSET};
 
-use simd_abstraction::tools::{read, write, Bytes32, Load};
-use simd_abstraction::traits::SIMD256;
+use simd_abstraction::scalar::Bytes32;
+use simd_abstraction::tools::{read, write};
+use simd_abstraction::traits::{SimdLoad, SIMD256};
 
 const fn decode_table(charset: &'static [u8; 64]) -> [u8; 256] {
     let mut table = [0xff; 256];

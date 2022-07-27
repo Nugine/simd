@@ -17,6 +17,8 @@ extern crate alloc;
 #[macro_use]
 mod macros;
 
+pub mod scalar;
+
 pub mod tools;
 
 pub mod traits;

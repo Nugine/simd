@@ -2,8 +2,9 @@ use crate::error::{Error, ERROR};
 use crate::sa_hex::{self, unhex};
 use crate::spec::SIMDExt;
 
-use simd_abstraction::tools::{read, write, Bytes32, Load};
-use simd_abstraction::traits::SIMD256;
+use simd_abstraction::scalar::Bytes32;
+use simd_abstraction::tools::{read, write};
+use simd_abstraction::traits::{SimdLoad, SIMD256};
 
 #[inline(always)]
 const fn shl4(x: u8) -> u8 {

@@ -1,41 +1,7 @@
-use crate::traits::{SIMD128, SIMD256};
-
 #[cfg(feature = "alloc")]
 item_group! {
     use core::mem::MaybeUninit;
     use alloc::boxed::Box;
-}
-
-#[derive(Debug)]
-#[repr(C, align(16))]
-pub struct Bytes16(pub [u8; 16]);
-
-#[derive(Debug)]
-#[repr(C, align(32))]
-pub struct Bytes32(pub [u8; 32]);
-
-pub trait Load<T> {
-    type Output;
-
-    fn load(self, src: T) -> Self::Output;
-}
-
-impl<S: SIMD128> Load<&'_ Bytes16> for S {
-    type Output = S::V128;
-
-    #[inline(always)]
-    fn load(self, src: &'_ Bytes16) -> Self::Output {
-        unsafe { self.v128_load(src.0.as_ptr()) }
-    }
-}
-
-impl<S: SIMD256> Load<&'_ Bytes32> for S {
-    type Output = S::V256;
-
-    #[inline(always)]
-    fn load(self, src: &'_ Bytes32) -> Self::Output {
-        unsafe { self.v256_load(src.0.as_ptr()) }
-    }
 }
 
 /// Allocates uninit bytes

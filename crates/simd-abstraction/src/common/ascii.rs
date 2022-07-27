@@ -1,5 +1,6 @@
-use crate::tools::{unroll, Bytes32, Load};
-use crate::traits::SIMD256;
+use crate::scalar::Bytes32;
+use crate::tools::unroll;
+use crate::traits::{SimdLoad, SIMD256};
 
 use self::spec::SIMDExt;
 

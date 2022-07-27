@@ -1,7 +1,7 @@
-use core::fmt;
+use crate::scalar::Bytes32;
+use crate::traits::{SimdLoad, SIMD256};
 
-use crate::tools::{Bytes32, Load};
-use crate::traits::SIMD256;
+use core::fmt;
 
 #[inline]
 pub fn check_u8x32<S: SIMD256>(s: S, a: S::V256) -> bool {

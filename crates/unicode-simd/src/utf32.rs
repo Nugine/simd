@@ -1,5 +1,6 @@
-use simd_abstraction::tools::{unroll, Bytes32, Load};
-use simd_abstraction::traits::SIMD256;
+use simd_abstraction::scalar::Bytes32;
+use simd_abstraction::tools::unroll;
+use simd_abstraction::traits::{SimdLoad, SIMD256};
 
 /// See [`char::from_u32`]
 #[inline]

@@ -1,8 +1,9 @@
 use crate::sa_ascii::AsciiCase;
 use crate::sa_hex;
 
-use simd_abstraction::tools::{read, Bytes16, Load};
-use simd_abstraction::traits::SIMD256;
+use simd_abstraction::scalar::Bytes16;
+use simd_abstraction::tools::read;
+use simd_abstraction::traits::{SimdLoad, SIMD256};
 
 const fn full_table(table: &[u8; 16]) -> [u16; 256] {
     let mut buf = [0; 256];
