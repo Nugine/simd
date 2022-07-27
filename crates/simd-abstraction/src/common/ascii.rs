@@ -1,6 +1,6 @@
+use crate::isa::{SimdLoad, SIMD256};
 use crate::scalar::{align32, Bytes32};
 use crate::tools::unroll;
-use crate::traits::{SimdLoad, SIMD256};
 
 use self::spec::SIMDExt;
 
@@ -180,7 +180,7 @@ pub mod multiversion {
 }
 
 mod spec {
-    use crate::traits::SIMD256;
+    use crate::isa::SIMD256;
 
     #[allow(clippy::missing_safety_doc)]
     pub unsafe trait SIMDExt: SIMD256 {

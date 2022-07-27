@@ -1,8 +1,8 @@
 use crate::error::{Error, ERROR};
 use crate::sa_hex::{self, unhex};
 
+use simd_abstraction::isa::SIMD256;
 use simd_abstraction::tools::{read, write};
-use simd_abstraction::traits::SIMD256;
 
 #[inline(always)]
 fn shl4(x: u8) -> u8 {

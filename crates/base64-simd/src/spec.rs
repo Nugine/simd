@@ -1,4 +1,4 @@
-use simd_abstraction::traits::SIMD256;
+use simd_abstraction::isa::SIMD256;
 
 #[allow(missing_docs, clippy::missing_safety_doc)]
 pub unsafe trait SIMDExt: SIMD256 {
@@ -59,7 +59,7 @@ mod x86 {
     use core::arch::x86_64::*;
 
     use simd_abstraction::arch::x86::*;
-    use simd_abstraction::traits::{SIMD128, SIMD256};
+    use simd_abstraction::isa::{SIMD128, SIMD256};
 
     const SPLIT_M1: u32 = u32::from_le_bytes([0x00, 0xfc, 0xc0, 0x0f]);
     const SPLIT_M2: u32 = u32::from_le_bytes([0xf0, 0x03, 0x3f, 0x00]);

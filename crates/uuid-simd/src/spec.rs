@@ -1,4 +1,4 @@
-use simd_abstraction::traits::SIMD256;
+use simd_abstraction::isa::SIMD256;
 
 #[allow(clippy::missing_safety_doc)]
 pub unsafe trait SIMDExt: SIMD256 {

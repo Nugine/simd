@@ -1,9 +1,9 @@
 use crate::spec::SIMDExt;
 use crate::{Base64, Base64Kind, STANDARD_CHARSET, URL_SAFE_CHARSET};
 
+use simd_abstraction::isa::SimdLoad;
 use simd_abstraction::scalar::Bytes32;
 use simd_abstraction::tools::{read, write};
-use simd_abstraction::traits::SimdLoad;
 
 #[inline(always)]
 pub const unsafe fn encoded_length_unchecked(n: usize, padding: bool) -> usize {

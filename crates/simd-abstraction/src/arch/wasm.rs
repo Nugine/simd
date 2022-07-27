@@ -1,24 +1,11 @@
-use crate::traits::{self, InstructionSet};
+use crate::isa::{self, InstructionSet};
 
 #[cfg(target_arch = "wasm32")]
 use core::arch::wasm32::*;
 
-#[derive(Debug, Clone, Copy)]
-pub struct SIMD128(());
+define_isa!(SIMD128, "simd128");
 
-unsafe impl InstructionSet for SIMD128 {
-    #[inline(always)]
-    fn is_enabled() -> bool {
-        cfg!(target_feature = "simd128")
-    }
-
-    #[inline(always)]
-    unsafe fn new() -> Self {
-        Self(())
-    }
-}
-
-unsafe impl traits::SIMD128 for SIMD128 {
+unsafe impl isa::SIMD128 for SIMD128 {
     type V128 = v128;
 
     #[inline(always)]
@@ -173,7 +160,7 @@ unsafe impl traits::SIMD128 for SIMD128 {
     }
 }
 
-unsafe impl traits::SIMD256 for SIMD128 {
+unsafe impl isa::SIMD256 for SIMD128 {
     type V256 = (v128, v128);
 
     #[inline(always)]

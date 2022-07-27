@@ -1,8 +1,8 @@
 use crate::sa_hex::{self, unhex};
 
+use simd_abstraction::isa::{SimdLoad, SIMD256};
 use simd_abstraction::scalar::align32;
 use simd_abstraction::tools::read;
-use simd_abstraction::traits::{SimdLoad, SIMD256};
 
 // TODO: refactor check_fallback
 

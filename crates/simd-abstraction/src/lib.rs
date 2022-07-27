@@ -17,11 +17,20 @@ extern crate alloc;
 #[macro_use]
 mod macros;
 
+#[macro_use]
+pub mod isa;
+
 pub mod scalar;
 
 pub mod tools;
 
-pub mod traits;
+// pub mod traits;
+
+pub mod common {
+    pub mod ascii;
+    pub mod crc32;
+    pub mod hex;
+}
 
 pub mod arch {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -35,12 +44,6 @@ pub mod arch {
 
     #[cfg(target_arch = "wasm32")]
     pub mod wasm;
-}
-
-pub mod common {
-    pub mod ascii;
-    pub mod crc32;
-    pub mod hex;
 }
 
 pub use outref::{OutBuf, OutRef};

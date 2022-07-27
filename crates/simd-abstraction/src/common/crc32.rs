@@ -1,6 +1,6 @@
+use crate::isa::InstructionSet;
 use crate::scalar::align;
 use crate::tools::unroll;
-use crate::traits::InstructionSet;
 
 #[allow(clippy::missing_safety_doc)]
 pub unsafe trait CRC32<const P: u32>: InstructionSet {

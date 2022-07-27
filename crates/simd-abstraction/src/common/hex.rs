@@ -1,5 +1,5 @@
+use crate::isa::{SimdLoad, SIMD256};
 use crate::scalar::Bytes32;
-use crate::traits::{SimdLoad, SIMD256};
 
 use core::fmt;
 

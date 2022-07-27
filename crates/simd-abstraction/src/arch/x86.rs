@@ -1,4 +1,4 @@
-use crate::traits::{InstructionSet, SIMD128, SIMD256};
+use crate::isa::{InstructionSet, SIMD128, SIMD256};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;

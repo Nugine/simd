@@ -14,37 +14,6 @@ macro_rules! debug_assert_ptr_align {
     }};
 }
 
-#[allow(unused_macros)]
-macro_rules! define_isa {
-    ($ty:ident, $feature: tt, $detect: tt) => {
-        #[derive(Debug, Clone, Copy)]
-        pub struct $ty(());
-
-        unsafe impl InstructionSet for $ty {
-            #[inline(always)]
-            fn is_enabled() -> bool {
-                #[cfg(target_feature = $feature)]
-                {
-                    true
-                }
-                #[cfg(not(target_feature = $feature))]
-                {
-                    #[cfg(feature = "detect")]
-                    if std::arch::$detect!($feature) {
-                        return true;
-                    }
-                    false
-                }
-            }
-
-            #[inline(always)]
-            unsafe fn new() -> Self {
-                Self(())
-            }
-        }
-    };
-}
-
 #[macro_export]
 macro_rules! simd_dispatch {
     (
@@ -62,7 +31,7 @@ macro_rules! simd_dispatch {
 
             use super::*;
 
-            use $crate::traits::InstructionSet;
+            use $crate::isa::InstructionSet;
 
             const _: $(for<$($lifetime),+>)? $($unsafe)? fn($($arg_type),*) -> $ret = $($fallback_fn)+;
 
