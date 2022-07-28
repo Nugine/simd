@@ -8,8 +8,8 @@ pub fn check_u8x32<S: SIMD256>(s: S, a: S::V256) -> bool {
     let a1 = s.u8x32_add(a, s.u8x32_splat(0x50));
     let a2 = s.v256_and(a1, s.u8x32_splat(0xdf));
     let a3 = s.u8x32_sub(a2, s.u8x32_splat(0x11));
-    let a4 = s.i8x32_cmp_lt(a1, s.i8x32_splat(-118));
-    let a5 = s.i8x32_cmp_lt(a3, s.i8x32_splat(-122));
+    let a4 = s.i8x32_lt(a1, s.i8x32_splat(-118));
+    let a5 = s.i8x32_lt(a3, s.i8x32_splat(-122));
     let a6 = s.v256_or(a4, a5);
     !s.v256_all_zero(a6)
 }

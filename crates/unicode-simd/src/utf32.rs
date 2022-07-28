@@ -29,7 +29,7 @@ pub fn is_utf32le_ct_simd<S: SIMD256>(s: S, data: &[u32]) -> bool {
         });
 
         let m = s.u32x8_splat(0x110000 - 0x800 - 1);
-        ans &= s.v256_all_zero(s.u32x8_cmp_lt(m, y));
+        ans &= s.v256_all_zero(s.u32x8_lt(m, y));
     }
 
     ans &= is_utf32le_ct_fallback(suffix);

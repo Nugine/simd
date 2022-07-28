@@ -100,12 +100,12 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn i8x16_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+    fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         i8x16_lt(a, b)
     }
 
     #[inline(always)]
-    fn i8x16_cmp_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+    fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         i8x16_eq(a, b)
     }
 
@@ -155,12 +155,12 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn i32x4_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         i32x4_lt(a, b)
     }
 
     #[inline(always)]
-    fn u32x4_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+    fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u32x4_lt(a, b)
     }
 }

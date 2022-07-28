@@ -183,7 +183,7 @@ unsafe fn encode_u8x32<S: SIMDExt>(s: S, x: S::V256, shift_lut: S::V256) -> S::V
     // 62      => 11
     // 63      => 12
 
-    let x3 = s.i8x32_cmp_lt(x1, s.u8x32_splat(26));
+    let x3 = s.i8x32_lt(x1, s.u8x32_splat(26));
     let x4 = s.v256_and(x3, s.u8x32_splat(13));
     let x5 = s.v256_or(x2, x4);
     // 0~25    => 0xff  => 13

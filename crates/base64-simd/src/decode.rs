@@ -304,10 +304,10 @@ unsafe fn decode_u8x32<S: SIMDExt>(s: S, x: S::V256, r: B64Range<S>) -> Result<S
     let lower_limit = s.u8x16x2_swizzle(r.lower_limit, hi);
     let upper_limit = s.u8x16x2_swizzle(r.upper_limit, hi);
 
-    let c1 = s.i8x32_cmp_lt(x, lower_limit);
-    let c2 = s.i8x32_cmp_lt(upper_limit, x);
+    let c1 = s.i8x32_lt(x, lower_limit);
+    let c2 = s.i8x32_lt(upper_limit, x);
     let c3 = s.v256_or(c1, c2);
-    let c4 = s.i8x32_cmp_eq(x, r.b63);
+    let c4 = s.i8x32_eq(x, r.b63);
     let c5 = s.v256_andnot(c3, c4);
 
     if !s.v256_all_zero(c5) {

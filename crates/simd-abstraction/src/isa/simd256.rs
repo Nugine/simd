@@ -133,16 +133,16 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
-    fn i8x32_cmp_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+    fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
-            (self.i8x16_cmp_lt(a.0, b.0), self.i8x16_cmp_lt(a.1, b.1))
+            (self.i8x16_lt(a.0, b.0), self.i8x16_lt(a.1, b.1))
         })
     }
 
     #[inline(always)]
-    fn i8x32_cmp_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+    fn i8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
-            (self.i8x16_cmp_eq(a.0, b.1), self.i8x16_cmp_eq(a.1, b.1))
+            (self.i8x16_eq(a.0, b.1), self.i8x16_eq(a.1, b.1))
         })
     }
 
@@ -209,16 +209,16 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
-    fn u32x8_cmp_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+    fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
-            (self.u32x4_cmp_lt(a.0, b.0), self.u32x4_cmp_lt(a.1, b.1))
+            (self.u32x4_lt(a.0, b.0), self.u32x4_lt(a.1, b.1))
         })
     }
 
     #[inline(always)]
-    fn i32x8_cmp_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+    fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
-            (self.i32x4_cmp_lt(a.0, b.0), self.i32x4_cmp_lt(a.1, b.1))
+            (self.i32x4_lt(a.0, b.0), self.i32x4_lt(a.1, b.1))
         })
     }
 }
