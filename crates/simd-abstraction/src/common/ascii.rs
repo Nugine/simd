@@ -224,22 +224,22 @@ mod spec {
         use super::*;
 
         use crate::arch::arm::*;
+        use crate::isa::SIMD128;
 
         #[cfg(target_arch = "aarch64")]
         use core::arch::aarch64::*;
 
         unsafe impl SIMDExt for NEON {
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {
+                let x = self.v128_or(a.0, a.1);
+
                 #[cfg(target_arch = "arm")]
                 {
-                    // TODO: optimize this
-                    self.v256_all_zero(self.i8x32_cmp_lt(a, self.v256_create_zero()))
+                    self.v128_all_zero(self.i32x4_cmp_lt(x, self.v128_create_zero()))
                 }
                 #[cfg(target_arch = "aarch64")]
                 unsafe {
-                    let m1 = vmaxvq_u8(a.0);
-                    let m2 = vmaxvq_u8(a.1);
-                    (m1 | m2) < 0x80
+                    vmaxvq_u8(x) < 0x80
                 }
             }
         }
