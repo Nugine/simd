@@ -19,19 +19,17 @@ pub fn is_utf32le_ct_simd<S: SIMD256>(s: S, data: &[u32]) -> bool {
     let mut ans = is_utf32le_ct_fallback(prefix);
 
     {
-        let m1 = s.u32x8_splat(0xD800);
-        let m2 = s.u32x8_splat(0x800);
         let mut y = s.u32x8_splat(0);
 
         unroll(middle, 8, |chunk| {
             let x = s.load(chunk);
-            let a1 = s.v256_xor(x, m1);
-            let a2 = s.u32x8_sub(a1, m2);
+            let a1 = s.v256_xor(x, s.u32x8_splat(0xD800));
+            let a2 = s.u32x8_sub(a1, s.u32x8_splat(0x800));
             y = s.u32x8_max(y, a2);
         });
 
-        let m3 = s.u32x8_splat(0x110000 - 0x800 - 1);
-        ans &= s.v256_all_zero(s.i8x32_cmp_lt(m3, y));
+        let m = s.u32x8_splat(0x110000 - 0x800 - 1);
+        ans &= s.v256_all_zero(s.u32x8_cmp_lt(m, y));
     }
 
     ans &= is_utf32le_ct_fallback(suffix);
