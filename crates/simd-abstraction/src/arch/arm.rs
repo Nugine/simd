@@ -45,11 +45,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { veorq_u8(a, b) }
-    }
-
-    #[inline(always)]
     fn v128_to_bytes(self, a: Self::V128) -> [u8; 16] {
         unsafe { core::mem::transmute(a) }
     }
@@ -71,6 +66,16 @@ unsafe impl SIMD128 for NEON {
         unsafe {
             vmaxvq_u8(a) == 0
         }
+    }
+
+    #[inline(always)]
+    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vandq_u8(a, vmvnq_u8(b)) }
+    }
+
+    #[inline(always)]
+    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { veorq_u8(a, b) }
     }
 
     #[inline(always)]
@@ -105,6 +110,11 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
+    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vqsubq_u8(a, b) }
+    }
+
+    #[inline(always)]
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
         #[cfg(target_arch = "arm")]
         unsafe {
@@ -135,6 +145,11 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
+    fn i8x16_cmp_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vceqq_u8(a, b) }
+    }
+
+    #[inline(always)]
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         unsafe { vreinterpretq_u8_u16(vshlq_n_u16::<IMM8>(vreinterpretq_u16_u8(a))) }
     }
@@ -142,21 +157,6 @@ unsafe impl SIMD128 for NEON {
     #[inline(always)]
     fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         unsafe { vreinterpretq_u8_u16(vshrq_n_u16::<IMM8>(vreinterpretq_u16_u8(a))) }
-    }
-
-    #[inline(always)]
-    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vandq_u8(a, vmvnq_u8(b)) }
-    }
-
-    #[inline(always)]
-    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vqsubq_u8(a, b) }
-    }
-
-    #[inline(always)]
-    fn i8x16_cmp_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vceqq_u8(a, b) }
     }
 
     #[inline(always)]
@@ -203,6 +203,15 @@ unsafe impl SIMD128 for NEON {
             let f = vreinterpretq_u32_u8;
             let g = vreinterpretq_u8_u32;
             g(vmaxq_u32(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vcltq_u32(f(a), f(b)))
         }
     }
 

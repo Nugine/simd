@@ -30,16 +30,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_andnot_si128(b, a) } // sse2
-    }
-
-    #[inline(always)]
-    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_xor_si128(a, b) } // sse2
-    }
-
-    #[inline(always)]
     fn v128_to_bytes(self, a: Self::V128) -> [u8; 16] {
         unsafe { core::mem::transmute(a) }
     }
@@ -52,6 +42,16 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn v128_all_zero(self, a: Self::V128) -> bool {
         unsafe { _mm_testz_si128(a, a) != 0 } // sse41
+    }
+
+    #[inline(always)]
+    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_andnot_si128(b, a) } // sse2
+    }
+
+    #[inline(always)]
+    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_xor_si128(a, b) } // sse2
     }
 
     #[inline(always)]
@@ -150,6 +150,13 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_max_epu32(a, b) } // sse41
+    }
+
+    #[inline(always)]
+    fn u32x4_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        let a = self.u32x4_sub(a, self.u32x4_splat(u32::MAX / 2));
+        let b = self.u32x4_sub(b, self.u32x4_splat(u32::MAX / 2));
+        self.i32x4_cmp_lt(a, b)
     }
 
     #[inline(always)]

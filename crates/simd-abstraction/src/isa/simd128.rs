@@ -37,6 +37,7 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u32x4_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn i32x4_cmp_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
 }
