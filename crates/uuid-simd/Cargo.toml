@@ -28,7 +28,7 @@ version = "1.1.2"
 optional = true
 
 [target.'cfg(target_arch="wasm32")'.dev-dependencies]
-wasm-bindgen-test = "0.3.31"
+wasm-bindgen-test = "0.3.32"
 
 [package.metadata.docs.rs]
 all-features = true

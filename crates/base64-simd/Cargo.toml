@@ -19,7 +19,6 @@ unstable = ["simd-abstraction/unstable"]
 
 [dev-dependencies]
 base64 = "0.13.0"
-faster-hex = "0.6.1"
 rand = "0.8.5"
 
 [dependencies.simd-abstraction]
@@ -28,7 +27,7 @@ version = "0.7.0"
 
 [target.'cfg(target_arch="wasm32")'.dev-dependencies]
 getrandom = { version = "0.2.7", features = ["js"] }
-wasm-bindgen-test = "0.3.31"
+wasm-bindgen-test = "0.3.32"
 
 [package.metadata.docs.rs]
 all-features = true
