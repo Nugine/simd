@@ -1,10 +1,10 @@
 #![allow(clippy::missing_safety_doc)]
 
-mod ext;
+mod load;
 mod simd128;
 mod simd256;
 
-pub use self::ext::SimdLoad;
+pub use self::load::SimdLoad;
 pub use self::simd128::SIMD128;
 pub use self::simd256::SIMD256;
 
