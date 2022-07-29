@@ -27,6 +27,7 @@ macro_rules! simd_dispatch {
             #![allow(
                 unsafe_op_in_unsafe_fn,
                 clippy::missing_safety_doc,
+                unused_unsafe,
             )]
 
             use super::*;
