@@ -8,6 +8,20 @@ pub struct Bytes16(pub [u8; 16]);
 #[repr(C, align(32))]
 pub struct Bytes32(pub [u8; 32]);
 
+impl Bytes32 {
+    #[inline]
+    pub const fn double(bytes16: [u8; 16]) -> Self {
+        let mut bytes32 = [0u8; 32];
+        let mut i = 0;
+        while i < 16 {
+            bytes32[i] = bytes16[i];
+            bytes32[i + 16] = bytes16[i];
+            i += 1;
+        }
+        Self(bytes32)
+    }
+}
+
 pub unsafe trait Scalar: Copy {}
 
 macro_rules! mark_scalar {
