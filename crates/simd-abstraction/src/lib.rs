@@ -24,10 +24,9 @@ pub mod scalar;
 
 pub mod tools;
 
-// pub mod traits;
-
 pub mod common {
     pub mod ascii;
+    pub mod bswap;
     pub mod crc32;
     pub mod hex;
 }

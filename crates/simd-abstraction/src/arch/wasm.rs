@@ -1,3 +1,4 @@
+use crate::isa::SimdLoad;
 use crate::isa::{self, InstructionSet};
 
 #[cfg(target_arch = "wasm32")]
@@ -155,13 +156,18 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        i32x4_lt(a, b)
+    fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u32x4_lt(a, b)
     }
 
     #[inline(always)]
-    fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        u32x4_lt(a, b)
+    fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U32X4))
+    }
+
+    #[inline(always)]
+    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i32x4_lt(a, b)
     }
 }
 
