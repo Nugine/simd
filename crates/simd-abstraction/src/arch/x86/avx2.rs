@@ -73,11 +73,6 @@ unsafe impl SIMD128 for AVX2 {
     }
 
     #[inline(always)]
-    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().u8x16_sub(a, b)
-    }
-
-    #[inline(always)]
     fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.sse41().u8x16_sub_sat(a, b)
     }
@@ -138,16 +133,6 @@ unsafe impl SIMD128 for AVX2 {
     }
 
     #[inline(always)]
-    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().u32x4_sub(a, b)
-    }
-
-    #[inline(always)]
-    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().u32x4_max(a, b)
-    }
-
-    #[inline(always)]
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.sse41().u32x4_lt(a, b)
     }
@@ -178,6 +163,56 @@ unsafe impl SIMD128 for AVX2 {
     }
 
     #[inline(always)]
+    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u8x16_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u16x8_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u32x4_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u64x2_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u8x16_max(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u16x8_max(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u32x4_max(a, b)
+    }
+
+    #[inline(always)]
+    fn i8x16_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().i8x16_max(a, b)
+    }
+
+    #[inline(always)]
+    fn i16x8_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().i16x8_max(a, b)
+    }
+
+    #[inline(always)]
+    fn i32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().i32x4_max(a, b)
+    }
+
+    #[inline(always)]
     fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
         self.sse41().u16x8_bswap(a)
     }
@@ -190,16 +225,6 @@ unsafe impl SIMD128 for AVX2 {
     #[inline(always)]
     fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
         self.sse41().u64x2_bswap(a)
-    }
-
-    #[inline(always)]
-    fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().u16x8_sub(a, b)
-    }
-
-    #[inline(always)]
-    fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().u64x2_sub(a, b)
     }
 }
 
@@ -356,11 +381,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_max_epu32(a, b) } // avx2
-    }
-
-    #[inline(always)]
     fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         let a = self.u32x8_sub(a, self.u32x8_splat(u32::MAX / 2));
         let b = self.u32x8_sub(b, self.u32x8_splat(u32::MAX / 2));
@@ -410,6 +430,36 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_sub_epi64(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_max_epu8(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_max_epu16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_max_epu32(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn i8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_max_epi8(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn i16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_max_epi16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_max_epi32(a, b) } // avx2
     }
 
     #[inline(always)]

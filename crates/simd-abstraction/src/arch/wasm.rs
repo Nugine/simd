@@ -131,11 +131,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        u32x4_max(a, b)
-    }
-
-    #[inline(always)]
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u32x4_lt(a, b)
     }
@@ -183,6 +178,36 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u64x2_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u8x16_max(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u16x8_max(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u32x4_max(a, b)
+    }
+
+    #[inline(always)]
+    fn i8x16_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i8x16_max(a, b)
+    }
+
+    #[inline(always)]
+    fn i16x8_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i16x8_max(a, b)
+    }
+
+    #[inline(always)]
+    fn i32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i32x4_max(a, b)
     }
 
     #[inline(always)]
@@ -270,6 +295,36 @@ unsafe impl isa::SIMD256 for SIMD128 {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u64x4_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u16x16_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i8x32_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i16x16_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i32x8_max(self, a, b)
     }
 
     #[inline(always)]

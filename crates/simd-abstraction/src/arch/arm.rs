@@ -100,16 +100,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vaddq_u8(a, b) }
-    }
-
-    #[inline(always)]
-    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vsubq_u8(a, b) }
-    }
-
-    #[inline(always)]
     fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { vqsubq_u8(a, b) }
     }
@@ -165,15 +155,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
-        unsafe {
-            let f = vreinterpretq_u16_u8;
-            let g = vreinterpretq_u8_u16;
-            g(vrev64q_u16(f(a)))
-        }
-    }
-
-    #[inline(always)]
     fn u32x4_splat(self, x: u32) -> Self::V128 {
         unsafe { vreinterpretq_u8_u32(vdupq_n_u32(x)) }
     }
@@ -189,47 +170,11 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe {
-            let f = vreinterpretq_u32_u8;
-            let g = vreinterpretq_u8_u32;
-            g(vaddq_u32(f(a), f(b)))
-        }
-    }
-
-    #[inline(always)]
-    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe {
-            let f = vreinterpretq_u32_u8;
-            let g = vreinterpretq_u8_u32;
-            g(vsubq_u32(f(a), f(b)))
-        }
-    }
-
-    #[inline(always)]
-    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe {
-            let f = vreinterpretq_u32_u8;
-            let g = vreinterpretq_u8_u32;
-            g(vmaxq_u32(f(a), f(b)))
-        }
-    }
-
-    #[inline(always)]
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe {
             let f = vreinterpretq_u32_u8;
             let g = vreinterpretq_u8_u32;
             g(vcltq_u32(f(a), f(b)))
-        }
-    }
-
-    #[inline(always)]
-    fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
-        unsafe {
-            let f = vreinterpretq_u32_u8;
-            let g = vreinterpretq_u8_u32;
-            g(vrev64q_u32(f(a)))
         }
     }
 
@@ -243,8 +188,8 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
-        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X2))
+    fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vaddq_u8(a, b) }
     }
 
     #[inline(always)]
@@ -253,6 +198,15 @@ unsafe impl SIMD128 for NEON {
             let f = vreinterpretq_u16_u8;
             let g = vreinterpretq_u8_u16;
             g(vaddq_u16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vaddq_u32(f(a), f(b)))
         }
     }
 
@@ -266,11 +220,25 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
+    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vsubq_u8(a, b) }
+    }
+
+    #[inline(always)]
     fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe {
             let f = vreinterpretq_u16_u8;
             let g = vreinterpretq_u8_u16;
             g(vsubq_u16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vsubq_u32(f(a), f(b)))
         }
     }
 
@@ -281,6 +249,79 @@ unsafe impl SIMD128 for NEON {
             let g = vreinterpretq_u8_u64;
             g(vsubq_u64(f(a), f(b)))
         }
+    }
+
+    #[inline(always)]
+    fn u8x16_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vmaxq_u8(a, b) }
+    }
+
+    #[inline(always)]
+    fn u16x8_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u16_u8;
+            let g = vreinterpretq_u8_u16;
+            g(vmaxq_u16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vmaxq_u32(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i8x16_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s8_u8;
+            let g = vreinterpretq_u8_s8;
+            g(vmaxq_s8(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i16x8_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s16_u8;
+            let g = vreinterpretq_u8_s16;
+            g(vmaxq_s16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s32_u8;
+            let g = vreinterpretq_u8_s32;
+            g(vmaxq_s32(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u16_u8;
+            let g = vreinterpretq_u8_u16;
+            g(vrev64q_u16(f(a)))
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vrev64q_u32(f(a)))
+        }
+    }
+
+    #[inline(always)]
+    fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X2))
     }
 }
 
@@ -370,21 +411,6 @@ unsafe impl SIMD256 for NEON {
     }
 
     #[inline(always)]
-    fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
-        mock256::u16x16_bswap(self, a)
-    }
-
-    #[inline(always)]
-    fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
-        mock256::u32x8_bswap(self, a)
-    }
-
-    #[inline(always)]
-    fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
-        mock256::u64x4_bswap(self, a)
-    }
-
-    #[inline(always)]
     fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u8x32_sub(self, a, b)
     }
@@ -402,5 +428,50 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u64x4_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u16x16_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i8x32_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i16x16_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i32x8_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u16x16_bswap(self, a)
+    }
+
+    #[inline(always)]
+    fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u32x8_bswap(self, a)
+    }
+
+    #[inline(always)]
+    fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u64x4_bswap(self, a)
     }
 }

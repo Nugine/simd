@@ -32,7 +32,6 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u32x4_splat(self, x: u32) -> Self::V128;
     fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
-    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
@@ -48,6 +47,13 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
+
+    fn u8x16_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u16x8_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn i8x16_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn i16x8_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn i32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u16x8_bswap(self, a: Self::V128) -> Self::V128;
     fn u32x4_bswap(self, a: Self::V128) -> Self::V128;
