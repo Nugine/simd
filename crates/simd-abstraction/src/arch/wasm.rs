@@ -86,11 +86,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        i8x16_lt(a, b)
-    }
-
-    #[inline(always)]
     fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         i8x16_eq(a, b)
     }
@@ -131,11 +126,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        i32x4_lt(a, b)
-    }
-
-    #[inline(always)]
     fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u8x16_add(a, b)
     }
@@ -173,6 +163,21 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u64x2_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i8x16_lt(a, b)
+    }
+
+    #[inline(always)]
+    fn i16x8_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i16x8_lt(a, b)
+    }
+
+    #[inline(always)]
+    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i32x4_lt(a, b)
     }
 
     #[inline(always)]
@@ -320,6 +325,21 @@ unsafe impl isa::SIMD256 for SIMD128 {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u64x4_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i8x32_lt(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i16x16_lt(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i32x8_lt(self, a, b)
     }
 
     #[inline(always)]

@@ -122,14 +122,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe {
-            let f = vreinterpretq_s8_u8;
-            vcltq_s8(f(a), f(b))
-        }
-    }
-
-    #[inline(always)]
     fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { vceqq_u8(a, b) }
     }
@@ -170,15 +162,6 @@ unsafe impl SIMD128 for NEON {
             let f = vreinterpretq_u32_u8;
             let g = vreinterpretq_u8_u32;
             g(vcltq_u32(f(a), f(b)))
-        }
-    }
-
-    #[inline(always)]
-    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe {
-            let f = vreinterpretq_s32_u8;
-            let g = vreinterpretq_u8_u32;
-            g(vcltq_s32(f(a), f(b)))
         }
     }
 
@@ -243,6 +226,32 @@ unsafe impl SIMD128 for NEON {
             let f = vreinterpretq_u64_u8;
             let g = vreinterpretq_u8_u64;
             g(vsubq_u64(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s8_u8;
+            vcltq_s8(f(a), f(b))
+        }
+    }
+
+    #[inline(always)]
+    fn i16x8_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s16_u8;
+            let g = vreinterpretq_u8_u16;
+            g(vcltq_s16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vcltq_s32(f(a), f(b)))
         }
     }
 
@@ -473,6 +482,21 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u64x4_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i8x32_lt(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i16x16_lt(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i32x8_lt(self, a, b)
     }
 
     #[inline(always)]

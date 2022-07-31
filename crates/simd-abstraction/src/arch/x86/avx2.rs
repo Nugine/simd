@@ -110,11 +110,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_cmpgt_epi8(b, a) } // avx2
-    }
-
-    #[inline(always)]
     fn i8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_cmpeq_epi8(b, a) } // avx2
     }
@@ -162,11 +157,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_cmpgt_epi32(b, a) } // avx2
-    }
-
-    #[inline(always)]
     fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_add_epi8(a, b) } // avx2
     }
@@ -204,6 +194,21 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_sub_epi64(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_cmpgt_epi8(b, a) } // avx2
+    }
+
+    #[inline(always)]
+    fn i16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_cmpgt_epi16(b, a) } // avx2
+    }
+
+    #[inline(always)]
+    fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_cmpgt_epi32(b, a) } // avx2
     }
 
     #[inline(always)]

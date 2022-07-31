@@ -85,11 +85,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_cmplt_epi8(a, b) } // sse2
-    }
-
-    #[inline(always)]
     fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_cmpeq_epi8(a, b) } // sse2
     }
@@ -132,11 +127,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_cmplt_epi32(a, b) } // sse2
-    }
-
-    #[inline(always)]
     fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_add_epi8(a, b) } // sse2
     }
@@ -174,6 +164,21 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_sub_epi64(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_cmplt_epi8(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn i16x8_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_cmplt_epi16(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_cmplt_epi32(a, b) } // sse2
     }
 
     #[inline(always)]
@@ -321,6 +326,21 @@ unsafe impl SIMD256 for SSE41 {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u64x4_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i8x32_lt(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i16x16_lt(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i32x8_lt(self, a, b)
     }
 
     #[inline(always)]

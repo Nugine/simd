@@ -21,7 +21,6 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u8x16_any_zero(self, a: Self::V128) -> bool;
 
     fn i8x16_splat(self, x: i8) -> Self::V128;
-    fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
@@ -32,8 +31,6 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
-
-    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     // ----refactor----
 
@@ -46,6 +43,10 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
+
+    fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn i16x8_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u8x16_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u16x8_max(self, a: Self::V128, b: Self::V128) -> Self::V128;
@@ -148,11 +149,6 @@ macro_rules! inherit_simd128 {
             }
 
             #[inline(always)]
-            fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-                self.$upcast().i8x16_lt(a, b)
-            }
-
-            #[inline(always)]
             fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
                 self.$upcast().i8x16_eq(a, b)
             }
@@ -193,11 +189,6 @@ macro_rules! inherit_simd128 {
             }
 
             #[inline(always)]
-            fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-                self.$upcast().i32x4_lt(a, b)
-            }
-
-            #[inline(always)]
             fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
                 self.$upcast().u8x16_add(a, b)
             }
@@ -235,6 +226,21 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
                 self.$upcast().u64x2_sub(a, b)
+            }
+
+            #[inline(always)]
+            fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                self.$upcast().i8x16_lt(a, b)
+            }
+
+            #[inline(always)]
+            fn i16x8_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                self.$upcast().i16x8_lt(a, b)
+            }
+
+            #[inline(always)]
+            fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                self.$upcast().i32x4_lt(a, b)
             }
 
             #[inline(always)]
