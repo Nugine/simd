@@ -164,6 +164,13 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
+    fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
+        split_merge(self, a, a, |a, _| {
+            (self.u16x8_bswap(a.0), self.u16x8_bswap(a.1))
+        })
+    }
+
+    #[inline(always)]
     fn u32x8_splat(self, x: u32) -> Self::V256 {
         self.v256_from_v128x2(self.u32x4_splat(x), self.u32x4_splat(x))
     }

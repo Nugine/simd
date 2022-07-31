@@ -30,6 +30,7 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u16x8_splat(self, x: u16) -> Self::V128;
+    fn u16x8_bswap(self, a: Self::V128) -> Self::V128;
 
     fn u32x4_splat(self, x: u32) -> Self::V128;
     fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;

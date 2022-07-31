@@ -165,6 +165,15 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
+    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u16_u8;
+            let g = vreinterpretq_u8_u16;
+            g(vrev64q_u16(f(a)))
+        }
+    }
+
+    #[inline(always)]
     fn u32x4_splat(self, x: u32) -> Self::V128 {
         unsafe { vreinterpretq_u8_u32(vdupq_n_u32(x)) }
     }
@@ -216,20 +225,20 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe {
-            let f = vreinterpretq_s32_u8;
-            let g = vreinterpretq_u8_u32;
-            g(vcltq_s32(f(a), f(b)))
-        }
-    }
-
-    #[inline(always)]
     fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
         unsafe {
             let f = vreinterpretq_u32_u8;
             let g = vreinterpretq_u8_u32;
             g(vrev64q_u32(f(a)))
+        }
+    }
+
+    #[inline(always)]
+    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vcltq_s32(f(a), f(b)))
         }
     }
 }

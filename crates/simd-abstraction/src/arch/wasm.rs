@@ -126,6 +126,11 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
+    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U16X8))
+    }
+
+    #[inline(always)]
     fn u32x4_splat(self, x: u32) -> Self::V128 {
         u32x4_splat(x)
     }

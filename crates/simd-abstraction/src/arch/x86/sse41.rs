@@ -125,6 +125,11 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
+    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U16X8))
+    }
+
+    #[inline(always)]
     fn u32x4_splat(self, x: u32) -> Self::V128 {
         unsafe { _mm_set1_epi32(x as i32) } // sse2
     }
@@ -162,13 +167,13 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_cmplt_epi32(a, b) } // sse2
+    fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U32X4))
     }
 
     #[inline(always)]
-    fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
-        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U32X4))
+    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_cmplt_epi32(a, b) } // sse2
     }
 }
 

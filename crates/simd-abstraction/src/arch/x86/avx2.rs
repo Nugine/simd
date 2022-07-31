@@ -128,6 +128,11 @@ unsafe impl SIMD128 for AVX2 {
     }
 
     #[inline(always)]
+    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
+        self.sse41().u16x8_bswap(a)
+    }
+
+    #[inline(always)]
     fn u32x4_splat(self, x: u32) -> Self::V128 {
         self.sse41().u32x4_splat(x)
     }
@@ -313,6 +318,11 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u16x16_splat(self, x: u16) -> Self::V256 {
         unsafe { _mm256_set1_epi16(x as i16) } // avx
+    }
+
+    #[inline(always)]
+    fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
+        self.u8x16x2_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U16X16))
     }
 
     #[inline(always)]
