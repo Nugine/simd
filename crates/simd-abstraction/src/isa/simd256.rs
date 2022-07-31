@@ -101,13 +101,6 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
-    fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.u8x16_add(a.0, b.0), self.u8x16_add(a.1, b.1))
-        })
-    }
-
-    #[inline(always)]
     fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
             (self.u8x16_sub(a.0, b.0), self.u8x16_sub(a.1, b.1))
@@ -188,13 +181,6 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
-    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.u32x4_add(a.0, b.0), self.u32x4_add(a.1, b.1))
-        })
-    }
-
-    #[inline(always)]
     fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
             (self.u32x4_sub(a.0, b.0), self.u32x4_sub(a.1, b.1))
@@ -221,6 +207,9 @@ pub unsafe trait SIMD256: SIMD128 {
             (self.i32x4_lt(a.0, b.0), self.i32x4_lt(a.1, b.1))
         })
     }
+
+    fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
 
     fn u16x16_bswap(self, a: Self::V256) -> Self::V256;
     fn u32x8_bswap(self, a: Self::V256) -> Self::V256;

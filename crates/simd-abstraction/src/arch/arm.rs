@@ -314,6 +314,16 @@ unsafe impl SIMD256 for NEON {
     }
 
     #[inline(always)]
+    fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_add(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_add(self, a, b)
+    }
+
+    #[inline(always)]
     fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
         mock256::u16x16_bswap(self, a)
     }

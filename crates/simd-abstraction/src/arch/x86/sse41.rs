@@ -186,6 +186,16 @@ unsafe impl SIMD256 for SSE41 {
     type V256 = (__m128i, __m128i);
 
     #[inline(always)]
+    fn v256_from_v128x2(self, a: Self::V128, b: Self::V128) -> Self::V256 {
+        (a, b)
+    }
+
+    #[inline(always)]
+    fn v256_to_v128x2(self, a: Self::V256) -> (Self::V128, Self::V128) {
+        (a.0, a.1)
+    }
+
+    #[inline(always)]
     fn v256_to_bytes(self, a: Self::V256) -> [u8; 32] {
         unsafe { core::mem::transmute([a.0, a.1]) }
     }
@@ -204,13 +214,13 @@ unsafe impl SIMD256 for SSE41 {
     }
 
     #[inline(always)]
-    fn v256_from_v128x2(self, a: Self::V128, b: Self::V128) -> Self::V256 {
-        (a, b)
+    fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_add(self, a, b)
     }
 
     #[inline(always)]
-    fn v256_to_v128x2(self, a: Self::V256) -> (Self::V128, Self::V128) {
-        (a.0, a.1)
+    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_add(self, a, b)
     }
 
     #[inline(always)]

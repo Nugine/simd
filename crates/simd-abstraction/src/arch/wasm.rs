@@ -226,4 +226,14 @@ unsafe impl isa::SIMD256 for SIMD128 {
     fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
         mock256::u64x4_bswap(self, a)
     }
+
+    #[inline(always)]
+    fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_add(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_add(self, a, b)
+    }
 }
