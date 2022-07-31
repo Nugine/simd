@@ -16,6 +16,52 @@ fn vmerge<S: SIMD256>(s: S, a: S::V256, b: S::V256, f: impl Fn(S, S::V128, S::V1
 }
 
 #[inline(always)]
+fn double<S: SIMD256>(s: S, f: impl FnOnce() -> S::V128) -> S::V256 {
+    let a = f();
+    s.v256_from_v128x2(a, a)
+}
+
+#[inline(always)]
+pub fn u8x32_splat<S: SIMD256>(s: S, x: u8) -> S::V256 {
+    double(s, || s.u8x16_splat(x))
+}
+
+#[inline(always)]
+pub fn u16x16_splat<S: SIMD256>(s: S, x: u16) -> S::V256 {
+    double(s, || s.u16x8_splat(x))
+}
+
+#[inline(always)]
+pub fn u32x8_splat<S: SIMD256>(s: S, x: u32) -> S::V256 {
+    double(s, || s.u32x4_splat(x))
+}
+
+#[inline(always)]
+pub fn u64x4_splat<S: SIMD256>(s: S, x: u64) -> S::V256 {
+    double(s, || s.u64x2_splat(x))
+}
+
+#[inline(always)]
+pub fn i8x32_splat<S: SIMD256>(s: S, x: i8) -> S::V256 {
+    double(s, || s.i8x16_splat(x))
+}
+
+#[inline(always)]
+pub fn i16x16_splat<S: SIMD256>(s: S, x: i16) -> S::V256 {
+    double(s, || s.i16x8_splat(x))
+}
+
+#[inline(always)]
+pub fn i32x8_splat<S: SIMD256>(s: S, x: i32) -> S::V256 {
+    double(s, || s.i32x4_splat(x))
+}
+
+#[inline(always)]
+pub fn i64x4_splat<S: SIMD256>(s: S, x: i64) -> S::V256 {
+    double(s, || s.i64x2_splat(x))
+}
+
+#[inline(always)]
 pub fn u8x32_add<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
     vmerge(s, a, b, S::u8x16_add)
 }

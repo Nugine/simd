@@ -61,11 +61,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn u8x16_splat(self, x: u8) -> Self::V128 {
-        u8x16_splat(x)
-    }
-
-    #[inline(always)]
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u8x16_swizzle(a, b)
     }
@@ -78,11 +73,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
         !u8x16_all_true(a)
-    }
-
-    #[inline(always)]
-    fn i8x16_splat(self, x: i8) -> Self::V128 {
-        i8x16_splat(x)
     }
 
     #[inline(always)]
@@ -101,16 +91,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn u16x8_splat(self, x: u16) -> Self::V128 {
-        u16x8_splat(x)
-    }
-
-    #[inline(always)]
-    fn u32x4_splat(self, x: u32) -> Self::V128 {
-        u32x4_splat(x)
-    }
-
-    #[inline(always)]
     fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         u32x4_shl(a, IMM8 as u32)
     }
@@ -123,6 +103,46 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u32x4_lt(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_splat(self, x: u8) -> Self::V128 {
+        u8x16_splat(x)
+    }
+
+    #[inline(always)]
+    fn u16x8_splat(self, x: u16) -> Self::V128 {
+        u16x8_splat(x)
+    }
+
+    #[inline(always)]
+    fn u32x4_splat(self, x: u32) -> Self::V128 {
+        u32x4_splat(x)
+    }
+
+    #[inline(always)]
+    fn u64x2_splat(self, x: u64) -> Self::V128 {
+        u64x2_splat(x)
+    }
+
+    #[inline(always)]
+    fn i8x16_splat(self, x: i8) -> Self::V128 {
+        i8x16_splat(x)
+    }
+
+    #[inline(always)]
+    fn i16x8_splat(self, x: i16) -> Self::V128 {
+        i16x8_splat(x)
+    }
+
+    #[inline(always)]
+    fn i32x4_splat(self, x: i32) -> Self::V128 {
+        i32x4_splat(x)
+    }
+
+    #[inline(always)]
+    fn i64x2_splat(self, x: i64) -> Self::V128 {
+        i64x2_splat(x)
     }
 
     #[inline(always)]
@@ -285,6 +305,46 @@ unsafe impl isa::SIMD256 for SIMD128 {
     fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
         let a = self.v256_to_v128x2(a);
         u64x2_shuffle::<0, 2>(a.0, a.1)
+    }
+
+    #[inline(always)]
+    fn u8x32_splat(self, x: u8) -> Self::V256 {
+        mock256::u8x32_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u16x16_splat(self, x: u16) -> Self::V256 {
+        mock256::u16x16_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u32x8_splat(self, x: u32) -> Self::V256 {
+        mock256::u32x8_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u64x4_splat(self, x: u64) -> Self::V256 {
+        mock256::u64x4_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i8x32_splat(self, x: i8) -> Self::V256 {
+        mock256::i8x32_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i16x16_splat(self, x: i16) -> Self::V256 {
+        mock256::i16x16_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i32x8_splat(self, x: i32) -> Self::V256 {
+        mock256::i32x8_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i64x4_splat(self, x: i64) -> Self::V256 {
+        mock256::i64x4_splat(self, x)
     }
 
     #[inline(always)]

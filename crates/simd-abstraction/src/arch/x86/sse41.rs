@@ -57,11 +57,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn u8x16_splat(self, x: u8) -> Self::V128 {
-        unsafe { _mm_set1_epi8(x as i8) } // sse2
-    }
-
-    #[inline(always)]
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_shuffle_epi8(a, b) } // ssse3
     }
@@ -80,11 +75,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn i8x16_splat(self, x: i8) -> Self::V128 {
-        unsafe { _mm_set1_epi8(x) } // sse2
-    }
-
-    #[inline(always)]
     fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_cmpeq_epi8(a, b) } // sse2
     }
@@ -97,16 +87,6 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         unsafe { _mm_srli_epi16::<IMM8>(a) } // sse2
-    }
-
-    #[inline(always)]
-    fn u16x8_splat(self, x: u16) -> Self::V128 {
-        unsafe { _mm_set1_epi16(x as i16) } // sse2
-    }
-
-    #[inline(always)]
-    fn u32x4_splat(self, x: u32) -> Self::V128 {
-        unsafe { _mm_set1_epi32(x as i32) } // sse2
     }
 
     #[inline(always)]
@@ -124,6 +104,46 @@ unsafe impl SIMD128 for SSE41 {
         let a = self.u32x4_sub(a, self.u32x4_splat(u32::MAX / 2));
         let b = self.u32x4_sub(b, self.u32x4_splat(u32::MAX / 2));
         self.i32x4_lt(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_splat(self, x: u8) -> Self::V128 {
+        unsafe { _mm_set1_epi8(x as i8) } // sse2
+    }
+
+    #[inline(always)]
+    fn u16x8_splat(self, x: u16) -> Self::V128 {
+        unsafe { _mm_set1_epi16(x as i16) } // sse2
+    }
+
+    #[inline(always)]
+    fn u32x4_splat(self, x: u32) -> Self::V128 {
+        unsafe { _mm_set1_epi32(x as i32) } // sse2
+    }
+
+    #[inline(always)]
+    fn u64x2_splat(self, x: u64) -> Self::V128 {
+        unsafe { _mm_set1_epi64x(x as i64) } // sse2
+    }
+
+    #[inline(always)]
+    fn i8x16_splat(self, x: i8) -> Self::V128 {
+        unsafe { _mm_set1_epi8(x) } // sse2
+    }
+
+    #[inline(always)]
+    fn i16x8_splat(self, x: i16) -> Self::V128 {
+        unsafe { _mm_set1_epi16(x) } // sse2
+    }
+
+    #[inline(always)]
+    fn i32x4_splat(self, x: i32) -> Self::V128 {
+        unsafe { _mm_set1_epi32(x) } // sse2
+    }
+
+    #[inline(always)]
+    fn i64x2_splat(self, x: i64) -> Self::V128 {
+        unsafe { _mm_set1_epi64x(x) } // sse2
     }
 
     #[inline(always)]
@@ -286,6 +306,46 @@ unsafe impl SIMD256 for SSE41 {
     #[inline(always)]
     fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
         unsafe { _mm_unpacklo_epi64(a.0, a.1) } // sse2
+    }
+
+    #[inline(always)]
+    fn u8x32_splat(self, x: u8) -> Self::V256 {
+        mock256::u8x32_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u16x16_splat(self, x: u16) -> Self::V256 {
+        mock256::u16x16_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u32x8_splat(self, x: u32) -> Self::V256 {
+        mock256::u32x8_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u64x4_splat(self, x: u64) -> Self::V256 {
+        mock256::u64x4_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i8x32_splat(self, x: i8) -> Self::V256 {
+        mock256::i8x32_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i16x16_splat(self, x: i16) -> Self::V256 {
+        mock256::i16x16_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i32x8_splat(self, x: i32) -> Self::V256 {
+        mock256::i32x8_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i64x4_splat(self, x: i64) -> Self::V256 {
+        mock256::i64x4_splat(self, x)
     }
 
     #[inline(always)]

@@ -90,11 +90,6 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
-    fn u8x32_splat(self, x: u8) -> Self::V256 {
-        self.v256_from_v128x2(self.u8x16_splat(x), self.u8x16_splat(x))
-    }
-
-    #[inline(always)]
     fn u8x32_any_zero(self, a: Self::V256) -> bool {
         let a = self.v256_to_v128x2(a);
         self.u8x16_any_zero(self.u8x16_min(a.0, a.1))
@@ -105,11 +100,6 @@ pub unsafe trait SIMD256: SIMD128 {
         split_merge(self, a, b, |a, b| {
             (self.u8x16_swizzle(a.0, b.0), self.u8x16_swizzle(a.1, b.1))
         })
-    }
-
-    #[inline(always)]
-    fn i8x32_splat(self, x: i8) -> Self::V256 {
-        self.v256_from_v128x2(self.i8x16_splat(x), self.i8x16_splat(x))
     }
 
     #[inline(always)]
@@ -127,16 +117,6 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         let a = self.v256_to_v128x2(a);
         self.v256_from_v128x2(self.u16x8_shr::<IMM8>(a.0), self.u16x8_shr::<IMM8>(a.1))
-    }
-
-    #[inline(always)]
-    fn u16x16_splat(self, x: u16) -> Self::V256 {
-        self.v256_from_v128x2(self.u16x8_splat(x), self.u16x8_splat(x))
-    }
-
-    #[inline(always)]
-    fn u32x8_splat(self, x: u32) -> Self::V256 {
-        self.v256_from_v128x2(self.u32x4_splat(x), self.u32x4_splat(x))
     }
 
     #[inline(always)]
@@ -164,6 +144,15 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     // ----refactor----
+
+    fn u8x32_splat(self, x: u8) -> Self::V256;
+    fn u16x16_splat(self, x: u16) -> Self::V256;
+    fn u32x8_splat(self, x: u32) -> Self::V256;
+    fn u64x4_splat(self, x: u64) -> Self::V256;
+    fn i8x32_splat(self, x: i8) -> Self::V256;
+    fn i16x16_splat(self, x: i16) -> Self::V256;
+    fn i32x8_splat(self, x: i32) -> Self::V256;
+    fn i64x4_splat(self, x: i64) -> Self::V256;
 
     fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
     fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
@@ -227,6 +216,46 @@ macro_rules! inherit_simd256 {
             #[inline(always)]
             fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
                 self.$upcast().u64x4_unzip_low(a)
+            }
+
+            #[inline(always)]
+            fn u8x32_splat(self, x: u8) -> Self::V256 {
+                self.$upcast().u8x32_splat(x)
+            }
+
+            #[inline(always)]
+            fn u16x16_splat(self, x: u16) -> Self::V256 {
+                self.$upcast().u16x16_splat(x)
+            }
+
+            #[inline(always)]
+            fn u32x8_splat(self, x: u32) -> Self::V256 {
+                self.$upcast().u32x8_splat(x)
+            }
+
+            #[inline(always)]
+            fn u64x4_splat(self, x: u64) -> Self::V256 {
+                self.$upcast().u64x4_splat(x)
+            }
+
+            #[inline(always)]
+            fn i8x32_splat(self, x: i8) -> Self::V256 {
+                self.$upcast().i8x32_splat(x)
+            }
+
+            #[inline(always)]
+            fn i16x16_splat(self, x: i16) -> Self::V256 {
+                self.$upcast().i16x16_splat(x)
+            }
+
+            #[inline(always)]
+            fn i32x8_splat(self, x: i32) -> Self::V256 {
+                self.$upcast().i32x8_splat(x)
+            }
+
+            #[inline(always)]
+            fn i64x4_splat(self, x: i64) -> Self::V256 {
+                self.$upcast().i64x4_splat(x)
             }
 
             #[inline(always)]

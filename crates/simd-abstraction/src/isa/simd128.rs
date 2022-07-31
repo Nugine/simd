@@ -15,24 +15,29 @@ pub unsafe trait SIMD128: InstructionSet {
     fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
-    fn u8x16_splat(self, x: u8) -> Self::V128;
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u8x16_any_zero(self, a: Self::V128) -> bool;
 
-    fn i8x16_splat(self, x: i8) -> Self::V128;
     fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
-    fn u16x8_splat(self, x: u16) -> Self::V128;
 
-    fn u32x4_splat(self, x: u32) -> Self::V128;
     fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     // ----refactor----
+
+    fn u8x16_splat(self, x: u8) -> Self::V128;
+    fn u16x8_splat(self, x: u16) -> Self::V128;
+    fn u32x4_splat(self, x: u32) -> Self::V128;
+    fn u64x2_splat(self, x: u64) -> Self::V128;
+    fn i8x16_splat(self, x: i8) -> Self::V128;
+    fn i16x8_splat(self, x: i16) -> Self::V128;
+    fn i32x4_splat(self, x: i32) -> Self::V128;
+    fn i64x2_splat(self, x: i64) -> Self::V128;
 
     fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u16x8_add(self, a: Self::V128, b: Self::V128) -> Self::V128;
@@ -124,11 +129,6 @@ macro_rules! inherit_simd128 {
             }
 
             #[inline(always)]
-            fn u8x16_splat(self, x: u8) -> Self::V128 {
-                self.$upcast().u8x16_splat(x)
-            }
-
-            #[inline(always)]
             fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
                 self.$upcast().u8x16_swizzle(a, b)
             }
@@ -141,11 +141,6 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn u8x16_any_zero(self, a: Self::V128) -> bool {
                 self.$upcast().u8x16_any_zero(a)
-            }
-
-            #[inline(always)]
-            fn i8x16_splat(self, x: i8) -> Self::V128 {
-                self.$upcast().i8x16_splat(x)
             }
 
             #[inline(always)]
@@ -164,16 +159,6 @@ macro_rules! inherit_simd128 {
             }
 
             #[inline(always)]
-            fn u16x8_splat(self, x: u16) -> Self::V128 {
-                self.$upcast().u16x8_splat(x)
-            }
-
-            #[inline(always)]
-            fn u32x4_splat(self, x: u32) -> Self::V128 {
-                self.$upcast().u32x4_splat(x)
-            }
-
-            #[inline(always)]
             fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
                 self.$upcast().u32x4_shl::<IMM8>(a)
             }
@@ -186,6 +171,46 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
                 self.$upcast().u32x4_lt(a, b)
+            }
+
+            #[inline(always)]
+            fn u8x16_splat(self, x: u8) -> Self::V128 {
+                self.$upcast().u8x16_splat(x)
+            }
+
+            #[inline(always)]
+            fn u16x8_splat(self, x: u16) -> Self::V128 {
+                self.$upcast().u16x8_splat(x)
+            }
+
+            #[inline(always)]
+            fn u32x4_splat(self, x: u32) -> Self::V128 {
+                self.$upcast().u32x4_splat(x)
+            }
+
+            #[inline(always)]
+            fn u64x2_splat(self, x: u64) -> Self::V128 {
+                self.$upcast().u64x2_splat(x)
+            }
+
+            #[inline(always)]
+            fn i8x16_splat(self, x: i8) -> Self::V128 {
+                self.$upcast().i8x16_splat(x)
+            }
+
+            #[inline(always)]
+            fn i16x8_splat(self, x: i16) -> Self::V128 {
+                self.$upcast().i16x8_splat(x)
+            }
+
+            #[inline(always)]
+            fn i32x4_splat(self, x: i32) -> Self::V128 {
+                self.$upcast().i32x4_splat(x)
+            }
+
+            #[inline(always)]
+            fn i64x2_splat(self, x: i64) -> Self::V128 {
+                self.$upcast().i64x2_splat(x)
             }
 
             #[inline(always)]

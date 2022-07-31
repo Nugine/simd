@@ -87,11 +87,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u8x32_splat(self, x: u8) -> Self::V256 {
-        unsafe { _mm256_set1_epi8(x as i8) } // avx
-    }
-
-    #[inline(always)]
     fn u8x32_any_zero(self, a: Self::V256) -> bool {
         unsafe {
             let cmp = _mm256_cmpeq_epi8(a, _mm256_setzero_si256()); // avx2
@@ -102,11 +97,6 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u8x16x2_swizzle(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_shuffle_epi8(a, b) } // avx2
-    }
-
-    #[inline(always)]
-    fn i8x32_splat(self, x: i8) -> Self::V256 {
-        unsafe { _mm256_set1_epi8(x) } // avx
     }
 
     #[inline(always)]
@@ -122,16 +112,6 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         unsafe { _mm256_srli_epi16::<IMM8>(a) } // avx2
-    }
-
-    #[inline(always)]
-    fn u16x16_splat(self, x: u16) -> Self::V256 {
-        unsafe { _mm256_set1_epi16(x as i16) } // avx
-    }
-
-    #[inline(always)]
-    fn u32x8_splat(self, x: u32) -> Self::V256 {
-        unsafe { _mm256_set1_epi32(x as i32) } // avx2
     }
 
     #[inline(always)]
@@ -154,6 +134,46 @@ unsafe impl SIMD256 for AVX2 {
         let a = self.u32x8_sub(a, self.u32x8_splat(u32::MAX / 2));
         let b = self.u32x8_sub(b, self.u32x8_splat(u32::MAX / 2));
         self.i32x8_lt(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x32_splat(self, x: u8) -> Self::V256 {
+        unsafe { _mm256_set1_epi8(x as i8) } // avx
+    }
+
+    #[inline(always)]
+    fn u16x16_splat(self, x: u16) -> Self::V256 {
+        unsafe { _mm256_set1_epi16(x as i16) } // avx
+    }
+
+    #[inline(always)]
+    fn u32x8_splat(self, x: u32) -> Self::V256 {
+        unsafe { _mm256_set1_epi32(x as i32) } // avx
+    }
+
+    #[inline(always)]
+    fn u64x4_splat(self, x: u64) -> Self::V256 {
+        unsafe { _mm256_set1_epi64x(x as i64) } // avx
+    }
+
+    #[inline(always)]
+    fn i8x32_splat(self, x: i8) -> Self::V256 {
+        unsafe { _mm256_set1_epi8(x) } // avx
+    }
+
+    #[inline(always)]
+    fn i16x16_splat(self, x: i16) -> Self::V256 {
+        unsafe { _mm256_set1_epi16(x) } // avx
+    }
+
+    #[inline(always)]
+    fn i32x8_splat(self, x: i32) -> Self::V256 {
+        unsafe { _mm256_set1_epi32(x) } // avx
+    }
+
+    #[inline(always)]
+    fn i64x4_splat(self, x: i64) -> Self::V256 {
+        unsafe { _mm256_set1_epi64x(x) } // avx
     }
 
     #[inline(always)]

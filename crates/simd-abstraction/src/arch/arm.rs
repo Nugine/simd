@@ -79,11 +79,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn u8x16_splat(self, x: u8) -> Self::V128 {
-        unsafe { vdupq_n_u8(x) }
-    }
-
-    #[inline(always)]
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         #[cfg(target_arch = "arm")]
         unsafe {
@@ -117,11 +112,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn i8x16_splat(self, x: i8) -> Self::V128 {
-        unsafe { vreinterpretq_u8_s8(vdupq_n_s8(x)) }
-    }
-
-    #[inline(always)]
     fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { vceqq_u8(a, b) }
     }
@@ -134,16 +124,6 @@ unsafe impl SIMD128 for NEON {
     #[inline(always)]
     fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         unsafe { vreinterpretq_u8_u16(vshrq_n_u16::<IMM8>(vreinterpretq_u16_u8(a))) }
-    }
-
-    #[inline(always)]
-    fn u16x8_splat(self, x: u16) -> Self::V128 {
-        unsafe { vreinterpretq_u8_u16(vdupq_n_u16(x)) }
-    }
-
-    #[inline(always)]
-    fn u32x4_splat(self, x: u32) -> Self::V128 {
-        unsafe { vreinterpretq_u8_u32(vdupq_n_u32(x)) }
     }
 
     #[inline(always)]
@@ -163,6 +143,46 @@ unsafe impl SIMD128 for NEON {
             let g = vreinterpretq_u8_u32;
             g(vcltq_u32(f(a), f(b)))
         }
+    }
+
+    #[inline(always)]
+    fn u8x16_splat(self, x: u8) -> Self::V128 {
+        unsafe { vdupq_n_u8(x) }
+    }
+
+    #[inline(always)]
+    fn u16x8_splat(self, x: u16) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u16(vdupq_n_u16(x)) }
+    }
+
+    #[inline(always)]
+    fn u32x4_splat(self, x: u32) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u32(vdupq_n_u32(x)) }
+    }
+
+    #[inline(always)]
+    fn u64x2_splat(self, x: u64) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u64(vdupq_n_u64(x)) }
+    }
+
+    #[inline(always)]
+    fn i8x16_splat(self, x: i8) -> Self::V128 {
+        unsafe { vreinterpretq_u8_s8(vdupq_n_s8(x)) }
+    }
+
+    #[inline(always)]
+    fn i16x8_splat(self, x: i16) -> Self::V128 {
+        unsafe { vreinterpretq_u8_s16(vdupq_n_s16(x)) }
+    }
+
+    #[inline(always)]
+    fn i32x4_splat(self, x: i32) -> Self::V128 {
+        unsafe { vreinterpretq_u8_s32(vdupq_n_s32(x)) }
+    }
+
+    #[inline(always)]
+    fn i64x2_splat(self, x: i64) -> Self::V128 {
+        unsafe { vreinterpretq_u8_s64(vdupq_n_s64(x)) }
     }
 
     #[inline(always)]
@@ -572,5 +592,45 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
         mock256::u64x4_bswap(self, a)
+    }
+
+    #[inline(always)]
+    fn u8x32_splat(self, x: u8) -> Self::V256 {
+        mock256::u8x32_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u16x16_splat(self, x: u16) -> Self::V256 {
+        mock256::u16x16_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u32x8_splat(self, x: u32) -> Self::V256 {
+        mock256::u32x8_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u64x4_splat(self, x: u64) -> Self::V256 {
+        mock256::u64x4_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i8x32_splat(self, x: i8) -> Self::V256 {
+        mock256::i8x32_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i16x16_splat(self, x: i16) -> Self::V256 {
+        mock256::i16x16_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i32x8_splat(self, x: i32) -> Self::V256 {
+        mock256::i32x8_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i64x4_splat(self, x: i64) -> Self::V256 {
+        mock256::i64x4_splat(self, x)
     }
 }
