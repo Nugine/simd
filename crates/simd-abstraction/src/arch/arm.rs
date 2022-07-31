@@ -1,4 +1,4 @@
-use crate::isa::{InstructionSet, SIMD128, SIMD256};
+use crate::isa::{InstructionSet, SimdLoad, SIMD128, SIMD256};
 
 #[cfg(target_arch = "arm")]
 use core::arch::arm::*;
@@ -240,6 +240,11 @@ unsafe impl SIMD128 for NEON {
             let g = vreinterpretq_u8_u32;
             g(vcltq_s32(f(a), f(b)))
         }
+    }
+
+    #[inline(always)]
+    fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X2))
     }
 }
 

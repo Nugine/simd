@@ -1,16 +1,7 @@
 #![allow(clippy::missing_safety_doc)]
 
 use crate::isa::{SimdLoad, SIMD256};
-use crate::scalar::{align32, Bytes32, Scalar};
-
-#[cfg(any(target_arch = "x86", target_arch = "x86_64", target_arch = "wasm32"))]
-use crate::scalar::Bytes16;
-
-#[cfg(any(target_arch = "x86", target_arch = "x86_64", target_arch = "wasm32"))]
-pub(crate) const SHUFFLE_U32X4: &Bytes16 = &Bytes16([
-    0x03, 0x02, 0x01, 0x00, 0x07, 0x06, 0x05, 0x04, //
-    0x0b, 0x0a, 0x09, 0x08, 0x0f, 0x0e, 0x0d, 0x0c, //
-]);
+use crate::scalar::{align32, Bytes16, Bytes32, Scalar};
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64", target_arch = "wasm32"))]
 pub(crate) const SHUFFLE_U16X8: &Bytes16 = &Bytes16([
@@ -18,11 +9,25 @@ pub(crate) const SHUFFLE_U16X8: &Bytes16 = &Bytes16([
     0x09, 0x08, 0x0b, 0x0a, 0x0d, 0x0c, 0x0f, 0x0e, //
 ]);
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64", target_arch = "wasm32"))]
+pub(crate) const SHUFFLE_U32X4: &Bytes16 = &Bytes16([
+    0x03, 0x02, 0x01, 0x00, 0x07, 0x06, 0x05, 0x04, //
+    0x0b, 0x0a, 0x09, 0x08, 0x0f, 0x0e, 0x0d, 0x0c, //
+]);
+
+pub(crate) const SHUFFLE_U64X2: &Bytes16 = &Bytes16([
+    0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00, //
+    0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08, //
+]);
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(crate) const SHUFFLE_U16X16: &Bytes32 = &Bytes32::double(SHUFFLE_U16X8.0);
+
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) const SHUFFLE_U32X8: &Bytes32 = &Bytes32::double(SHUFFLE_U32X4.0);
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub(crate) const SHUFFLE_U16X16: &Bytes32 = &Bytes32::double(SHUFFLE_U16X8.0);
+pub(crate) const SHUFFLE_U64X4: &Bytes32 = &Bytes32::double(SHUFFLE_U64X2.0);
 
 unsafe fn unroll_ptr<T>(
     mut src: *const T,

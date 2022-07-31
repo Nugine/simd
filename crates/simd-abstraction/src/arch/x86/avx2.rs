@@ -176,6 +176,11 @@ unsafe impl SIMD128 for AVX2 {
     fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.sse41().i32x4_lt(a, b)
     }
+
+    #[inline(always)]
+    fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
+        self.sse41().u64x2_bswap(a)
+    }
 }
 
 unsafe impl SIMD256 for AVX2 {
@@ -375,5 +380,10 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_cmpgt_epi32(b, a) } // avx2
+    }
+
+    #[inline(always)]
+    fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
+        self.u8x16x2_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X4))
     }
 }

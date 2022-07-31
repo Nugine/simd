@@ -174,6 +174,11 @@ unsafe impl SIMD128 for SSE42 {
     fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.sse41().i32x4_lt(a, b)
     }
+
+    #[inline(always)]
+    fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
+        self.sse41().u64x2_bswap(a)
+    }
 }
 
 unsafe impl SIMD256 for SSE42 {

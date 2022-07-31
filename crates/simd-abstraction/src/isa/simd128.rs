@@ -42,4 +42,6 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u32x4_bswap(self, a: Self::V128) -> Self::V128;
 
     fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
+
+    fn u64x2_bswap(self, a: Self::V128) -> Self::V128;
 }

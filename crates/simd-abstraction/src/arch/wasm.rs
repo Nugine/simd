@@ -174,6 +174,11 @@ unsafe impl isa::SIMD128 for SIMD128 {
     fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         i32x4_lt(a, b)
     }
+
+    #[inline(always)]
+    fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X2))
+    }
 }
 
 unsafe impl isa::SIMD256 for SIMD128 {
