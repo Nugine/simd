@@ -191,6 +191,16 @@ unsafe impl SIMD128 for AVX2 {
     fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
         self.sse41().u64x2_bswap(a)
     }
+
+    #[inline(always)]
+    fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u16x8_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u64x2_sub(a, b)
+    }
 }
 
 unsafe impl SIMD256 for AVX2 {
@@ -283,11 +293,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_sub_epi8(a, b) } // avx2
-    }
-
-    #[inline(always)]
     fn u8x32_any_zero(self, a: Self::V256) -> bool {
         unsafe {
             let cmp = _mm256_cmpeq_epi8(a, _mm256_setzero_si256()); // avx2
@@ -351,11 +356,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_sub_epi32(a, b) } // avx2
-    }
-
-    #[inline(always)]
     fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_max_epu32(a, b) } // avx2
     }
@@ -390,6 +390,26 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_add_epi64(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_sub_epi8(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u16x16_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_sub_epi16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_sub_epi32(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_sub_epi64(a, b) } // avx2
     }
 
     #[inline(always)]

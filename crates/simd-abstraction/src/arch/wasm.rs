@@ -71,16 +71,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        u8x16_add(a, b)
-    }
-
-    #[inline(always)]
-    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        u8x16_sub(a, b)
-    }
-
-    #[inline(always)]
     fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u8x16_sub_sat(a, b)
     }
@@ -126,11 +116,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
-        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U16X8))
-    }
-
-    #[inline(always)]
     fn u32x4_splat(self, x: u32) -> Self::V128 {
         u32x4_splat(x)
     }
@@ -146,16 +131,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        u32x4_add(a, b)
-    }
-
-    #[inline(always)]
-    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        u32x4_sub(a, b)
-    }
-
-    #[inline(always)]
     fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u32x4_max(a, b)
     }
@@ -166,18 +141,13 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
-        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U32X4))
-    }
-
-    #[inline(always)]
     fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         i32x4_lt(a, b)
     }
 
     #[inline(always)]
-    fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
-        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X2))
+    fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u8x16_add(a, b)
     }
 
     #[inline(always)]
@@ -186,8 +156,48 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
+    fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u32x4_add(a, b)
+    }
+
+    #[inline(always)]
     fn u64x2_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u64x2_add(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u8x16_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u16x8_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u32x4_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u64x2_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U16X8))
+    }
+
+    #[inline(always)]
+    fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U32X4))
+    }
+
+    #[inline(always)]
+    fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
+        self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X2))
     }
 }
 
@@ -223,6 +233,46 @@ unsafe impl isa::SIMD256 for SIMD128 {
     }
 
     #[inline(always)]
+    fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_add(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u16x16_add(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_add(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u64x4_add(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u16x16_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u64x4_sub(self, a, b)
+    }
+
+    #[inline(always)]
     fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
         mock256::u16x16_bswap(self, a)
     }
@@ -235,25 +285,5 @@ unsafe impl isa::SIMD256 for SIMD128 {
     #[inline(always)]
     fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
         mock256::u64x4_bswap(self, a)
-    }
-
-    #[inline(always)]
-    fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        mock256::u8x32_add(self, a, b)
-    }
-
-    #[inline(always)]
-    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        mock256::u32x8_add(self, a, b)
-    }
-
-    #[inline(always)]
-    fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        mock256::u16x16_add(self, a, b)
-    }
-
-    #[inline(always)]
-    fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        mock256::u64x4_add(self, a, b)
     }
 }

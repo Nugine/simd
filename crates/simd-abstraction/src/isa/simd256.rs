@@ -101,13 +101,6 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
-    fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.u8x16_sub(a.0, b.0), self.u8x16_sub(a.1, b.1))
-        })
-    }
-
-    #[inline(always)]
     fn u8x32_any_zero(self, a: Self::V256) -> bool {
         let a = self.v256_to_v128x2(a);
         self.u8x16_any_zero(self.u8x16_min(a.0, a.1))
@@ -181,13 +174,6 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
-    fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.u32x4_sub(a.0, b.0), self.u32x4_sub(a.1, b.1))
-        })
-    }
-
-    #[inline(always)]
     fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
             (self.u32x4_max(a.0, b.0), self.u32x4_max(a.1, b.1))
@@ -214,6 +200,11 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
     fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
     fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
+
+    fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u16x16_sub(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256;
 
     fn u16x16_bswap(self, a: Self::V256) -> Self::V256;
     fn u32x8_bswap(self, a: Self::V256) -> Self::V256;

@@ -67,11 +67,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_sub_epi8(a, b) } // sse2
-    }
-
-    #[inline(always)]
     fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_subs_epu8(a, b) } // sse2
     }
@@ -135,11 +130,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_sub_epi32(a, b) } // sse2
-    }
-
-    #[inline(always)]
     fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_max_epu32(a, b) } // sse41
     }
@@ -174,6 +164,26 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn u64x2_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_add_epi64(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_sub_epi8(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_sub_epi16(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_sub_epi32(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_sub_epi64(a, b) } // sse2
     }
 
     #[inline(always)]
@@ -241,6 +251,26 @@ unsafe impl SIMD256 for SSE41 {
     #[inline(always)]
     fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u64x4_add(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u16x16_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u64x4_sub(self, a, b)
     }
 
     #[inline(always)]

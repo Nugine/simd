@@ -71,11 +71,6 @@ unsafe impl SIMD128 for SSE42 {
     }
 
     #[inline(always)]
-    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().u8x16_sub(a, b)
-    }
-
-    #[inline(always)]
     fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.sse41().u8x16_sub_sat(a, b)
     }
@@ -136,11 +131,6 @@ unsafe impl SIMD128 for SSE42 {
     }
 
     #[inline(always)]
-    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().u32x4_sub(a, b)
-    }
-
-    #[inline(always)]
     fn u32x4_max(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.sse41().u32x4_max(a, b)
     }
@@ -173,6 +163,26 @@ unsafe impl SIMD128 for SSE42 {
     #[inline(always)]
     fn u64x2_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.sse41().u64x2_add(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u8x16_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u16x8_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u32x4_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u64x2_sub(a, b)
     }
 
     #[inline(always)]
@@ -237,6 +247,26 @@ unsafe impl SIMD256 for SSE42 {
     #[inline(always)]
     fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         self.sse41().u64x4_add(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        self.sse41().u8x32_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        self.sse41().u16x16_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        self.sse41().u32x8_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        self.sse41().u64x4_sub(a, b)
     }
 
     #[inline(always)]
