@@ -88,11 +88,7 @@ pub fn bench_decode(c: &mut Criterion) {
 pub fn bench_encode(c: &mut Criterion) {
     let mut group = c.benchmark_group("hex-simd-encode");
 
-    let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096]
-        .iter()
-        .copied()
-        .map(rand_bytes)
-        .collect();
+    let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096].iter().copied().map(rand_bytes).collect();
 
     #[allow(clippy::type_complexity)]
     let functions: &[(&str, fn(&mut Bencher, &[u8], &mut [u8]))] = &[

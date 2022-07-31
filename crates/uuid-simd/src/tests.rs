@@ -80,21 +80,12 @@ fn format_cases() -> &'static [(&'static str, &'static str)] {
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
     parse: for<'s, 'd> fn(&'s [u8], OutRef<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error>,
-    format_simple: for<'s, 'd> fn(
-        &'s [u8; 16],
-        OutRef<'d, [u8; 32]>,
-        AsciiCase,
-    ) -> &'d mut [u8; 32],
-    format_hyphenated: for<'s, 'd> fn(
-        &'s [u8; 16],
-        OutRef<'d, [u8; 36]>,
-        AsciiCase,
-    ) -> &'d mut [u8; 36],
+    format_simple: for<'s, 'd> fn(&'s [u8; 16], OutRef<'d, [u8; 32]>, AsciiCase) -> &'d mut [u8; 32],
+    format_hyphenated: for<'s, 'd> fn(&'s [u8; 16], OutRef<'d, [u8; 36]>, AsciiCase) -> &'d mut [u8; 36],
 ) {
     for &(expected, input) in ok_cases() {
         let mut expected_buf = [0u8; 16];
-        let expected_bytes =
-            hex_simd::decode(expected.as_bytes(), OutBuf::new(&mut expected_buf)).unwrap();
+        let expected_bytes = hex_simd::decode(expected.as_bytes(), OutBuf::new(&mut expected_buf)).unwrap();
 
         let mut output_buf = [0; 16];
         let output_bytes = parse(input.as_bytes(), OutRef::new(&mut output_buf)).unwrap();

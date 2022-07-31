@@ -24,9 +24,7 @@ pub fn bench_parse(c: &mut Criterion) {
 
     for &(name, f) in functions {
         for (tag, input) in inputs {
-            group.bench_with_input(BenchmarkId::new(name, tag), input, |b, s| {
-                b.iter(|| f(black_box(s)))
-            });
+            group.bench_with_input(BenchmarkId::new(name, tag), input, |b, s| b.iter(|| f(black_box(s))));
         }
     }
 }

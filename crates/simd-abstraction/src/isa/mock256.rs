@@ -8,12 +8,7 @@ fn vmap<S: SIMD256>(s: S, a: S::V256, f: impl Fn(S, S::V128) -> S::V128) -> S::V
 }
 
 #[inline(always)]
-fn vmerge<S: SIMD256>(
-    s: S,
-    a: S::V256,
-    b: S::V256,
-    f: impl Fn(S, S::V128, S::V128) -> S::V128,
-) -> S::V256 {
+fn vmerge<S: SIMD256>(s: S, a: S::V256, b: S::V256, f: impl Fn(S, S::V128, S::V128) -> S::V128) -> S::V256 {
     let a = s.v256_to_v128x2(a);
     let b = s.v256_to_v128x2(b);
     let c = (f(s, a.0, b.0), f(s, a.1, b.1));

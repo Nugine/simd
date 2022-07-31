@@ -157,10 +157,7 @@ mod wasm {
     unsafe impl SIMDExt for SIMD128 {}
 }
 
-#[cfg(all(
-    feature = "unstable",
-    any(target_arch = "arm", target_arch = "aarch64")
-))]
+#[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
 mod arm {
     use super::SIMDExt;
 

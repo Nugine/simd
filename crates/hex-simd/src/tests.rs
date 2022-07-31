@@ -55,10 +55,7 @@ fn safety_unit_test(
         for n in 0..256usize {
             dbgmsg!("generating ok case n = {}", n);
 
-            let iter = (0..16)
-                .cycle()
-                .take(n)
-                .map(|x| char::from_digit(x, 16).unwrap() as u8);
+            let iter = (0..16).cycle().take(n).map(|x| char::from_digit(x, 16).unwrap() as u8);
             ans.push(iter.collect())
         }
 
@@ -143,10 +140,5 @@ fn safety_unit_test(
 
 #[test]
 fn test_safety() {
-    safety_unit_test(
-        crate::check,
-        crate::decode,
-        crate::encode,
-        crate::decode_inplace,
-    );
+    safety_unit_test(crate::check, crate::decode, crate::encode, crate::decode_inplace);
 }

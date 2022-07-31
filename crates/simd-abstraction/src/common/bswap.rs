@@ -70,12 +70,7 @@ unsafe impl BSwapExt for u64 {
     }
 }
 
-unsafe fn unroll_ptr<T>(
-    mut src: *const T,
-    len: usize,
-    chunk_size: usize,
-    mut f: impl FnMut(*const T),
-) {
+unsafe fn unroll_ptr<T>(mut src: *const T, len: usize, chunk_size: usize, mut f: impl FnMut(*const T)) {
     let chunks_end = src.add(len / chunk_size * chunk_size);
     let end = src.add(len);
 
@@ -94,9 +89,7 @@ unsafe fn unroll_ptr<T>(
 
 type SliceRawParts<T> = (*const T, usize);
 
-fn raw_align32<T: Scalar>(
-    slice: &[T],
-) -> (SliceRawParts<T>, SliceRawParts<Bytes32>, SliceRawParts<T>) {
+fn raw_align32<T: Scalar>(slice: &[T]) -> (SliceRawParts<T>, SliceRawParts<Bytes32>, SliceRawParts<T>) {
     let (p, m, s) = align32(slice);
     let p = (p.as_ptr(), p.len());
     let m = (m.as_ptr(), m.len());

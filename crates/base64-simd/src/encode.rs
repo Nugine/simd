@@ -56,13 +56,7 @@ pub unsafe fn encode_raw_fallback(base64: &Base64, src: &[u8], dst: *mut u8) {
 }
 
 #[inline(always)]
-unsafe fn encode_extra(
-    extra: usize,
-    src: *const u8,
-    dst: *mut u8,
-    charset: *const u8,
-    padding: bool,
-) {
+unsafe fn encode_extra(extra: usize, src: *const u8, dst: *mut u8, charset: *const u8, padding: bool) {
     match extra {
         0 => {}
         1 => {

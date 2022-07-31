@@ -129,12 +129,7 @@ pub unsafe fn decode_raw_fallback(
 }
 
 #[inline(always)]
-unsafe fn decode_extra(
-    extra: usize,
-    src: *const u8,
-    dst: *mut u8,
-    table: *const u8,
-) -> Result<(), Error> {
+unsafe fn decode_extra(extra: usize, src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
     match extra {
         0 => {}
         1 => core::hint::unreachable_unchecked(),

@@ -48,16 +48,12 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn v256_or(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.v128_or(a.0, b.0), self.v128_or(a.1, b.1))
-        })
+        split_merge(self, a, b, |a, b| (self.v128_or(a.0, b.0), self.v128_or(a.1, b.1)))
     }
 
     #[inline(always)]
     fn v256_and(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.v128_and(a.0, b.0), self.v128_and(a.1, b.1))
-        })
+        split_merge(self, a, b, |a, b| (self.v128_and(a.0, b.0), self.v128_and(a.1, b.1)))
     }
 
     #[inline(always)]
@@ -69,9 +65,7 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn v256_xor(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.v128_xor(a.0, b.0), self.v128_xor(a.1, b.1))
-        })
+        split_merge(self, a, b, |a, b| (self.v128_xor(a.0, b.0), self.v128_xor(a.1, b.1)))
     }
 
     #[inline(always)]
@@ -120,16 +114,12 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.i8x16_lt(a.0, b.0), self.i8x16_lt(a.1, b.1))
-        })
+        split_merge(self, a, b, |a, b| (self.i8x16_lt(a.0, b.0), self.i8x16_lt(a.1, b.1)))
     }
 
     #[inline(always)]
     fn i8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.i8x16_eq(a.0, b.1), self.i8x16_eq(a.1, b.1))
-        })
+        split_merge(self, a, b, |a, b| (self.i8x16_eq(a.0, b.1), self.i8x16_eq(a.1, b.1)))
     }
 
     #[inline(always)]
@@ -175,23 +165,17 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.u32x4_max(a.0, b.0), self.u32x4_max(a.1, b.1))
-        })
+        split_merge(self, a, b, |a, b| (self.u32x4_max(a.0, b.0), self.u32x4_max(a.1, b.1)))
     }
 
     #[inline(always)]
     fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.u32x4_lt(a.0, b.0), self.u32x4_lt(a.1, b.1))
-        })
+        split_merge(self, a, b, |a, b| (self.u32x4_lt(a.0, b.0), self.u32x4_lt(a.1, b.1)))
     }
 
     #[inline(always)]
     fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.i32x4_lt(a.0, b.0), self.i32x4_lt(a.1, b.1))
-        })
+        split_merge(self, a, b, |a, b| (self.i32x4_lt(a.0, b.0), self.i32x4_lt(a.1, b.1)))
     }
 
     // ----refactor----

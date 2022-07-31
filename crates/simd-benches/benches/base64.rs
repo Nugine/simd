@@ -67,9 +67,7 @@ pub fn bench_decode(c: &mut Criterion) {
         }),
         ("radix64/auto", |b, src, dst| {
             b.iter(|| {
-                radix64::STD
-                    .decode_slice(black_box(src), black_box(dst))
-                    .unwrap();
+                radix64::STD.decode_slice(black_box(src), black_box(dst)).unwrap();
             })
         }),
         ("base64/fallback", |b, src, dst| {

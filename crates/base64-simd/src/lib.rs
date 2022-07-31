@@ -67,11 +67,9 @@ enum Base64Kind {
     UrlSafe,
 }
 
-const STANDARD_CHARSET: &[u8; 64] =
-    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const STANDARD_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-const URL_SAFE_CHARSET: &[u8; 64] =
-    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+const URL_SAFE_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 /// Base64 variants
 ///
@@ -186,11 +184,7 @@ impl Base64 {
     /// # Panics
     /// This function will panic if the length of `dst` is not enough.
     #[inline]
-    pub fn decode<'s, 'd>(
-        &'_ self,
-        src: &'s [u8],
-        mut dst: OutBuf<'d, u8>,
-    ) -> Result<&'d mut [u8], Error> {
+    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
         unsafe {
             let (n, m) = crate::decode::decoded_length(src, self.padding)?;
 
