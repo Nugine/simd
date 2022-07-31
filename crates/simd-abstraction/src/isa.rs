@@ -4,6 +4,8 @@ mod load;
 mod simd128;
 mod simd256;
 
+pub mod mock256;
+
 pub use self::load::SimdLoad;
 pub use self::simd128::SIMD128;
 pub use self::simd256::SIMD256;

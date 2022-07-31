@@ -1,5 +1,5 @@
-use crate::isa::SimdLoad;
 use crate::isa::{self, InstructionSet};
+use crate::isa::{mock256, SimdLoad};
 
 #[cfg(target_arch = "wasm32")]
 use core::arch::wasm32::*;
@@ -210,5 +210,20 @@ unsafe impl isa::SIMD256 for SIMD128 {
     fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
         let a = self.v256_to_v128x2(a);
         u64x2_shuffle::<0, 2>(a.0, a.1)
+    }
+
+    #[inline(always)]
+    fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u16x16_bswap(self, a)
+    }
+
+    #[inline(always)]
+    fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u32x8_bswap(self, a)
+    }
+
+    #[inline(always)]
+    fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u64x4_bswap(self, a)
     }
 }

@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::isa::SimdLoad;
+use crate::isa::{mock256, SimdLoad};
 
 unsafe impl SIMD128 for SSE41 {
     type V128 = __m128i;
@@ -211,5 +211,20 @@ unsafe impl SIMD256 for SSE41 {
     #[inline(always)]
     fn v256_to_v128x2(self, a: Self::V256) -> (Self::V128, Self::V128) {
         (a.0, a.1)
+    }
+
+    #[inline(always)]
+    fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u16x16_bswap(self, a)
+    }
+
+    #[inline(always)]
+    fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u32x8_bswap(self, a)
+    }
+
+    #[inline(always)]
+    fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u64x4_bswap(self, a)
     }
 }

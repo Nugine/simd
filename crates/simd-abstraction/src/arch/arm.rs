@@ -1,4 +1,4 @@
-use crate::isa::{InstructionSet, SimdLoad, SIMD128, SIMD256};
+use crate::isa::{mock256, InstructionSet, SimdLoad, SIMD128, SIMD256};
 
 #[cfg(target_arch = "arm")]
 use core::arch::arm::*;
@@ -311,5 +311,20 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
         vst1q_u8_x2(addr, a)
+    }
+
+    #[inline(always)]
+    fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u16x16_bswap(self, a)
+    }
+
+    #[inline(always)]
+    fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u32x8_bswap(self, a)
+    }
+
+    #[inline(always)]
+    fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
+        mock256::u64x4_bswap(self, a)
     }
 }
