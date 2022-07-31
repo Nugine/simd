@@ -117,11 +117,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn u8x16_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vminq_u8(a, b) }
-    }
-
-    #[inline(always)]
     fn i8x16_splat(self, x: i8) -> Self::V128 {
         unsafe { vreinterpretq_u8_s8(vdupq_n_s8(x)) }
     }
@@ -302,6 +297,56 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
+    fn u8x16_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vminq_u8(a, b) }
+    }
+
+    #[inline(always)]
+    fn u16x8_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u16_u8;
+            let g = vreinterpretq_u8_u16;
+            g(vminq_u16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u32_u8;
+            let g = vreinterpretq_u8_u32;
+            g(vminq_u32(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i8x16_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s8_u8;
+            let g = vreinterpretq_u8_s8;
+            g(vminq_s8(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i16x8_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s16_u8;
+            let g = vreinterpretq_u8_s16;
+            g(vminq_s16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i32x4_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s32_u8;
+            let g = vreinterpretq_u8_s32;
+            g(vminq_s32(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
     fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
         unsafe {
             let f = vreinterpretq_u16_u8;
@@ -458,6 +503,36 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::i32x8_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u16x16_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i8x32_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i16x16_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i32x8_min(self, a, b)
     }
 
     #[inline(always)]

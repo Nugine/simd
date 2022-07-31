@@ -192,6 +192,13 @@ pub unsafe trait SIMD256: SIMD128 {
     fn i16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256;
     fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256;
 
+    fn u8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn i8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn i16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn i32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256;
+
     fn u16x16_bswap(self, a: Self::V256) -> Self::V256;
     fn u32x8_bswap(self, a: Self::V256) -> Self::V256;
     fn u64x4_bswap(self, a: Self::V256) -> Self::V256;

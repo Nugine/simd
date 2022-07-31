@@ -80,11 +80,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn u8x16_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_min_epu8(a, b) } // sse2
-    }
-
-    #[inline(always)]
     fn i8x16_splat(self, x: i8) -> Self::V128 {
         unsafe { _mm_set1_epi8(x) } // sse2
     }
@@ -212,6 +207,36 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
+    fn u8x16_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_min_epu8(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn u16x8_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_min_epu16(a, b) } // sse41
+    }
+
+    #[inline(always)]
+    fn u32x4_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_min_epu32(a, b) } // sse41
+    }
+
+    #[inline(always)]
+    fn i8x16_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_min_epi8(a, b) } // sse41
+    }
+
+    #[inline(always)]
+    fn i16x8_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_min_epi16(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn i32x4_min(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_min_epi32(a, b) } // sse41
+    }
+
+    #[inline(always)]
     fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
         self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U16X8))
     }
@@ -326,6 +351,36 @@ unsafe impl SIMD256 for SSE41 {
     #[inline(always)]
     fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::i32x8_max(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u16x16_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i8x32_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i16x16_min(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::i32x8_min(self, a, b)
     }
 
     #[inline(always)]

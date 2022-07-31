@@ -86,6 +86,36 @@ pub fn i32x8_max<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
 }
 
 #[inline(always)]
+pub fn u8x32_min<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u8x16_min)
+}
+
+#[inline(always)]
+pub fn u16x16_min<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u16x8_min)
+}
+
+#[inline(always)]
+pub fn u32x8_min<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u32x4_min)
+}
+
+#[inline(always)]
+pub fn i8x32_min<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::i8x16_min)
+}
+
+#[inline(always)]
+pub fn i16x16_min<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::i16x8_min)
+}
+
+#[inline(always)]
+pub fn i32x8_min<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::i32x4_min)
+}
+
+#[inline(always)]
 pub fn u16x16_bswap<S: SIMD256>(s: S, a: S::V256) -> S::V256 {
     vmap(s, a, S::u16x8_bswap)
 }
