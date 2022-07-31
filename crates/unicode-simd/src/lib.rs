@@ -20,6 +20,13 @@ mod utf32;
 mod multiversion;
 
 pub(crate) use simd_abstraction::common::ascii as sa_ascii;
+pub(crate) use simd_abstraction::common::bswap as sa_bswap;
+
+pub use simd_abstraction::OutBuf;
+
+// ------------------------------------------------------------------------------------------------
+
+use simd_abstraction::tools::slice_mut;
 
 /// Checks if `data` is a valid ASCII string, in constant-time.
 ///
@@ -37,4 +44,26 @@ pub fn is_ascii_ct(data: &[u8]) -> bool {
 #[inline]
 pub fn is_utf32le_ct(data: &[u32]) -> bool {
     crate::multiversion::is_utf32le_ct::auto_indirect(data)
+}
+
+/// TODO: test, bench
+#[inline]
+pub fn utf32_swap_endianness_inplace(data: &mut [u32]) {
+    let len = data.len();
+    let dst = data.as_mut_ptr();
+    let src = dst;
+    unsafe { sa_bswap::multiversion::bswap_u32_raw::auto_indirect(src, len, dst) }
+}
+
+/// TODO: test, bench
+#[inline]
+pub fn utf32_swap_endianness<'s, 'd>(src: &'s [u32], dst: &'d mut OutBuf<u32>) -> &'d mut [u32] {
+    assert_eq!(src.len(), dst.len());
+    let len = src.len();
+    let src = src.as_ptr();
+    let dst = dst.as_mut_ptr();
+    unsafe {
+        sa_bswap::multiversion::bswap_u32_raw::auto_indirect(src, len, dst);
+        slice_mut(dst, len)
+    }
 }
