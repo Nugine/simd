@@ -12,7 +12,7 @@ fn test_str() {
         let src = src.as_bytes();
         let dst = OutBuf::uninit(&mut dst);
         let case = AsciiCase::Lower;
-        crate::encode_as_str(src, dst, case).unwrap()
+        crate::encode_as_str(src, dst, case)
     };
     assert_eq!(ans, "68656c6c6f");
 }
@@ -44,7 +44,7 @@ macro_rules! dbgmsg {
 fn safety_unit_test(
     check: fn(&[u8]) -> bool,
     decode: for<'s, 'd> fn(&'s [u8], OutBuf<'d, u8>) -> Result<&'d mut [u8], Error>,
-    encode: for<'s, 'd> fn(&'s [u8], OutBuf<'d, u8>, AsciiCase) -> Result<&'d mut [u8], Error>,
+    encode: for<'s, 'd> fn(&'s [u8], OutBuf<'d, u8>, AsciiCase) -> &'d mut [u8],
     decode_inplace: fn(&mut [u8]) -> Result<&mut [u8], Error>,
 ) {
     println!();
@@ -82,7 +82,7 @@ fn safety_unit_test(
             let decode_buf = OutBuf::new(&mut decode_buf);
             let encode_buf = OutBuf::new(&mut encode_buf);
             let decode_buf = decode($src, decode_buf).unwrap();
-            let encode_buf = encode(decode_buf, encode_buf, $case).unwrap();
+            let encode_buf = encode(decode_buf, encode_buf, $case);
             assert_eq!(encode_buf, $src);
         }};
     }
@@ -93,7 +93,7 @@ fn safety_unit_test(
             let mut encode_buf = vec![0; $src.len()];
             let decode_buf = decode_inplace(&mut decode_buf).unwrap();
             let encode_buf = OutBuf::new(&mut encode_buf);
-            let encode_buf = encode(decode_buf, encode_buf, $case).unwrap();
+            let encode_buf = encode(decode_buf, encode_buf, $case);
             assert_eq!(encode_buf, $src);
         }};
     }
@@ -104,7 +104,7 @@ fn safety_unit_test(
             let mut decode_buf = vec![0; $src.len()];
             let encode_buf = OutBuf::new(&mut encode_buf);
             let decode_buf = OutBuf::new(&mut decode_buf);
-            let encode_buf = encode($src, encode_buf, $case).unwrap();
+            let encode_buf = encode($src, encode_buf, $case);
             let decode_buf = decode(encode_buf, decode_buf).unwrap();
             assert_eq!(decode_buf, $src);
         }};
@@ -114,7 +114,7 @@ fn safety_unit_test(
         ($src: expr, $case: expr) => {{
             let mut encode_buf = vec![0; $src.len() * 2];
             let encode_buf = OutBuf::new(&mut encode_buf);
-            let encode_buf = encode($src, encode_buf, $case).unwrap();
+            let encode_buf = encode($src, encode_buf, $case);
             let decode_buf = decode_inplace(encode_buf).unwrap();
             assert_eq!(decode_buf, $src);
         }};
