@@ -137,7 +137,7 @@ fn safety_unit_test(
         assert!(!check(src));
         let mut buf = vec![0; src.len() / 2];
         let buf = OutBuf::new(&mut buf);
-        assert!(decode(src, buf).is_err())
+        assert!(decode(src, buf).is_err(), "src = {src:?}");
     }
 }
 

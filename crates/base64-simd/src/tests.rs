@@ -55,7 +55,7 @@ fn safety_unit_test(
             let result: _ = Base64::STANDARD.decode_to_boxed_bytes(encoded.as_bytes());
             match expected {
                 Some(expected) => assert_eq!(&*result.unwrap(), expected.as_bytes()),
-                None => assert!(result.is_err()),
+                None => assert!(result.is_err(), "expected = {expected:?}"),
             }
         }
     }
