@@ -1,7 +1,11 @@
 #![allow(clippy::missing_safety_doc)]
 
 mod load;
+
+#[macro_use]
 mod simd128;
+
+#[macro_use]
 mod simd256;
 
 pub mod mock256;

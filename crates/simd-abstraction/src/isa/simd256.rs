@@ -203,3 +203,152 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u32x8_bswap(self, a: Self::V256) -> Self::V256;
     fn u64x4_bswap(self, a: Self::V256) -> Self::V256;
 }
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+macro_rules! inherit_simd256 {
+    ($self: ty, $super: ty, $upcast: ident) => {
+        unsafe impl SIMD256 for $self {
+            type V256 = <$super as SIMD256>::V256;
+
+            #[inline(always)]
+            fn v256_from_v128x2(self, a: Self::V128, b: Self::V128) -> Self::V256 {
+                self.$upcast().v256_from_v128x2(a, b)
+            }
+
+            #[inline(always)]
+            fn v256_to_v128x2(self, a: Self::V256) -> (Self::V128, Self::V128) {
+                self.$upcast().v256_to_v128x2(a)
+            }
+
+            #[inline(always)]
+            fn v256_to_bytes(self, a: Self::V256) -> [u8; 32] {
+                self.$upcast().v256_to_bytes(a)
+            }
+
+            #[inline(always)]
+            fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
+                self.$upcast().u16x16_from_u8x16(a)
+            }
+
+            #[inline(always)]
+            fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
+                self.$upcast().u64x4_unzip_low(a)
+            }
+
+            #[inline(always)]
+            fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u8x32_add(a, b)
+            }
+
+            #[inline(always)]
+            fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u16x16_add(a, b)
+            }
+
+            #[inline(always)]
+            fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u32x8_add(a, b)
+            }
+
+            #[inline(always)]
+            fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u64x4_add(a, b)
+            }
+
+            #[inline(always)]
+            fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u8x32_sub(a, b)
+            }
+
+            #[inline(always)]
+            fn u16x16_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u16x16_sub(a, b)
+            }
+
+            #[inline(always)]
+            fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u32x8_sub(a, b)
+            }
+
+            #[inline(always)]
+            fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u64x4_sub(a, b)
+            }
+
+            #[inline(always)]
+            fn u8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u8x32_max(a, b)
+            }
+
+            #[inline(always)]
+            fn u16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u16x16_max(a, b)
+            }
+
+            #[inline(always)]
+            fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u32x8_max(a, b)
+            }
+
+            #[inline(always)]
+            fn i8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().i8x32_max(a, b)
+            }
+
+            #[inline(always)]
+            fn i16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().i16x16_max(a, b)
+            }
+
+            #[inline(always)]
+            fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().i32x8_max(a, b)
+            }
+
+            #[inline(always)]
+            fn u8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u8x32_min(a, b)
+            }
+
+            #[inline(always)]
+            fn u16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u16x16_min(a, b)
+            }
+
+            #[inline(always)]
+            fn u32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().u32x8_min(a, b)
+            }
+
+            #[inline(always)]
+            fn i8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().i8x32_min(a, b)
+            }
+
+            #[inline(always)]
+            fn i16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().i16x16_min(a, b)
+            }
+
+            #[inline(always)]
+            fn i32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                self.$upcast().i32x8_min(a, b)
+            }
+
+            #[inline(always)]
+            fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
+                self.$upcast().u16x16_bswap(a)
+            }
+
+            #[inline(always)]
+            fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
+                self.$upcast().u32x8_bswap(a)
+            }
+
+            #[inline(always)]
+            fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
+                self.$upcast().u64x4_bswap(a)
+            }
+        }
+    };
+}

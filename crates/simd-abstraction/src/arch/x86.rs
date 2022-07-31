@@ -12,4 +12,22 @@ define_isa!(AVX2, "avx2", is_x86_feature_detected);
 
 mod avx2;
 mod sse41;
-mod sse42;
+
+impl SSE42 {
+    #[inline(always)]
+    fn sse41(self) -> SSE41 {
+        unsafe { SSE41::new() }
+    }
+}
+
+impl AVX2 {
+    #[inline(always)]
+    fn sse41(self) -> SSE41 {
+        unsafe { SSE41::new() }
+    }
+}
+
+inherit_simd128!(SSE42, SSE41, sse41);
+inherit_simd256!(SSE42, SSE41, sse41);
+
+inherit_simd128!(AVX2, SSE41, sse41);
