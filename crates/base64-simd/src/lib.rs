@@ -52,8 +52,6 @@ pub use simd_abstraction::OutBuf;
 
 // -------------------------------------------------------------------------------------------------
 
-use self::error::ERROR;
-
 use simd_abstraction::item_group;
 use simd_abstraction::tools::slice_mut;
 
@@ -125,9 +123,7 @@ impl Base64 {
     /// Calculates the encoded length.
     ///
     /// # Panics
-    /// This function panics if any of the conditions below is not satisfied:
-    ///
-    /// + `n <= isize::MAX`
+    /// This function will panics if `n > isize::MAX`.
     #[inline]
     pub const fn encoded_length(&self, n: usize) -> usize {
         assert!(n < usize::MAX / 2);
@@ -157,71 +153,51 @@ impl Base64 {
 
     /// Encodes `src` and writes to `dst`.
     ///
-    /// # Errors
-    /// This function returns `Err` if:
-    ///
-    /// + The length of `dst` is not enough.
+    /// # Panics
+    /// This function will panic if the length of `dst` is not enough.
     #[inline]
-    pub fn encode<'s, 'd>(
-        &'_ self,
-        src: &'s [u8],
-        dst: OutBuf<'d, u8>,
-    ) -> Result<&'d mut [u8], Error> {
+    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutBuf<'d, u8>) -> &'d mut [u8] {
         unsafe {
             let m = crate::encode::encoded_length_unchecked(src.len(), self.padding);
-            if dst.len() < m {
-                return Err(ERROR);
-            }
-
-            let mut dst = dst;
+            assert!(dst.len() >= m);
 
             let dst = dst.as_mut_ptr();
             crate::multiversion::encode_raw::auto_indirect(self, src, dst);
 
-            Ok(slice_mut(dst, m))
+            slice_mut(dst, m)
         }
     }
 
     /// Encodes `src` to `dst` and returns [`&mut str`](str).
     ///
-    /// # Errors
-    /// This function returns `Err` if:
-    ///
-    /// + The length of `dst` is not enough.
+    /// # Panics
+    /// This function will panic if the length of `dst` is not enough.
     #[inline]
-    pub fn encode_as_str<'s, 'd>(
-        &'_ self,
-        src: &'s [u8],
-        dst: OutBuf<'d, u8>,
-    ) -> Result<&'d mut str, Error> {
-        let ans = self.encode(src, dst)?;
-        Ok(unsafe { core::str::from_utf8_unchecked_mut(ans) })
+    pub fn encode_as_str<'s, 'd>(&'_ self, src: &'s [u8], dst: OutBuf<'d, u8>) -> &'d mut str {
+        let ans = self.encode(src, dst);
+        unsafe { core::str::from_utf8_unchecked_mut(ans) }
     }
 
     /// Decodes `src` and writes to `dst`.
     ///
     /// # Errors
-    /// This function returns `Err` if:
+    /// This function returns `Err` if the content of `src` is invalid.
     ///
-    /// + The length of `dst` is not enough.
-    /// + The content of `src` is invalid.
+    /// # Panics
+    /// This function will panic if the length of `dst` is not enough.
     #[inline]
     pub fn decode<'s, 'd>(
         &'_ self,
         src: &'s [u8],
-        dst: OutBuf<'d, u8>,
+        mut dst: OutBuf<'d, u8>,
     ) -> Result<&'d mut [u8], Error> {
         unsafe {
             let (n, m) = crate::decode::decoded_length(src, self.padding)?;
 
-            if dst.len() < m {
-                return Err(ERROR);
-            }
+            assert!(dst.len() >= m);
 
-            let mut dst = dst;
-
-            let src: *const u8 = src.as_ptr();
-            let dst: *mut u8 = dst.as_mut_ptr();
+            let src = src.as_ptr();
+            let dst = dst.as_mut_ptr();
             crate::multiversion::decode_raw::auto_indirect(self, n, m, src, dst)?;
 
             Ok(slice_mut(dst, m))
@@ -231,9 +207,7 @@ impl Base64 {
     /// Decodes `data` and writes inplace.
     ///
     /// # Errors
-    /// This function returns `Err` if:
-    ///
-    /// + The content of `data` is invalid.
+    /// This function returns `Err` if the content of `data` is invalid.
     #[inline]
     pub fn decode_inplace<'d>(&'_ self, data: &'d mut [u8]) -> Result<&'d mut [u8], Error> {
         unsafe {
@@ -250,10 +224,7 @@ impl Base64 {
     /// Encodes `data` and returns [`Box<str>`]
     ///
     /// # Panics
-    /// This function panics if:
-    ///
-    /// + The encoded length of `data` is greater than `isize::MAX`
-    ///
+    /// This function will panics if the encoded length of `data` is greater than `isize::MAX`.
     #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
     #[cfg(feature = "alloc")]
     #[inline]
@@ -280,10 +251,7 @@ impl Base64 {
     /// Decodes `data` and returns [`Box<[u8]>`](Box)
     ///
     /// # Errors
-    /// This function returns `Err` if:
-    ///
-    /// + The content of `data` is invalid.
-    ///
+    /// This function returns `Err` if the content of `data` is invalid.
     #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
     #[cfg(feature = "alloc")]
     #[inline]
@@ -309,6 +277,9 @@ impl Base64 {
     /// Forgiving decodes `data` and writes inplace.
     ///
     /// See <https://infra.spec.whatwg.org/#forgiving-base64>
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is invalid.
     #[inline]
     pub fn forgiving_decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
         let data = crate::forgiving::normalize(data);

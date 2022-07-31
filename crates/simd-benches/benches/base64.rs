@@ -20,7 +20,7 @@ pub fn bench_encode(c: &mut Criterion) {
             b.iter(|| {
                 let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
                 let base64 = base64_simd::Base64::STANDARD;
-                base64.encode(src, dst).unwrap();
+                base64.encode(src, dst);
             })
         }),
         ("radix64/auto", |b, src, dst| {
