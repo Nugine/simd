@@ -36,3 +36,18 @@ pub fn is_utf32le_ct_simd<S: SIMD256>(s: S, data: &[u32]) -> bool {
 
     ans
 }
+
+#[inline]
+pub unsafe fn utf32_swap_endianness_raw_fallback(src: *const u32, len: usize, dst: *mut u32) {
+    crate::sa_bswap::bswap_raw_fallback(src, len, dst)
+}
+
+#[inline]
+pub unsafe fn utf32_swap_endianness_raw_simd<S: SIMD256>(
+    s: S,
+    src: *const u32,
+    len: usize,
+    dst: *mut u32,
+) {
+    crate::sa_bswap::bswap_raw_simd(s, src, len, dst)
+}

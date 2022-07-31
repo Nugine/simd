@@ -9,3 +9,11 @@ simd_dispatch!(
     simd        = {crate::utf32::is_utf32le_ct_simd},
     safety      = {},
 );
+
+simd_dispatch!(
+    name        = utf32_swap_endianness_raw,
+    signature   = fn(src: *const u32, len: usize, dst: *mut u32) -> (),
+    fallback    = {crate::utf32::utf32_swap_endianness_raw_fallback},
+    simd        = {crate::utf32::utf32_swap_endianness_raw_simd},
+    safety      = {unsafe},
+);

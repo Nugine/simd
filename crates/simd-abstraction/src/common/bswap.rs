@@ -29,6 +29,47 @@ pub(crate) const SHUFFLE_U32X8: &Bytes32 = &Bytes32::double(SHUFFLE_U32X4.0);
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) const SHUFFLE_U64X4: &Bytes32 = &Bytes32::double(SHUFFLE_U64X2.0);
 
+pub unsafe trait BSwapExt: Scalar {
+    fn swap_single(x: Self) -> Self;
+    fn swap_simd<S: SIMD256>(s: S, a: S::V256) -> S::V256;
+}
+
+unsafe impl BSwapExt for u16 {
+    #[inline(always)]
+    fn swap_single(x: Self) -> Self {
+        x.swap_bytes()
+    }
+
+    #[inline(always)]
+    fn swap_simd<S: SIMD256>(s: S, a: S::V256) -> S::V256 {
+        s.u16x16_bswap(a)
+    }
+}
+
+unsafe impl BSwapExt for u32 {
+    #[inline(always)]
+    fn swap_single(x: Self) -> Self {
+        x.swap_bytes()
+    }
+
+    #[inline(always)]
+    fn swap_simd<S: SIMD256>(s: S, a: S::V256) -> S::V256 {
+        s.u32x8_bswap(a)
+    }
+}
+
+unsafe impl BSwapExt for u64 {
+    #[inline(always)]
+    fn swap_single(x: Self) -> Self {
+        x.swap_bytes()
+    }
+
+    #[inline(always)]
+    fn swap_simd<S: SIMD256>(s: S, a: S::V256) -> S::V256 {
+        s.u64x4_bswap(a)
+    }
+}
+
 unsafe fn unroll_ptr<T>(
     mut src: *const T,
     len: usize,
@@ -64,21 +105,29 @@ fn raw_align32<T: Scalar>(
 }
 
 #[inline]
-pub unsafe fn bswap_u32_raw_fallback(src: *const u32, len: usize, mut dst: *mut u32) {
+pub unsafe fn bswap_raw_fallback<T>(src: *const T, len: usize, mut dst: *mut T)
+where
+    T: BSwapExt,
+{
     unroll_ptr(src, len, 8, |src| {
-        dst.write(src.read().swap_bytes());
+        let x = src.read();
+        let y = BSwapExt::swap_single(x);
+        dst.write(y);
         dst = dst.add(1);
     })
 }
 
 #[allow(clippy::missing_safety_doc)]
 #[inline]
-pub unsafe fn bswap_u32_raw_simd<S: SIMD256>(s: S, src: *const u32, len: usize, mut dst: *mut u32) {
+pub unsafe fn bswap_raw_simd<S: SIMD256, T>(s: S, src: *const T, len: usize, mut dst: *mut T)
+where
+    T: BSwapExt,
+{
     let (prefix, middle, suffix) = raw_align32(core::slice::from_raw_parts(src, len));
 
     {
         let (src, len) = prefix;
-        bswap_u32_raw_fallback(src, len, dst);
+        bswap_raw_fallback(src, len, dst);
         dst = dst.add(len)
     }
 
@@ -86,7 +135,7 @@ pub unsafe fn bswap_u32_raw_simd<S: SIMD256>(s: S, src: *const u32, len: usize, 
         let (src, len) = middle;
         unroll_ptr(src, len, 8, |src| {
             let x = s.load(&*src);
-            let y = s.u32x8_bswap(x);
+            let y = <T as BSwapExt>::swap_simd(s, x);
             s.v256_store_unaligned(dst.cast(), y);
             dst = dst.add(8);
         })
@@ -94,18 +143,6 @@ pub unsafe fn bswap_u32_raw_simd<S: SIMD256>(s: S, src: *const u32, len: usize, 
 
     {
         let (src, len) = suffix;
-        bswap_u32_raw_fallback(src, len, dst);
+        bswap_raw_fallback(src, len, dst);
     }
-}
-
-pub mod multiversion {
-    use super::*;
-
-    crate::simd_dispatch! (
-        name        = bswap_u32_raw,
-        signature   = fn(src: *const u32, len: usize, dst: *mut u32) -> (),
-        fallback    = {bswap_u32_raw_fallback},
-        simd        = {bswap_u32_raw_simd},
-        safety      = {unsafe},
-    );
 }

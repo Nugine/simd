@@ -52,7 +52,7 @@ pub fn utf32_swap_endianness_inplace(data: &mut [u32]) {
     let len = data.len();
     let dst = data.as_mut_ptr();
     let src = dst;
-    unsafe { sa_bswap::multiversion::bswap_u32_raw::auto_indirect(src, len, dst) }
+    unsafe { crate::multiversion::utf32_swap_endianness_raw::auto_indirect(src, len, dst) }
 }
 
 /// TODO: test, bench
@@ -62,8 +62,6 @@ pub fn utf32_swap_endianness<'s, 'd>(src: &'s [u32], dst: &'d mut OutBuf<u32>) -
     let len = src.len();
     let src = src.as_ptr();
     let dst = dst.as_mut_ptr();
-    unsafe {
-        sa_bswap::multiversion::bswap_u32_raw::auto_indirect(src, len, dst);
-        slice_mut(dst, len)
-    }
+    unsafe { crate::multiversion::utf32_swap_endianness_raw::auto_indirect(src, len, dst) };
+    unsafe { slice_mut(dst, len) }
 }
