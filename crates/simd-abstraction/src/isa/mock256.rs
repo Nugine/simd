@@ -26,8 +26,18 @@ pub fn u8x32_add<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
 }
 
 #[inline(always)]
+pub fn u16x16_add<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u16x8_add)
+}
+
+#[inline(always)]
 pub fn u32x8_add<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
     vmerge(s, a, b, S::u32x4_add)
+}
+
+#[inline(always)]
+pub fn u64x4_add<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u64x2_add)
 }
 
 #[inline(always)]

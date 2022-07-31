@@ -39,8 +39,12 @@ pub unsafe trait SIMD128: InstructionSet {
 
     fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
+    // ----refactor----
+
     fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u16x8_add(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u64x2_add(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u16x8_bswap(self, a: Self::V128) -> Self::V128;
     fn u32x4_bswap(self, a: Self::V128) -> Self::V128;

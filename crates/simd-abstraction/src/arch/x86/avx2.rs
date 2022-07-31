@@ -73,11 +73,6 @@ unsafe impl SIMD128 for AVX2 {
     }
 
     #[inline(always)]
-    fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().u8x16_add(a, b)
-    }
-
-    #[inline(always)]
     fn u8x16_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.sse41().u8x16_sub(a, b)
     }
@@ -128,11 +123,6 @@ unsafe impl SIMD128 for AVX2 {
     }
 
     #[inline(always)]
-    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
-        self.sse41().u16x8_bswap(a)
-    }
-
-    #[inline(always)]
     fn u32x4_splat(self, x: u32) -> Self::V128 {
         self.sse41().u32x4_splat(x)
     }
@@ -145,11 +135,6 @@ unsafe impl SIMD128 for AVX2 {
     #[inline(always)]
     fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         self.sse41().u32x4_shr::<IMM8>(a)
-    }
-
-    #[inline(always)]
-    fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().u32x4_add(a, b)
     }
 
     #[inline(always)]
@@ -168,13 +153,38 @@ unsafe impl SIMD128 for AVX2 {
     }
 
     #[inline(always)]
-    fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
-        self.sse41().u32x4_bswap(a)
+    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().i32x4_lt(a, b)
     }
 
     #[inline(always)]
-    fn i32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        self.sse41().i32x4_lt(a, b)
+    fn u8x16_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u8x16_add(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u16x8_add(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x4_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u32x4_add(a, b)
+    }
+
+    #[inline(always)]
+    fn u64x2_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u64x2_add(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_bswap(self, a: Self::V128) -> Self::V128 {
+        self.sse41().u16x8_bswap(a)
+    }
+
+    #[inline(always)]
+    fn u32x4_bswap(self, a: Self::V128) -> Self::V128 {
+        self.sse41().u32x4_bswap(a)
     }
 
     #[inline(always)]
@@ -273,11 +283,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_add_epi8(a, b) } // avx2
-    }
-
-    #[inline(always)]
     fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_sub_epi8(a, b) } // avx2
     }
@@ -326,11 +331,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
-        self.u8x16x2_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U16X16))
-    }
-
-    #[inline(always)]
     fn u32x8_splat(self, x: u32) -> Self::V256 {
         unsafe { _mm256_set1_epi32(x as i32) } // avx2
     }
@@ -351,11 +351,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_add_epi32(a, b) } // avx2
-    }
-
-    #[inline(always)]
     fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_sub_epi32(a, b) } // avx2
     }
@@ -373,13 +368,38 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
-        self.u8x16x2_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U32X8))
+    fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_cmpgt_epi32(b, a) } // avx2
     }
 
     #[inline(always)]
-    fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_cmpgt_epi32(b, a) } // avx2
+    fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_add_epi8(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_add_epi16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_add_epi32(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_add_epi64(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
+        self.u8x16x2_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U16X16))
+    }
+
+    #[inline(always)]
+    fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
+        self.u8x16x2_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U32X8))
     }
 
     #[inline(always)]

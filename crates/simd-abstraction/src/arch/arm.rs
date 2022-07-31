@@ -246,6 +246,24 @@ unsafe impl SIMD128 for NEON {
     fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
         self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X2))
     }
+
+    #[inline(always)]
+    fn u16x8_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u16_u8;
+            let g = vreinterpretq_u8_u16;
+            g(vaddq_u16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn u64x2_add(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u64_u8;
+            let g = vreinterpretq_u8_u64;
+            g(vaddq_u64(f(a), f(b)))
+        }
+    }
 }
 
 unsafe impl SIMD256 for NEON {
@@ -319,8 +337,18 @@ unsafe impl SIMD256 for NEON {
     }
 
     #[inline(always)]
+    fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u16x16_add(self, a, b)
+    }
+
+    #[inline(always)]
     fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u32x8_add(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u64x4_add(self, a, b)
     }
 
     #[inline(always)]

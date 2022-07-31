@@ -208,8 +208,12 @@ pub unsafe trait SIMD256: SIMD128 {
         })
     }
 
+    // ----refactor----
+
     fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
     fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256;
 
     fn u16x16_bswap(self, a: Self::V256) -> Self::V256;
     fn u32x8_bswap(self, a: Self::V256) -> Self::V256;
