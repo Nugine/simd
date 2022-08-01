@@ -17,3 +17,11 @@ simd_dispatch!(
     simd        = {crate::utf32::utf32_swap_endianness_raw_simd},
     safety      = {unsafe},
 );
+
+simd_dispatch!(
+    name        = utf16_swap_endianness_raw,
+    signature   = fn(src: *const u16, len: usize, dst: *mut u16) -> (),
+    fallback    = {crate::utf16::utf16_swap_endianness_raw_fallback},
+    simd        = {crate::utf16::utf16_swap_endianness_raw_simd},
+    safety      = {unsafe},
+);
