@@ -80,26 +80,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
-        unsafe { _mm_slli_epi16::<IMM8>(a) } // sse2
-    }
-
-    #[inline(always)]
-    fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
-        unsafe { _mm_srli_epi16::<IMM8>(a) } // sse2
-    }
-
-    #[inline(always)]
-    fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
-        unsafe { _mm_slli_epi32::<IMM8>(a) } // sse2
-    }
-
-    #[inline(always)]
-    fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
-        unsafe { _mm_srli_epi32::<IMM8>(a) } // sse2
-    }
-
-    #[inline(always)]
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         let a = self.u32x4_sub(a, self.u32x4_splat(u32::MAX / 2));
         let b = self.u32x4_sub(b, self.u32x4_splat(u32::MAX / 2));
@@ -184,6 +164,26 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_sub_epi64(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { _mm_slli_epi16::<IMM8>(a) } // sse2
+    }
+
+    #[inline(always)]
+    fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { _mm_slli_epi32::<IMM8>(a) } // sse2
+    }
+
+    #[inline(always)]
+    fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { _mm_srli_epi16::<IMM8>(a) } // sse2
+    }
+
+    #[inline(always)]
+    fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { _mm_srli_epi32::<IMM8>(a) } // sse2
     }
 
     #[inline(always)]
@@ -386,6 +386,26 @@ unsafe impl SIMD256 for SSE41 {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u64x4_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        mock256::u16x16_shl::<_, IMM8>(self, a)
+    }
+
+    #[inline(always)]
+    fn u32x8_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        mock256::u32x8_shl::<_, IMM8>(self, a)
+    }
+
+    #[inline(always)]
+    fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        mock256::u16x16_shr::<_, IMM8>(self, a)
+    }
+
+    #[inline(always)]
+    fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        mock256::u32x8_shr::<_, IMM8>(self, a)
     }
 
     #[inline(always)]

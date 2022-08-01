@@ -117,26 +117,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
-        unsafe { vreinterpretq_u8_u16(vshlq_n_u16::<IMM8>(vreinterpretq_u16_u8(a))) }
-    }
-
-    #[inline(always)]
-    fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
-        unsafe { vreinterpretq_u8_u16(vshrq_n_u16::<IMM8>(vreinterpretq_u16_u8(a))) }
-    }
-
-    #[inline(always)]
-    fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
-        unsafe { vreinterpretq_u8_u32(vshlq_n_u32::<IMM8>(vreinterpretq_u32_u8(a))) }
-    }
-
-    #[inline(always)]
-    fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
-        unsafe { vreinterpretq_u8_u32(vshrq_n_u32::<IMM8>(vreinterpretq_u32_u8(a))) }
-    }
-
-    #[inline(always)]
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe {
             let f = vreinterpretq_u32_u8;
@@ -247,6 +227,26 @@ unsafe impl SIMD128 for NEON {
             let g = vreinterpretq_u8_u64;
             g(vsubq_u64(f(a), f(b)))
         }
+    }
+
+    #[inline(always)]
+    fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u16(vshlq_n_u16::<IMM8>(vreinterpretq_u16_u8(a))) }
+    }
+
+    #[inline(always)]
+    fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u32(vshlq_n_u32::<IMM8>(vreinterpretq_u32_u8(a))) }
+    }
+
+    #[inline(always)]
+    fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u16(vshrq_n_u16::<IMM8>(vreinterpretq_u16_u8(a))) }
+    }
+
+    #[inline(always)]
+    fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
+        unsafe { vreinterpretq_u8_u32(vshrq_n_u32::<IMM8>(vreinterpretq_u32_u8(a))) }
     }
 
     #[inline(always)]
@@ -465,6 +465,46 @@ unsafe impl SIMD256 for NEON {
     }
 
     #[inline(always)]
+    fn u8x32_splat(self, x: u8) -> Self::V256 {
+        mock256::u8x32_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u16x16_splat(self, x: u16) -> Self::V256 {
+        mock256::u16x16_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u32x8_splat(self, x: u32) -> Self::V256 {
+        mock256::u32x8_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn u64x4_splat(self, x: u64) -> Self::V256 {
+        mock256::u64x4_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i8x32_splat(self, x: i8) -> Self::V256 {
+        mock256::i8x32_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i16x16_splat(self, x: i16) -> Self::V256 {
+        mock256::i16x16_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i32x8_splat(self, x: i32) -> Self::V256 {
+        mock256::i32x8_splat(self, x)
+    }
+
+    #[inline(always)]
+    fn i64x4_splat(self, x: i64) -> Self::V256 {
+        mock256::i64x4_splat(self, x)
+    }
+
+    #[inline(always)]
     fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u8x32_add(self, a, b)
     }
@@ -502,6 +542,26 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         mock256::u64x4_sub(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        mock256::u16x16_shl::<_, IMM8>(self, a)
+    }
+
+    #[inline(always)]
+    fn u32x8_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        mock256::u32x8_shl::<_, IMM8>(self, a)
+    }
+
+    #[inline(always)]
+    fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        mock256::u16x16_shr::<_, IMM8>(self, a)
+    }
+
+    #[inline(always)]
+    fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+        mock256::u32x8_shr::<_, IMM8>(self, a)
     }
 
     #[inline(always)]
@@ -592,45 +652,5 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
         mock256::u64x4_bswap(self, a)
-    }
-
-    #[inline(always)]
-    fn u8x32_splat(self, x: u8) -> Self::V256 {
-        mock256::u8x32_splat(self, x)
-    }
-
-    #[inline(always)]
-    fn u16x16_splat(self, x: u16) -> Self::V256 {
-        mock256::u16x16_splat(self, x)
-    }
-
-    #[inline(always)]
-    fn u32x8_splat(self, x: u32) -> Self::V256 {
-        mock256::u32x8_splat(self, x)
-    }
-
-    #[inline(always)]
-    fn u64x4_splat(self, x: u64) -> Self::V256 {
-        mock256::u64x4_splat(self, x)
-    }
-
-    #[inline(always)]
-    fn i8x32_splat(self, x: i8) -> Self::V256 {
-        mock256::i8x32_splat(self, x)
-    }
-
-    #[inline(always)]
-    fn i16x16_splat(self, x: i16) -> Self::V256 {
-        mock256::i16x16_splat(self, x)
-    }
-
-    #[inline(always)]
-    fn i32x8_splat(self, x: i32) -> Self::V256 {
-        mock256::i32x8_splat(self, x)
-    }
-
-    #[inline(always)]
-    fn i64x4_splat(self, x: i64) -> Self::V256 {
-        mock256::i64x4_splat(self, x)
     }
 }

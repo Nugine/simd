@@ -21,11 +21,6 @@ pub unsafe trait SIMD128: InstructionSet {
 
     fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
-    fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
-    fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
-
-    fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
-    fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     // ----refactor----
@@ -48,6 +43,12 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
+
+    fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
+    fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
+
+    fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
+    fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
 
     fn i8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn i16x8_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
