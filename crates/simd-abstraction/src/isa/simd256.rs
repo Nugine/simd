@@ -177,217 +177,217 @@ macro_rules! inherit_simd256 {
 
             #[inline(always)]
             fn v256_from_v128x2(self, a: Self::V128, b: Self::V128) -> Self::V256 {
-                self.$upcast().v256_from_v128x2(a, b)
+                <$super as SIMD256>::v256_from_v128x2(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn v256_to_v128x2(self, a: Self::V256) -> (Self::V128, Self::V128) {
-                self.$upcast().v256_to_v128x2(a)
+                <$super as SIMD256>::v256_to_v128x2(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn v256_to_bytes(self, a: Self::V256) -> [u8; 32] {
-                self.$upcast().v256_to_bytes(a)
+                <$super as SIMD256>::v256_to_bytes(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
-                self.$upcast().u16x16_from_u8x16(a)
+                <$super as SIMD256>::u16x16_from_u8x16(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
-                self.$upcast().u64x4_unzip_low(a)
+                <$super as SIMD256>::u64x4_unzip_low(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn u8x32_splat(self, x: u8) -> Self::V256 {
-                self.$upcast().u8x32_splat(x)
+                <$super as SIMD256>::u8x32_splat(self.$upcast(), x)
             }
 
             #[inline(always)]
             fn u16x16_splat(self, x: u16) -> Self::V256 {
-                self.$upcast().u16x16_splat(x)
+                <$super as SIMD256>::u16x16_splat(self.$upcast(), x)
             }
 
             #[inline(always)]
             fn u32x8_splat(self, x: u32) -> Self::V256 {
-                self.$upcast().u32x8_splat(x)
+                <$super as SIMD256>::u32x8_splat(self.$upcast(), x)
             }
 
             #[inline(always)]
             fn u64x4_splat(self, x: u64) -> Self::V256 {
-                self.$upcast().u64x4_splat(x)
+                <$super as SIMD256>::u64x4_splat(self.$upcast(), x)
             }
 
             #[inline(always)]
             fn i8x32_splat(self, x: i8) -> Self::V256 {
-                self.$upcast().i8x32_splat(x)
+                <$super as SIMD256>::i8x32_splat(self.$upcast(), x)
             }
 
             #[inline(always)]
             fn i16x16_splat(self, x: i16) -> Self::V256 {
-                self.$upcast().i16x16_splat(x)
+                <$super as SIMD256>::i16x16_splat(self.$upcast(), x)
             }
 
             #[inline(always)]
             fn i32x8_splat(self, x: i32) -> Self::V256 {
-                self.$upcast().i32x8_splat(x)
+                <$super as SIMD256>::i32x8_splat(self.$upcast(), x)
             }
 
             #[inline(always)]
             fn i64x4_splat(self, x: i64) -> Self::V256 {
-                self.$upcast().i64x4_splat(x)
+                <$super as SIMD256>::i64x4_splat(self.$upcast(), x)
             }
 
             #[inline(always)]
             fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u8x32_add(a, b)
+                <$super as SIMD256>::u8x32_add(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u16x16_add(a, b)
+                <$super as SIMD256>::u16x16_add(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u32x8_add(a, b)
+                <$super as SIMD256>::u32x8_add(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u64x4_add(a, b)
+                <$super as SIMD256>::u64x4_add(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u8x32_sub(a, b)
+                <$super as SIMD256>::u8x32_sub(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u16x16_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u16x16_sub(a, b)
+                <$super as SIMD256>::u16x16_sub(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u32x8_sub(a, b)
+                <$super as SIMD256>::u32x8_sub(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u64x4_sub(a, b)
+                <$super as SIMD256>::u64x4_sub(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u16x16_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
-                self.$upcast().u16x16_shl::<IMM8>(a)
+                <$super as SIMD256>::u16x16_shl::<IMM8>(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn u32x8_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
-                self.$upcast().u32x8_shl::<IMM8>(a)
+                <$super as SIMD256>::u32x8_shl::<IMM8>(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
-                self.$upcast().u16x16_shr::<IMM8>(a)
+                <$super as SIMD256>::u16x16_shr::<IMM8>(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
-                self.$upcast().u32x8_shr::<IMM8>(a)
+                <$super as SIMD256>::u32x8_shr::<IMM8>(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().i8x32_lt(a, b)
+                <$super as SIMD256>::i8x32_lt(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn i16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().i16x16_lt(a, b)
+                <$super as SIMD256>::i16x16_lt(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().i32x8_lt(a, b)
+                <$super as SIMD256>::i32x8_lt(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u8x32_max(a, b)
+                <$super as SIMD256>::u8x32_max(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u16x16_max(a, b)
+                <$super as SIMD256>::u16x16_max(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u32x8_max(a, b)
+                <$super as SIMD256>::u32x8_max(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn i8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().i8x32_max(a, b)
+                <$super as SIMD256>::i8x32_max(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn i16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().i16x16_max(a, b)
+                <$super as SIMD256>::i16x16_max(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().i32x8_max(a, b)
+                <$super as SIMD256>::i32x8_max(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u8x32_min(a, b)
+                <$super as SIMD256>::u8x32_min(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u16x16_min(a, b)
+                <$super as SIMD256>::u16x16_min(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().u32x8_min(a, b)
+                <$super as SIMD256>::u32x8_min(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn i8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().i8x32_min(a, b)
+                <$super as SIMD256>::i8x32_min(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn i16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().i16x16_min(a, b)
+                <$super as SIMD256>::i16x16_min(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn i32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-                self.$upcast().i32x8_min(a, b)
+                <$super as SIMD256>::i32x8_min(self.$upcast(), a, b)
             }
 
             #[inline(always)]
             fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
-                self.$upcast().u16x16_bswap(a)
+                <$super as SIMD256>::u16x16_bswap(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
-                self.$upcast().u32x8_bswap(a)
+                <$super as SIMD256>::u32x8_bswap(self.$upcast(), a)
             }
 
             #[inline(always)]
             fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
-                self.$upcast().u64x4_bswap(a)
+                <$super as SIMD256>::u64x4_bswap(self.$upcast(), a)
             }
         }
     };
