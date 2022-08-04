@@ -122,6 +122,21 @@ pub fn u32x8_shr<S: SIMD256, const IMM8: i32>(s: S, a: S::V256) -> S::V256 {
 }
 
 #[inline(always)]
+pub fn u8x32_lt<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u8x16_lt)
+}
+
+#[inline(always)]
+pub fn u16x16_lt<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u16x8_lt)
+}
+
+#[inline(always)]
+pub fn u32x8_lt<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u32x4_lt)
+}
+
+#[inline(always)]
 pub fn i8x32_lt<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
     vmerge(s, a, b, S::i8x16_lt)
 }

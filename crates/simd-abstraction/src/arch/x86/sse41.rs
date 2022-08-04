@@ -80,13 +80,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        let a = self.u32x4_sub(a, self.u32x4_splat(u32::MAX / 2));
-        let b = self.u32x4_sub(b, self.u32x4_splat(u32::MAX / 2));
-        self.i32x4_lt(a, b)
-    }
-
-    #[inline(always)]
     fn u8x16_splat(self, x: u8) -> Self::V128 {
         unsafe { _mm_set1_epi8(x as i8) } // sse2
     }
@@ -184,6 +177,30 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         unsafe { _mm_srli_epi32::<IMM8>(a) } // sse2
+    }
+
+    #[inline(always)]
+    fn u8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        let shift = self.u8x16_splat(u8::MAX / 2);
+        let a = self.u8x16_sub(a, shift);
+        let b = self.u8x16_sub(b, shift);
+        self.i8x16_lt(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        let shift = self.u16x8_splat(u16::MAX / 2);
+        let a = self.u16x8_sub(a, b);
+        let b = self.u16x8_sub(b, shift);
+        self.i16x8_lt(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x4_lt(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        let shift = self.u32x4_splat(u32::MAX / 2);
+        let a = self.u32x4_sub(a, shift);
+        let b = self.u32x4_sub(b, shift);
+        self.i32x4_lt(a, b)
     }
 
     #[inline(always)]
@@ -406,6 +423,21 @@ unsafe impl SIMD256 for SSE41 {
     #[inline(always)]
     fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         mock256::u32x8_shr::<_, IMM8>(self, a)
+    }
+
+    #[inline(always)]
+    fn u8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u8x32_lt(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u16x16_lt(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        mock256::u32x8_lt(self, a, b)
     }
 
     #[inline(always)]

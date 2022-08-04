@@ -110,13 +110,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        let a = self.u32x8_sub(a, self.u32x8_splat(u32::MAX / 2));
-        let b = self.u32x8_sub(b, self.u32x8_splat(u32::MAX / 2));
-        self.i32x8_lt(a, b)
-    }
-
-    #[inline(always)]
     fn u8x32_splat(self, x: u8) -> Self::V256 {
         unsafe { _mm256_set1_epi8(x as i8) } // avx
     }
@@ -214,6 +207,30 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         unsafe { _mm256_srli_epi32::<IMM8>(a) } // avx2
+    }
+
+    #[inline(always)]
+    fn u8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        let shift = self.u8x32_splat(u8::MAX / 2);
+        let a = self.u8x32_sub(a, shift);
+        let b = self.u8x32_sub(b, shift);
+        self.i8x32_lt(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        let shift = self.u16x16_splat(u16::MAX / 2);
+        let a = self.u16x16_sub(a, b);
+        let b = self.u16x16_sub(b, shift);
+        self.i16x16_lt(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        let shift = self.u32x8_splat(u32::MAX / 2);
+        let a = self.u32x8_sub(a, shift);
+        let b = self.u32x8_sub(b, shift);
+        self.i32x8_lt(a, b)
     }
 
     #[inline(always)]

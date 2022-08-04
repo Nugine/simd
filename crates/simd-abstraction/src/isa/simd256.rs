@@ -114,11 +114,6 @@ pub unsafe trait SIMD256: SIMD128 {
         })
     }
 
-    #[inline(always)]
-    fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| (self.u32x4_lt(a.0, b.0), self.u32x4_lt(a.1, b.1)))
-    }
-
     // ----refactor----
 
     fn u8x32_splat(self, x: u8) -> Self::V256;
@@ -146,6 +141,9 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256;
     fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256;
 
+    fn u8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256;
     fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256;
     fn i16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256;
     fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256;
@@ -298,6 +296,21 @@ macro_rules! inherit_simd256 {
             #[inline(always)]
             fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
                 <$super as SIMD256>::u32x8_shr::<IMM8>(self.$upcast(), a)
+            }
+
+            #[inline(always)]
+            fn u8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                <$super as SIMD256>::u8x32_lt(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                <$super as SIMD256>::u16x16_lt(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                <$super as SIMD256>::u32x8_lt(self.$upcast(), a, b)
             }
 
             #[inline(always)]
