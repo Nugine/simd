@@ -199,12 +199,14 @@ mod spec {
         use crate::isa::SIMD128;
 
         unsafe impl SIMDExt for AVX2 {
+            #[inline(always)]
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {
                 unsafe { _mm256_movemask_epi8(a) == 0 }
             }
         }
 
         unsafe impl SIMDExt for SSE41 {
+            #[inline(always)]
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {
                 let x = self.v128_or(a.0, a.1);
                 let m = unsafe { _mm_movemask_epi8(x) };
@@ -224,6 +226,7 @@ mod spec {
         use core::arch::aarch64::*;
 
         unsafe impl SIMDExt for NEON {
+            #[inline(always)]
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {
                 let x = self.v128_or(a.0, a.1);
 
@@ -249,6 +252,7 @@ mod spec {
         use core::arch::wasm32::*;
 
         unsafe impl SIMDExt for SIMD128 {
+            #[inline(always)]
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {
                 let x = self.v128_or(a.0, a.1);
                 let m = i8x16_bitmask(x);
