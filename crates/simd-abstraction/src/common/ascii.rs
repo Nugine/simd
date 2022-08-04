@@ -100,8 +100,8 @@ fn check_non_ascii_whitespace_u8x32<S: SIMD256>(s: S, a: S::V256) -> bool {
 
     let m1: _ = s.u8x16x2_swizzle(lut, a);
     let m2: _ = s.v256_and(a, s.u8x32_splat(0xf0));
-    let m3: _ = s.i8x32_eq(s.v256_or(m1, m2), s.v256_create_zero());
-    let m4: _ = s.i8x32_eq(a, s.i8x32_splat(0x20));
+    let m3: _ = s.u8x32_eq(s.v256_or(m1, m2), s.v256_create_zero());
+    let m4: _ = s.u8x32_eq(a, s.u8x32_splat(0x20));
     let m5: _ = s.v256_or(m3, m4);
 
     !s.v256_all_zero(m5)

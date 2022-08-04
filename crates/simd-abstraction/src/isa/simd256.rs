@@ -103,11 +103,6 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
-    fn i8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| (self.i8x16_eq(a.0, b.1), self.i8x16_eq(a.1, b.1)))
-    }
-
-    #[inline(always)]
     fn u8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| {
             (self.u8x16_sub_sat(a.0, b.0), self.u8x16_sub_sat(a.1, b.1))
@@ -140,6 +135,10 @@ pub unsafe trait SIMD256: SIMD128 {
 
     fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256;
     fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256;
+
+    fn u8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u16x16_eq(self, a: Self::V256, b: Self::V256) -> Self::V256;
+    fn u32x8_eq(self, a: Self::V256, b: Self::V256) -> Self::V256;
 
     fn u8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256;
     fn u16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256;
@@ -296,6 +295,21 @@ macro_rules! inherit_simd256 {
             #[inline(always)]
             fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
                 <$super as SIMD256>::u32x8_shr::<IMM8>(self.$upcast(), a)
+            }
+
+            #[inline(always)]
+            fn u8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                <$super as SIMD256>::u8x32_eq(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u16x16_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                <$super as SIMD256>::u16x16_eq(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u32x8_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                <$super as SIMD256>::u32x8_eq(self.$upcast(), a, b)
             }
 
             #[inline(always)]

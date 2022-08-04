@@ -19,8 +19,6 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u8x16_any_zero(self, a: Self::V128) -> bool;
 
-    fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128;
-
     // ----refactor----
 
     fn u8x16_splat(self, x: u8) -> Self::V128;
@@ -47,6 +45,10 @@ pub unsafe trait SIMD128: InstructionSet {
 
     fn u16x8_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_shr<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
+
+    fn u8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u16x8_eq(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u32x4_eq(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u8x16_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u16x8_lt(self, a: Self::V128, b: Self::V128) -> Self::V128;
@@ -143,11 +145,6 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn u8x16_any_zero(self, a: Self::V128) -> bool {
                 <$super as SIMD128>::u8x16_any_zero(self.$upcast(), a)
-            }
-
-            #[inline(always)]
-            fn i8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-                <$super as SIMD128>::i8x16_eq(self.$upcast(), a, b)
             }
 
             #[inline(always)]
@@ -248,6 +245,21 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
                 <$super as SIMD128>::u64x2_sub(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u8x16_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::u8x16_eq(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u16x8_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::u16x8_eq(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u32x4_eq(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::u32x4_eq(self.$upcast(), a, b)
             }
 
             #[inline(always)]

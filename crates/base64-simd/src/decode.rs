@@ -302,7 +302,7 @@ unsafe fn decode_u8x32<S: SIMDExt>(s: S, x: S::V256, r: B64Range<S>) -> Result<S
     let c1 = s.i8x32_lt(x, lower_limit);
     let c2 = s.i8x32_lt(upper_limit, x);
     let c3 = s.v256_or(c1, c2);
-    let c4 = s.i8x32_eq(x, r.b63);
+    let c4 = s.u8x32_eq(x, r.b63);
     let c5 = s.v256_andnot(c3, c4);
 
     if !s.v256_all_zero(c5) {

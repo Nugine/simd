@@ -100,11 +100,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn i8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_cmpeq_epi8(b, a) } // avx2
-    }
-
-    #[inline(always)]
     fn u8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_subs_epu8(a, b) } // avx2
     }
@@ -207,6 +202,21 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         unsafe { _mm256_srli_epi32::<IMM8>(a) } // avx2
+    }
+
+    #[inline(always)]
+    fn u8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_cmpeq_epi8(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u16x16_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_cmpeq_epi16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u32x8_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_cmpeq_epi32(a, b) } // avx2
     }
 
     #[inline(always)]
