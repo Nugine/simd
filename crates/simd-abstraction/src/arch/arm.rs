@@ -19,22 +19,6 @@ unsafe impl SIMD128 for NEON {
     type V128 = uint8x16_t;
 
     #[inline(always)]
-    unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
-        debug_assert_ptr_align!(addr, 16);
-        vld1q_u8(addr)
-    }
-
-    #[inline(always)]
-    unsafe fn v128_load_unaligned(self, addr: *const u8) -> Self::V128 {
-        vld1q_u8(addr)
-    }
-
-    #[inline(always)]
-    unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
-        vst1q_u8(addr, a)
-    }
-
-    #[inline(always)]
     fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { vorrq_u8(a, b) }
     }
@@ -88,6 +72,28 @@ unsafe impl SIMD128 for NEON {
         unsafe {
             vminvq_u8(a) == 0
         }
+    }
+
+    #[inline(always)]
+    unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
+        debug_assert_ptr_align!(addr, 16);
+        vld1q_u8(addr)
+    }
+
+    #[inline(always)]
+    unsafe fn v128_load_unaligned(self, addr: *const u8) -> Self::V128 {
+        vld1q_u8(addr)
+    }
+
+    #[inline(always)]
+    unsafe fn v128_store(self, addr: *mut u8, a: Self::V128) {
+        debug_assert_ptr_align!(addr, 16);
+        vst1q_u8(addr, a)
+    }
+
+    #[inline(always)]
+    unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
+        vst1q_u8(addr, a)
     }
 
     #[inline(always)]
@@ -516,6 +522,12 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     unsafe fn v256_load_unaligned(self, addr: *const u8) -> Self::V256 {
         vld1q_u8_x2(addr)
+    }
+
+    #[inline(always)]
+    unsafe fn v256_store(self, addr: *mut u8, a: Self::V256) {
+        debug_assert_ptr_align!(addr, 32);
+        vst1q_u8_x2(addr, a)
     }
 
     #[inline(always)]

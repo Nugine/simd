@@ -46,28 +46,6 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128;
 
     #[inline(always)]
-    unsafe fn v256_load(self, addr: *const u8) -> Self::V256 {
-        debug_assert_ptr_align!(addr, 32);
-        let a0 = self.v128_load(addr);
-        let a1 = self.v128_load(addr.add(16));
-        self.v256_from_v128x2(a0, a1)
-    }
-
-    #[inline(always)]
-    unsafe fn v256_load_unaligned(self, addr: *const u8) -> Self::V256 {
-        let a0 = self.v128_load_unaligned(addr);
-        let a1 = self.v128_load_unaligned(addr.add(16));
-        self.v256_from_v128x2(a0, a1)
-    }
-
-    #[inline(always)]
-    unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
-        let (a0, a1) = self.v256_to_v128x2(a);
-        self.v128_store_unaligned(addr, a0);
-        self.v128_store_unaligned(addr.add(16), a1);
-    }
-
-    #[inline(always)]
     fn v256_or(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| (self.v128_or(a.0, b.0), self.v128_or(a.1, b.1)))
     }
@@ -117,6 +95,36 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     // ----refactor----
+
+    #[inline(always)]
+    unsafe fn v256_load(self, addr: *const u8) -> Self::V256 {
+        debug_assert_ptr_align!(addr, 32);
+        let a0 = self.v128_load(addr);
+        let a1 = self.v128_load(addr.add(16));
+        self.v256_from_v128x2(a0, a1)
+    }
+
+    #[inline(always)]
+    unsafe fn v256_load_unaligned(self, addr: *const u8) -> Self::V256 {
+        let a0 = self.v128_load_unaligned(addr);
+        let a1 = self.v128_load_unaligned(addr.add(16));
+        self.v256_from_v128x2(a0, a1)
+    }
+
+    #[inline(always)]
+    unsafe fn v256_store(self, addr: *mut u8, a: Self::V256) {
+        debug_assert_ptr_align!(addr, 32);
+        let (a0, a1) = self.v256_to_v128x2(a);
+        self.v128_store(addr, a0);
+        self.v128_store(addr.add(16), a1);
+    }
+
+    #[inline(always)]
+    unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
+        let (a0, a1) = self.v256_to_v128x2(a);
+        self.v128_store_unaligned(addr, a0);
+        self.v128_store_unaligned(addr.add(16), a1);
+    }
 
     #[inline(always)]
     fn u8x32_splat(self, x: u8) -> Self::V256 {
@@ -393,6 +401,26 @@ macro_rules! inherit_simd256 {
             #[inline(always)]
             fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
                 <$super as SIMD256>::u64x4_unzip_low(self.$upcast(), a)
+            }
+
+            #[inline(always)]
+            unsafe fn v256_load(self, addr: *const u8) -> Self::V256 {
+                <$super as SIMD256>::v256_load(self.$upcast(), addr)
+            }
+
+            #[inline(always)]
+            unsafe fn v256_load_unaligned(self, addr: *const u8) -> Self::V256 {
+                <$super as SIMD256>::v256_load_unaligned(self.$upcast(), addr)
+            }
+
+            #[inline(always)]
+            unsafe fn v256_store(self, addr: *mut u8, a: Self::V256) {
+                <$super as SIMD256>::v256_store(self.$upcast(), addr, a)
+            }
+
+            #[inline(always)]
+            unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
+                <$super as SIMD256>::v256_store_unaligned(self.$upcast(), addr, a)
             }
 
             #[inline(always)]

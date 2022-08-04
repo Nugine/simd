@@ -15,22 +15,6 @@ unsafe impl SIMD128 for SSE41 {
     type V128 = __m128i;
 
     #[inline(always)]
-    unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
-        debug_assert_ptr_align!(addr, 16);
-        _mm_load_si128(addr.cast()) // sse2
-    }
-
-    #[inline(always)]
-    unsafe fn v128_load_unaligned(self, addr: *const u8) -> Self::V128 {
-        _mm_loadu_si128(addr.cast()) // sse2
-    }
-
-    #[inline(always)]
-    unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
-        _mm_storeu_si128(addr.cast(), a) // sse2
-    }
-
-    #[inline(always)]
     fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_or_si128(a, b) } // sse2
     }
@@ -71,6 +55,28 @@ unsafe impl SIMD128 for SSE41 {
             let cmp = _mm_cmpeq_epi8(a, _mm_setzero_si128()); // sse2
             !self.v128_all_zero(cmp)
         }
+    }
+
+    #[inline(always)]
+    unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
+        debug_assert_ptr_align!(addr, 16);
+        _mm_load_si128(addr.cast()) // sse2
+    }
+
+    #[inline(always)]
+    unsafe fn v128_load_unaligned(self, addr: *const u8) -> Self::V128 {
+        _mm_loadu_si128(addr.cast()) // sse2
+    }
+
+    #[inline(always)]
+    unsafe fn v128_store(self, addr: *mut u8, a: Self::V128) {
+        debug_assert_ptr_align!(addr, 16);
+        _mm_store_si128(addr.cast(), a) // sse2
+    }
+
+    #[inline(always)]
+    unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
+        _mm_storeu_si128(addr.cast(), a) // sse2
     }
 
     #[inline(always)]
@@ -409,21 +415,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    unsafe fn v256_load(self, addr: *const u8) -> Self::V256 {
-        _mm256_load_si256(addr.cast()) // avx
-    }
-
-    #[inline(always)]
-    unsafe fn v256_load_unaligned(self, addr: *const u8) -> Self::V256 {
-        _mm256_loadu_si256(addr.cast()) // avx
-    }
-
-    #[inline(always)]
-    unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
-        _mm256_storeu_si256(addr.cast(), a) // avx
-    }
-
-    #[inline(always)]
     fn v256_or(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_or_si256(a, b) } // avx2
     }
@@ -469,6 +460,28 @@ unsafe impl SIMD256 for AVX2 {
             let cmp = _mm256_cmpeq_epi8(a, _mm256_setzero_si256()); // avx2
             _mm256_movemask_epi8(cmp) as u32 != 0 // avx2
         }
+    }
+
+    #[inline(always)]
+    unsafe fn v256_load(self, addr: *const u8) -> Self::V256 {
+        debug_assert_ptr_align!(addr, 32);
+        _mm256_load_si256(addr.cast()) // avx
+    }
+
+    #[inline(always)]
+    unsafe fn v256_load_unaligned(self, addr: *const u8) -> Self::V256 {
+        _mm256_loadu_si256(addr.cast()) // avx
+    }
+
+    #[inline(always)]
+    unsafe fn v256_store(self, addr: *mut u8, a: Self::V256) {
+        debug_assert_ptr_align!(addr, 32);
+        _mm256_store_si256(addr.cast(), a) // avx
+    }
+
+    #[inline(always)]
+    unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
+        _mm256_storeu_si256(addr.cast(), a) // avx
     }
 
     #[inline(always)]

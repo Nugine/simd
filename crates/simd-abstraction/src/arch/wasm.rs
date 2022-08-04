@@ -10,22 +10,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     type V128 = v128;
 
     #[inline(always)]
-    unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
-        debug_assert_ptr_align!(addr, 16);
-        v128_load(addr.cast())
-    }
-
-    #[inline(always)]
-    unsafe fn v128_load_unaligned(self, addr: *const u8) -> Self::V128 {
-        v128_load(addr.cast())
-    }
-
-    #[inline(always)]
-    unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
-        v128_store(addr.cast(), a)
-    }
-
-    #[inline(always)]
     fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         v128_or(a, b)
     }
@@ -63,6 +47,28 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
         !u8x16_all_true(a)
+    }
+
+    #[inline(always)]
+    unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
+        debug_assert_ptr_align!(addr, 16);
+        v128_load(addr.cast())
+    }
+
+    #[inline(always)]
+    unsafe fn v128_load_unaligned(self, addr: *const u8) -> Self::V128 {
+        v128_load(addr.cast())
+    }
+
+    #[inline(always)]
+    unsafe fn v128_store(self, addr: *mut u8, a: Self::V128) {
+        debug_assert_ptr_align!(addr, 16);
+        v128_store(addr.cast(), a)
+    }
+
+    #[inline(always)]
+    unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
+        v128_store(addr.cast(), a)
     }
 
     #[inline(always)]
