@@ -114,3 +114,12 @@ fn safety_unit_test(
 fn test_safety() {
     safety_unit_test(Base64::encode, Base64::decode, Base64::decode_inplace);
 }
+
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+
+#[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
+#[wasm_bindgen_test::wasm_bindgen_test]
+fn wasm() {
+    safety_unit_test(Base64::encode, Base64::decode, Base64::decode_inplace);
+}
