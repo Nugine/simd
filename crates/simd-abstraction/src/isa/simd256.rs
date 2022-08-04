@@ -1,19 +1,6 @@
 use super::SIMD128;
 
 #[inline(always)]
-fn split_merge<S: SIMD256>(
-    s: S,
-    a: S::V256,
-    b: S::V256,
-    f: impl FnOnce((S::V128, S::V128), (S::V128, S::V128)) -> (S::V128, S::V128),
-) -> S::V256 {
-    let a = s.v256_to_v128x2(a);
-    let b = s.v256_to_v128x2(b);
-    let (c0, c1) = f(a, b);
-    s.v256_from_v128x2(c0, c1)
-}
-
-#[inline(always)]
 fn vmap<S: SIMD256>(s: S, a: S::V256, f: impl Fn(S, S::V128) -> S::V128) -> S::V256 {
     let a = s.v256_to_v128x2(a);
     let b = (f(s, a.0), f(s, a.1));
@@ -40,28 +27,6 @@ pub unsafe trait SIMD256: SIMD128 {
     fn v256_from_v128x2(self, a: Self::V128, b: Self::V128) -> Self::V256;
     fn v256_to_v128x2(self, a: Self::V256) -> (Self::V128, Self::V128);
     fn v256_to_bytes(self, a: Self::V256) -> [u8; 32];
-
-    #[inline(always)]
-    fn v256_or(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| (self.v128_or(a.0, b.0), self.v128_or(a.1, b.1)))
-    }
-
-    #[inline(always)]
-    fn v256_and(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| (self.v128_and(a.0, b.0), self.v128_and(a.1, b.1)))
-    }
-
-    #[inline(always)]
-    fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.v128_andnot(a.0, b.0), self.v128_andnot(a.1, b.1))
-        })
-    }
-
-    #[inline(always)]
-    fn v256_xor(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| (self.v128_xor(a.0, b.0), self.v128_xor(a.1, b.1)))
-    }
 
     #[inline(always)]
     fn v256_create_zero(self) -> Self::V256 {
@@ -120,6 +85,31 @@ pub unsafe trait SIMD256: SIMD128 {
         let (a0, a1) = self.v256_to_v128x2(a);
         self.v128_store_unaligned(addr, a0);
         self.v128_store_unaligned(addr.add(16), a1);
+    }
+
+    #[inline(always)]
+    fn v256_not(self, a: Self::V256) -> Self::V256 {
+        vmap(self, a, Self::v128_not)
+    }
+
+    #[inline(always)]
+    fn v256_and(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        vmerge(self, a, b, Self::v128_and)
+    }
+
+    #[inline(always)]
+    fn v256_or(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        vmerge(self, a, b, Self::v128_or)
+    }
+
+    #[inline(always)]
+    fn v256_xor(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        vmerge(self, a, b, Self::v128_xor)
+    }
+
+    #[inline(always)]
+    fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        vmerge(self, a, b, Self::v128_andnot)
     }
 
     #[inline(always)]

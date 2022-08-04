@@ -3,13 +3,9 @@ use super::InstructionSet;
 pub unsafe trait SIMD128: InstructionSet {
     type V128: Copy;
 
-    fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128;
-    fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn v128_to_bytes(self, a: Self::V128) -> [u8; 16];
     fn v128_create_zero(self) -> Self::V128;
     fn v128_all_zero(self, a: Self::V128) -> bool;
-    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128;
-    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u8x16_any_zero(self, a: Self::V128) -> bool;
 
@@ -19,6 +15,12 @@ pub unsafe trait SIMD128: InstructionSet {
     unsafe fn v128_load_unaligned(self, addr: *const u8) -> Self::V128;
     unsafe fn v128_store(self, addr: *mut u8, a: Self::V128);
     unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128);
+
+    fn v128_not(self, a: Self::V128) -> Self::V128;
+    fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u8x16_splat(self, x: u8) -> Self::V128;
     fn u16x8_splat(self, x: u16) -> Self::V128;
@@ -89,16 +91,6 @@ macro_rules! inherit_simd128 {
             type V128 = <$super as SIMD128>::V128;
 
             #[inline(always)]
-            fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-                <$super as SIMD128>::v128_or(self.$upcast(), a, b)
-            }
-
-            #[inline(always)]
-            fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-                <$super as SIMD128>::v128_and(self.$upcast(), a, b)
-            }
-
-            #[inline(always)]
             fn v128_to_bytes(self, a: Self::V128) -> [u8; 16] {
                 <$super as SIMD128>::v128_to_bytes(self.$upcast(), a)
             }
@@ -111,16 +103,6 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn v128_all_zero(self, a: Self::V128) -> bool {
                 <$super as SIMD128>::v128_all_zero(self.$upcast(), a)
-            }
-
-            #[inline(always)]
-            fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-                <$super as SIMD128>::v128_andnot(self.$upcast(), a, b)
-            }
-
-            #[inline(always)]
-            fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-                <$super as SIMD128>::v128_xor(self.$upcast(), a, b)
             }
 
             #[inline(always)]
@@ -151,6 +133,31 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
                 <$super as SIMD128>::v128_store_unaligned(self.$upcast(), addr, a)
+            }
+
+            #[inline(always)]
+            fn v128_not(self, a: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::v128_not(self.$upcast(), a)
+            }
+
+            #[inline(always)]
+            fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::v128_and(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::v128_or(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::v128_xor(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::v128_andnot(self.$upcast(), a, b)
             }
 
             #[inline(always)]

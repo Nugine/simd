@@ -15,16 +15,6 @@ unsafe impl SIMD128 for SSE41 {
     type V128 = __m128i;
 
     #[inline(always)]
-    fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_or_si128(a, b) } // sse2
-    }
-
-    #[inline(always)]
-    fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_and_si128(a, b) } // sse2
-    }
-
-    #[inline(always)]
     fn v128_to_bytes(self, a: Self::V128) -> [u8; 16] {
         unsafe { core::mem::transmute(a) }
     }
@@ -37,16 +27,6 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn v128_all_zero(self, a: Self::V128) -> bool {
         unsafe { _mm_testz_si128(a, a) != 0 } // sse41
-    }
-
-    #[inline(always)]
-    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_andnot_si128(b, a) } // sse2
-    }
-
-    #[inline(always)]
-    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_xor_si128(a, b) } // sse2
     }
 
     #[inline(always)]
@@ -77,6 +57,31 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
         _mm_storeu_si128(addr.cast(), a) // sse2
+    }
+
+    #[inline(always)]
+    fn v128_not(self, a: Self::V128) -> Self::V128 {
+        self.v128_xor(a, self.u8x16_eq(a, a))
+    }
+
+    #[inline(always)]
+    fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_and_si128(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_or_si128(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_xor_si128(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_andnot_si128(b, a) } // sse2
     }
 
     #[inline(always)]
@@ -391,26 +396,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn v256_or(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_or_si256(a, b) } // avx2
-    }
-
-    #[inline(always)]
-    fn v256_and(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_and_si256(a, b) } // avx2
-    }
-
-    #[inline(always)]
-    fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_andnot_si256(b, a) } // avx2
-    }
-
-    #[inline(always)]
-    fn v256_xor(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_xor_si256(a, b) } // avx
-    }
-
-    #[inline(always)]
     fn v256_create_zero(self) -> Self::V256 {
         unsafe { _mm256_setzero_si256() } // avx
     }
@@ -458,6 +443,31 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
         _mm256_storeu_si256(addr.cast(), a) // avx
+    }
+
+    #[inline(always)]
+    fn v256_not(self, a: Self::V256) -> Self::V256 {
+        self.v256_xor(a, self.u8x32_eq(a, a))
+    }
+
+    #[inline(always)]
+    fn v256_and(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_and_si256(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn v256_or(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_or_si256(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn v256_xor(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_xor_si256(a, b) } // avx
+    }
+
+    #[inline(always)]
+    fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_andnot_si256(b, a) } // avx2
     }
 
     #[inline(always)]

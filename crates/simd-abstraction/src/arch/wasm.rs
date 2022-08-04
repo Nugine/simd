@@ -10,16 +10,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     type V128 = v128;
 
     #[inline(always)]
-    fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        v128_or(a, b)
-    }
-
-    #[inline(always)]
-    fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        v128_and(a, b)
-    }
-
-    #[inline(always)]
     fn v128_to_bytes(self, a: Self::V128) -> [u8; 16] {
         unsafe { core::mem::transmute(a) }
     }
@@ -32,16 +22,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     fn v128_all_zero(self, a: Self::V128) -> bool {
         !v128_any_true(a)
-    }
-
-    #[inline(always)]
-    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        v128_andnot(a, b)
-    }
-
-    #[inline(always)]
-    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        v128_xor(a, b)
     }
 
     #[inline(always)]
@@ -69,6 +49,31 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
         v128_store(addr.cast(), a)
+    }
+
+    #[inline(always)]
+    fn v128_not(self, a: Self::V128) -> Self::V128 {
+        v128_not(a)
+    }
+
+    #[inline(always)]
+    fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        v128_and(a, b)
+    }
+
+    #[inline(always)]
+    fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        v128_or(a, b)
+    }
+
+    #[inline(always)]
+    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        v128_xor(a, b)
+    }
+
+    #[inline(always)]
+    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        v128_andnot(a, b)
     }
 
     #[inline(always)]

@@ -19,16 +19,6 @@ unsafe impl SIMD128 for NEON {
     type V128 = uint8x16_t;
 
     #[inline(always)]
-    fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vorrq_u8(a, b) }
-    }
-
-    #[inline(always)]
-    fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vandq_u8(a, b) }
-    }
-
-    #[inline(always)]
     fn v128_to_bytes(self, a: Self::V128) -> [u8; 16] {
         unsafe { core::mem::transmute(a) }
     }
@@ -50,16 +40,6 @@ unsafe impl SIMD128 for NEON {
         unsafe {
             vmaxvq_u8(a) == 0
         }
-    }
-
-    #[inline(always)]
-    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vandq_u8(a, vmvnq_u8(b)) }
-    }
-
-    #[inline(always)]
-    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { veorq_u8(a, b) }
     }
 
     #[inline(always)]
@@ -94,6 +74,31 @@ unsafe impl SIMD128 for NEON {
     #[inline(always)]
     unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
         vst1q_u8(addr, a)
+    }
+
+    #[inline(always)]
+    fn v128_not(self, a: Self::V128) -> Self::V128 {
+        unsafe { vmvnq_u8(a) }
+    }
+
+    #[inline(always)]
+    fn v128_and(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vandq_u8(a, b) }
+    }
+
+    #[inline(always)]
+    fn v128_or(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vorrq_u8(a, b) }
+    }
+
+    #[inline(always)]
+    fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { veorq_u8(a, b) }
+    }
+
+    #[inline(always)]
+    fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.v128_and(a, self.v128_not(b))
     }
 
     #[inline(always)]
