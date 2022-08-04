@@ -8,6 +8,7 @@ mod simd128;
 #[macro_use]
 mod simd256;
 
+#[macro_use]
 pub mod mock256;
 
 pub use self::load::SimdLoad;

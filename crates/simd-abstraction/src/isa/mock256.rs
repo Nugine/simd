@@ -240,3 +240,227 @@ pub fn u32x8_bswap<S: SIMD256>(s: S, a: S::V256) -> S::V256 {
 pub fn u64x4_bswap<S: SIMD256>(s: S, a: S::V256) -> S::V256 {
     vmap(s, a, S::u64x2_bswap)
 }
+
+macro_rules! mock256_instructions {
+    () => {
+        #[inline(always)]
+        fn u8x32_splat(self, x: u8) -> Self::V256 {
+            $crate::isa::mock256::u8x32_splat(self, x)
+        }
+
+        #[inline(always)]
+        fn u16x16_splat(self, x: u16) -> Self::V256 {
+            $crate::isa::mock256::u16x16_splat(self, x)
+        }
+
+        #[inline(always)]
+        fn u32x8_splat(self, x: u32) -> Self::V256 {
+            $crate::isa::mock256::u32x8_splat(self, x)
+        }
+
+        #[inline(always)]
+        fn u64x4_splat(self, x: u64) -> Self::V256 {
+            $crate::isa::mock256::u64x4_splat(self, x)
+        }
+
+        #[inline(always)]
+        fn i8x32_splat(self, x: i8) -> Self::V256 {
+            $crate::isa::mock256::i8x32_splat(self, x)
+        }
+
+        #[inline(always)]
+        fn i16x16_splat(self, x: i16) -> Self::V256 {
+            $crate::isa::mock256::i16x16_splat(self, x)
+        }
+
+        #[inline(always)]
+        fn i32x8_splat(self, x: i32) -> Self::V256 {
+            $crate::isa::mock256::i32x8_splat(self, x)
+        }
+
+        #[inline(always)]
+        fn i64x4_splat(self, x: i64) -> Self::V256 {
+            $crate::isa::mock256::i64x4_splat(self, x)
+        }
+
+        #[inline(always)]
+        fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u8x32_add(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_add(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u32x8_add(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u64x4_add(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u8x32_sub(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u16x16_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_sub(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u32x8_sub(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u64x4_sub(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u16x16_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_shl::<_, IMM8>(self, a)
+        }
+
+        #[inline(always)]
+        fn u32x8_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u32x8_shl::<_, IMM8>(self, a)
+        }
+
+        #[inline(always)]
+        fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_shr::<_, IMM8>(self, a)
+        }
+
+        #[inline(always)]
+        fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u32x8_shr::<_, IMM8>(self, a)
+        }
+
+        #[inline(always)]
+        fn u8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u8x32_eq(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u16x16_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_eq(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u32x8_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u32x8_eq(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u8x32_lt(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_lt(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u32x8_lt(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i8x32_lt(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i16x16_lt(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i32x8_lt(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u8x32_max(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_max(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u32x8_max(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i8x32_max(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i16x16_max(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i32x8_max(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u8x32_min(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_min(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u32x8_min(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i8x32_min(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i16x16_min(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i32x8_min(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_bswap(self, a)
+        }
+
+        #[inline(always)]
+        fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u32x8_bswap(self, a)
+        }
+
+        #[inline(always)]
+        fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u64x4_bswap(self, a)
+        }
+    };
+}
