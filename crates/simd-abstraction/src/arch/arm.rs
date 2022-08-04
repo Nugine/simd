@@ -483,37 +483,6 @@ unsafe impl SIMD256 for NEON {
     }
 
     #[inline(always)]
-    fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
-        #[cfg(target_arch = "arm")]
-        unsafe {
-            let a0 = vreinterpretq_u8_u16(vmovl_u8(vget_low_u8(a)));
-            let a1 = vreinterpretq_u8_u16(vmovl_u8(vget_high_u8(a)));
-            uint8x16x2_t(a0, a1)
-        }
-        #[cfg(target_arch = "aarch64")]
-        unsafe {
-            let f = vreinterpretq_u8_u16;
-            uint8x16x2_t(f(vmovl_u8(vget_low_u8(a))), f(vmovl_high_u8(a)))
-        }
-    }
-
-    #[inline(always)]
-    fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
-        #[cfg(target_arch = "arm")]
-        unsafe {
-            let a0 = vgetq_lane_u64::<0>(vreinterpretq_u64_u8(a.0));
-            let a1 = vgetq_lane_u64::<0>(vreinterpretq_u64_u8(a.1));
-            vreinterpretq_u8_u64(vsetq_lane_u64::<1>(a1, vdupq_n_u64(a0)))
-        }
-        #[cfg(target_arch = "aarch64")]
-        unsafe {
-            let f = vreinterpretq_u64_u8;
-            let g = vreinterpretq_u8_u64;
-            g(vuzp1q_u64(f(a.0), f(a.1)))
-        }
-    }
-
-    #[inline(always)]
     unsafe fn v256_load(self, addr: *const u8) -> Self::V256 {
         debug_assert_ptr_align!(addr, 32);
         vld1q_u8_x2(addr)

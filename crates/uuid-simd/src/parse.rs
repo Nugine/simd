@@ -2,7 +2,7 @@ use crate::error::{Error, ERROR};
 use crate::sa_hex::{self, unhex};
 use crate::spec::SIMDExt;
 
-use simd_abstraction::isa::{SimdLoad, SIMD256};
+use simd_abstraction::isa::SimdLoad;
 use simd_abstraction::scalar::Bytes32;
 use simd_abstraction::tools::{read, write};
 
@@ -27,7 +27,7 @@ pub unsafe fn parse_simple_raw_fallback(src: *const u8, dst: *mut u8) -> Result<
 }
 
 #[inline]
-pub unsafe fn parse_simple_raw_simd<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
+pub unsafe fn parse_simple_raw_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let a = s.v256_load_unaligned(src);
     let ans = sa_hex::decode_u8x32(s, a).map_err(|()| ERROR)?;
     s.v128_store_unaligned(dst, ans);

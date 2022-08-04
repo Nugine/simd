@@ -2,7 +2,7 @@ use crate::sa_ascii::AsciiCase;
 use crate::sa_hex;
 use crate::spec::SIMDExt;
 
-use simd_abstraction::isa::{SimdLoad, SIMD256};
+use simd_abstraction::isa::SimdLoad;
 use simd_abstraction::scalar::Bytes32;
 use simd_abstraction::tools::{read, write};
 
@@ -38,7 +38,7 @@ pub unsafe fn format_simple_raw_fallback(src: *const u8, dst: *mut u8, case: Asc
 }
 
 #[inline]
-pub unsafe fn format_simple_raw_simd<S: SIMD256>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
+pub unsafe fn format_simple_raw_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
     let lut = s.load(char_lut_simd(case));
     let a = s.v128_load_unaligned(src);
     let ans = sa_hex::encode_u8x16(s, a, lut);

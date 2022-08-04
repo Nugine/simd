@@ -41,10 +41,6 @@ pub unsafe trait SIMD256: SIMD128 {
     fn v256_to_v128x2(self, a: Self::V256) -> (Self::V128, Self::V128);
     fn v256_to_bytes(self, a: Self::V256) -> [u8; 32];
 
-    fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256;
-
-    fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128;
-
     #[inline(always)]
     fn v256_or(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         split_merge(self, a, b, |a, b| (self.v128_or(a.0, b.0), self.v128_or(a.1, b.1)))
@@ -391,16 +387,6 @@ macro_rules! inherit_simd256 {
             #[inline(always)]
             fn v256_to_bytes(self, a: Self::V256) -> [u8; 32] {
                 <$super as SIMD256>::v256_to_bytes(self.$upcast(), a)
-            }
-
-            #[inline(always)]
-            fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
-                <$super as SIMD256>::u16x16_from_u8x16(self.$upcast(), a)
-            }
-
-            #[inline(always)]
-            fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
-                <$super as SIMD256>::u64x4_unzip_low(self.$upcast(), a)
             }
 
             #[inline(always)]

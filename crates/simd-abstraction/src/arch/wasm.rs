@@ -334,17 +334,4 @@ unsafe impl isa::SIMD256 for SIMD128 {
     fn v256_to_bytes(self, a: Self::V256) -> [u8; 32] {
         unsafe { core::mem::transmute([a.0, a.1]) }
     }
-
-    #[inline(always)]
-    fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
-        let a0 = u16x8_extend_low_u8x16(a);
-        let a1 = u16x8_extend_high_u8x16(a);
-        self.v256_from_v128x2(a0, a1)
-    }
-
-    #[inline(always)]
-    fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
-        let a = self.v256_to_v128x2(a);
-        u64x2_shuffle::<0, 2>(a.0, a.1)
-    }
 }

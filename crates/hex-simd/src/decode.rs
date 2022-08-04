@@ -1,7 +1,6 @@
 use crate::error::{Error, ERROR};
-use crate::sa_hex::{self, unhex};
+use crate::sa_hex::{self, unhex, SIMDExt};
 
-use simd_abstraction::isa::SIMD256;
 use simd_abstraction::tools::{read, write};
 
 #[inline(always)]
@@ -24,7 +23,7 @@ pub unsafe fn decode_raw_fallback(src: *const u8, len: usize, dst: *mut u8) -> R
 }
 
 #[inline]
-pub unsafe fn decode_raw_simd<S: SIMD256>(s: S, mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
+pub unsafe fn decode_raw_simd<S: SIMDExt>(s: S, mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
     let end = src.add(len / 32 * 32);
     while src < end {
         let x = s.v256_load_unaligned(src);

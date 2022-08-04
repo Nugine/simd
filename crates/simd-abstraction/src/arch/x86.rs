@@ -351,19 +351,6 @@ unsafe impl SIMD256 for SSE41 {
     fn v256_to_bytes(self, a: Self::V256) -> [u8; 32] {
         unsafe { core::mem::transmute([a.0, a.1]) }
     }
-
-    #[inline(always)]
-    fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
-        unsafe {
-            let zero = _mm_setzero_si128(); // sse2
-            (_mm_unpacklo_epi8(a, zero), _mm_unpackhi_epi8(a, zero)) // sse2
-        }
-    }
-
-    #[inline(always)]
-    fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
-        unsafe { _mm_unpacklo_epi64(a.0, a.1) } // sse2
-    }
 }
 
 impl SSE42 {
@@ -401,17 +388,6 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn v256_to_bytes(self, a: Self::V256) -> [u8; 32] {
         unsafe { core::mem::transmute(a) }
-    }
-
-    #[inline(always)]
-    fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
-        unsafe { _mm256_cvtepu8_epi16(a) } // avx2
-    }
-
-    #[inline(always)]
-    fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
-        // avx2
-        unsafe { _mm256_castsi256_si128(_mm256_permute4x64_epi64::<0b_0000_1000>(a)) }
     }
 
     #[inline(always)]

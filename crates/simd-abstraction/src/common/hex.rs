@@ -1,7 +1,7 @@
+pub use self::spec::SIMDExt;
+
 use crate::isa::{SimdLoad, SIMD256};
 use crate::scalar::Bytes32;
-
-use core::fmt;
 
 #[inline]
 pub fn check_u8x32<S: SIMD256>(s: S, a: S::V256) -> bool {
@@ -33,7 +33,7 @@ fn check_u8x32_hilo<S: SIMD256>(s: S, hi: S::V256, lo: S::V256) -> bool {
 
 #[allow(clippy::result_unit_err)]
 #[inline]
-pub fn decode_u8x32<S: SIMD256>(s: S, a: S::V256) -> Result<S::V128, ()> {
+pub fn decode_u8x32<S: SIMDExt>(s: S, a: S::V256) -> Result<S::V128, ()> {
     let hi = s.u16x16_shr::<4>(s.v256_and(a, s.u8x32_splat(0xf0)));
     let lo = s.v256_and(a, s.u8x32_splat(0x0f));
 
@@ -67,7 +67,7 @@ pub const ENCODE_UPPER_LUT: &Bytes32 = &Bytes32(*b"0123456789ABCDEF0123456789ABC
 pub const ENCODE_LOWER_LUT: &Bytes32 = &Bytes32(*b"0123456789abcdef0123456789abcdef");
 
 #[inline]
-pub fn encode_u8x16<S: SIMD256>(s: S, a: S::V128, lut: S::V256) -> S::V256 {
+pub fn encode_u8x16<S: SIMDExt>(s: S, a: S::V128, lut: S::V256) -> S::V256 {
     let a0 = s.u16x16_from_u8x16(a);
     let a1 = s.u16x16_shl::<8>(a0);
     let a2 = s.u16x16_shr::<4>(a0);
@@ -95,43 +95,123 @@ pub const fn unhex(x: u8) -> u8 {
     UNHEX_TABLE[x as usize]
 }
 
-/// A fixed-length hex string
-#[derive(Clone, PartialEq, Eq)]
-#[repr(C, align(2))]
-pub struct HexStr<const N: usize>([u8; N]);
+mod spec {
+    use crate::isa::SIMD256;
 
-impl<const N: usize> HexStr<N> {
-    /// Returns [`HexStr<N>`](HexStr)
-    ///
-    /// # Safety
-    /// This function requires:
-    ///
-    /// + for all byte in `bytes`, the byte matches `b'0'..=b'9'|b'a'..=b'f'|b'A'..=b'F'`.
-    ///
-    #[inline]
-    pub const unsafe fn new_unchecked(bytes: [u8; N]) -> Self {
-        Self(bytes)
+    #[allow(clippy::missing_safety_doc)]
+    pub unsafe trait SIMDExt: SIMD256 {
+        fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256;
+        fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128;
     }
 
-    #[inline]
-    pub const fn into_bytes(self) -> [u8; N] {
-        self.0
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    mod x86 {
+        use super::*;
+
+        #[cfg(target_arch = "x86")]
+        use core::arch::x86::*;
+
+        #[cfg(target_arch = "x86_64")]
+        use core::arch::x86_64::*;
+
+        use crate::arch::x86::*;
+
+        unsafe impl SIMDExt for AVX2 {
+            #[inline(always)]
+            fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
+                unsafe { _mm256_cvtepu8_epi16(a) } // avx2
+            }
+
+            #[inline(always)]
+            fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
+                // avx2
+                unsafe { _mm256_castsi256_si128(_mm256_permute4x64_epi64::<0b_0000_1000>(a)) }
+            }
+        }
+
+        unsafe impl SIMDExt for SSE41 {
+            #[inline(always)]
+            fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
+                unsafe {
+                    let zero = _mm_setzero_si128(); // sse2
+                    (_mm_unpacklo_epi8(a, zero), _mm_unpackhi_epi8(a, zero)) // sse2
+                }
+            }
+
+            #[inline(always)]
+            fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
+                unsafe { _mm_unpacklo_epi64(a.0, a.1) } // sse2
+            }
+        }
     }
 
-    #[inline]
-    pub const fn as_bytes(&self) -> &[u8; N] {
-        &self.0
+    #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+    mod arm {
+        use super::*;
+
+        use crate::arch::arm::*;
+
+        #[cfg(target_arch = "arm")]
+        use core::arch::arm::*;
+
+        #[cfg(target_arch = "aarch64")]
+        use core::arch::aarch64::*;
+
+        unsafe impl SIMDExt for NEON {
+            #[inline(always)]
+            fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
+                #[cfg(target_arch = "arm")]
+                unsafe {
+                    let a0 = vreinterpretq_u8_u16(vmovl_u8(vget_low_u8(a)));
+                    let a1 = vreinterpretq_u8_u16(vmovl_u8(vget_high_u8(a)));
+                    uint8x16x2_t(a0, a1)
+                }
+                #[cfg(target_arch = "aarch64")]
+                unsafe {
+                    let f = vreinterpretq_u8_u16;
+                    uint8x16x2_t(f(vmovl_u8(vget_low_u8(a))), f(vmovl_high_u8(a)))
+                }
+            }
+
+            #[inline(always)]
+            fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
+                #[cfg(target_arch = "arm")]
+                unsafe {
+                    let a0 = vgetq_lane_u64::<0>(vreinterpretq_u64_u8(a.0));
+                    let a1 = vgetq_lane_u64::<0>(vreinterpretq_u64_u8(a.1));
+                    vreinterpretq_u8_u64(vsetq_lane_u64::<1>(a1, vdupq_n_u64(a0)))
+                }
+                #[cfg(target_arch = "aarch64")]
+                unsafe {
+                    let f = vreinterpretq_u64_u8;
+                    let g = vreinterpretq_u8_u64;
+                    g(vuzp1q_u64(f(a.0), f(a.1)))
+                }
+            }
+        }
     }
 
-    #[inline]
-    pub const fn as_str(&self) -> &str {
-        unsafe { core::str::from_utf8_unchecked(&self.0) }
-    }
-}
+    #[cfg(target_arch = "wasm32")]
+    mod wasm {
+        use super::*;
 
-impl<const N: usize> fmt::Debug for HexStr<N> {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        <str as fmt::Debug>::fmt(self.as_str(), f)
+        use crate::arch::wasm::*;
+
+        use core::arch::wasm32::*;
+
+        unsafe impl SIMDExt for SIMD128 {
+            #[inline(always)]
+            fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256 {
+                let a0 = u16x8_extend_low_u8x16(a);
+                let a1 = u16x8_extend_high_u8x16(a);
+                self.v256_from_v128x2(a0, a1)
+            }
+
+            #[inline(always)]
+            fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
+                let a = self.v256_to_v128x2(a);
+                u64x2_shuffle::<0, 2>(a.0, a.1)
+            }
+        }
     }
 }

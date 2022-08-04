@@ -1,7 +1,7 @@
-use simd_abstraction::isa::SIMD256;
+use crate::sa_hex;
 
 #[allow(clippy::missing_safety_doc)]
-pub unsafe trait SIMDExt: SIMD256 {
+pub unsafe trait SIMDExt: sa_hex::SIMDExt {
     fn i16x16_set_lane7(self, a: Self::V256, x: i16) -> Self::V256;
     fn i32x8_set_lane7(self, a: Self::V256, x: i32) -> Self::V256;
     fn i32x4_get_lane3(self, a: Self::V128) -> i32;
