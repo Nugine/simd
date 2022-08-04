@@ -20,16 +20,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn v128_create_zero(self) -> Self::V128 {
-        unsafe { _mm_setzero_si128() } // sse2
-    }
-
-    #[inline(always)]
-    fn v128_all_zero(self, a: Self::V128) -> bool {
-        unsafe { _mm_testz_si128(a, a) != 0 } // sse41
-    }
-
-    #[inline(always)]
     unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
         debug_assert_ptr_align!(addr, 16);
         _mm_load_si128(addr.cast()) // sse2
@@ -49,6 +39,11 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
         _mm_storeu_si128(addr.cast(), a) // sse2
+    }
+
+    #[inline(always)]
+    fn v128_create_zero(self) -> Self::V128 {
+        unsafe { _mm_setzero_si128() } // sse2
     }
 
     #[inline(always)]
@@ -74,6 +69,11 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_andnot_si128(b, a) } // sse2
+    }
+
+    #[inline(always)]
+    fn v128_all_zero(self, a: Self::V128) -> bool {
+        unsafe { _mm_testz_si128(a, a) != 0 } // sse41
     }
 
     #[inline(always)]
@@ -395,26 +395,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn v256_create_zero(self) -> Self::V256 {
-        unsafe { _mm256_setzero_si256() } // avx
-    }
-
-    #[inline(always)]
-    fn v256_all_zero(self, a: Self::V256) -> bool {
-        unsafe { _mm256_testz_si256(a, a) != 0 } // avx
-    }
-
-    #[inline(always)]
-    fn v256_get_low(self, a: Self::V256) -> Self::V128 {
-        unsafe { _mm256_castsi256_si128(a) } // avx
-    }
-
-    #[inline(always)]
-    fn v256_get_high(self, a: Self::V256) -> Self::V128 {
-        unsafe { _mm256_extracti128_si256::<1>(a) } // avx2
-    }
-
-    #[inline(always)]
     unsafe fn v256_load(self, addr: *const u8) -> Self::V256 {
         debug_assert_ptr_align!(addr, 32);
         _mm256_load_si256(addr.cast()) // avx
@@ -434,6 +414,21 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
         _mm256_storeu_si256(addr.cast(), a) // avx
+    }
+
+    #[inline(always)]
+    fn v256_create_zero(self) -> Self::V256 {
+        unsafe { _mm256_setzero_si256() } // avx
+    }
+
+    #[inline(always)]
+    fn v256_get_low(self, a: Self::V256) -> Self::V128 {
+        unsafe { _mm256_castsi256_si128(a) } // avx
+    }
+
+    #[inline(always)]
+    fn v256_get_high(self, a: Self::V256) -> Self::V128 {
+        unsafe { _mm256_extracti128_si256::<1>(a) } // avx2
     }
 
     #[inline(always)]
@@ -459,6 +454,11 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_andnot_si256(b, a) } // avx2
+    }
+
+    #[inline(always)]
+    fn v256_all_zero(self, a: Self::V256) -> bool {
+        unsafe { _mm256_testz_si256(a, a) != 0 } // avx
     }
 
     #[inline(always)]

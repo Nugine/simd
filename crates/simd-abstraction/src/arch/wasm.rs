@@ -15,16 +15,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn v128_create_zero(self) -> Self::V128 {
-        u8x16_splat(0)
-    }
-
-    #[inline(always)]
-    fn v128_all_zero(self, a: Self::V128) -> bool {
-        !v128_any_true(a)
-    }
-
-    #[inline(always)]
     unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
         debug_assert_ptr_align!(addr, 16);
         v128_load(addr.cast())
@@ -44,6 +34,11 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
         v128_store(addr.cast(), a)
+    }
+
+    #[inline(always)]
+    fn v128_create_zero(self) -> Self::V128 {
+        u8x16_splat(0)
     }
 
     #[inline(always)]
@@ -69,6 +64,11 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         v128_andnot(a, b)
+    }
+
+    #[inline(always)]
+    fn v128_all_zero(self, a: Self::V128) -> bool {
+        !v128_any_true(a)
     }
 
     #[inline(always)]

@@ -24,25 +24,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn v128_create_zero(self) -> Self::V128 {
-        unsafe { vdupq_n_u8(0) }
-    }
-
-    #[inline(always)]
-    fn v128_all_zero(self, a: Self::V128) -> bool {
-        #[cfg(target_arch = "arm")]
-        unsafe {
-            let a0 = vreinterpretq_u64_u8(a);
-            let a1 = vorr_u64(vget_low_u64(a0), vget_high_u64(a0));
-            vget_lane_u64::<0>(a1) == 0
-        }
-        #[cfg(target_arch = "aarch64")]
-        unsafe {
-            vmaxvq_u8(a) == 0
-        }
-    }
-
-    #[inline(always)]
     unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
         debug_assert_ptr_align!(addr, 16);
         vld1q_u8(addr)
@@ -62,6 +43,11 @@ unsafe impl SIMD128 for NEON {
     #[inline(always)]
     unsafe fn v128_store_unaligned(self, addr: *mut u8, a: Self::V128) {
         vst1q_u8(addr, a)
+    }
+
+    #[inline(always)]
+    fn v128_create_zero(self) -> Self::V128 {
+        unsafe { vdupq_n_u8(0) }
     }
 
     #[inline(always)]
@@ -87,6 +73,20 @@ unsafe impl SIMD128 for NEON {
     #[inline(always)]
     fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.v128_and(a, self.v128_not(b))
+    }
+
+    #[inline(always)]
+    fn v128_all_zero(self, a: Self::V128) -> bool {
+        #[cfg(target_arch = "arm")]
+        unsafe {
+            let a0 = vreinterpretq_u64_u8(a);
+            let a1 = vorr_u64(vget_low_u64(a0), vget_high_u64(a0));
+            vget_lane_u64::<0>(a1) == 0
+        }
+        #[cfg(target_arch = "aarch64")]
+        unsafe {
+            vmaxvq_u8(a) == 0
+        }
     }
 
     #[inline(always)]

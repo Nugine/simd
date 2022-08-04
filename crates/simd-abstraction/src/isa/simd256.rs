@@ -29,29 +29,6 @@ pub unsafe trait SIMD256: SIMD128 {
     fn v256_to_bytes(self, a: Self::V256) -> [u8; 32];
 
     #[inline(always)]
-    fn v256_create_zero(self) -> Self::V256 {
-        self.v256_from_v128x2(self.v128_create_zero(), self.v128_create_zero())
-    }
-
-    #[inline(always)]
-    fn v256_all_zero(self, a: Self::V256) -> bool {
-        let a = self.v256_to_v128x2(a);
-        self.v128_all_zero(self.v128_or(a.0, a.1))
-    }
-
-    #[inline(always)]
-    fn v256_get_low(self, a: Self::V256) -> Self::V128 {
-        self.v256_to_v128x2(a).0
-    }
-
-    #[inline(always)]
-    fn v256_get_high(self, a: Self::V256) -> Self::V128 {
-        self.v256_to_v128x2(a).1
-    }
-
-    // ----refactor----
-
-    #[inline(always)]
     unsafe fn v256_load(self, addr: *const u8) -> Self::V256 {
         debug_assert_ptr_align!(addr, 32);
         let a0 = self.v128_load(addr);
@@ -82,6 +59,21 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
+    fn v256_create_zero(self) -> Self::V256 {
+        self.v256_from_v128x2(self.v128_create_zero(), self.v128_create_zero())
+    }
+
+    #[inline(always)]
+    fn v256_get_low(self, a: Self::V256) -> Self::V128 {
+        self.v256_to_v128x2(a).0
+    }
+
+    #[inline(always)]
+    fn v256_get_high(self, a: Self::V256) -> Self::V128 {
+        self.v256_to_v128x2(a).1
+    }
+
+    #[inline(always)]
     fn v256_not(self, a: Self::V256) -> Self::V256 {
         vmap(self, a, Self::v128_not)
     }
@@ -104,6 +96,12 @@ pub unsafe trait SIMD256: SIMD128 {
     #[inline(always)]
     fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         vmerge(self, a, b, Self::v128_andnot)
+    }
+
+    #[inline(always)]
+    fn v256_all_zero(self, a: Self::V256) -> bool {
+        let a = self.v256_to_v128x2(a);
+        self.v128_all_zero(self.v128_or(a.0, a.1))
     }
 
     #[inline(always)]
