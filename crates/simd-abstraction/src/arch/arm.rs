@@ -522,6 +522,4 @@ unsafe impl SIMD256 for NEON {
     unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
         vst1q_u8_x2(addr, a)
     }
-
-    mock256_instructions!();
 }

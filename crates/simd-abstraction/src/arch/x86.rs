@@ -358,8 +358,6 @@ unsafe impl SIMD256 for SSE41 {
     fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128 {
         unsafe { _mm_unpacklo_epi64(a.0, a.1) } // sse2
     }
-
-    mock256_instructions!();
 }
 
 impl SSE42 {

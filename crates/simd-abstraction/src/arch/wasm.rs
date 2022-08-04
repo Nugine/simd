@@ -341,6 +341,4 @@ unsafe impl isa::SIMD256 for SIMD128 {
         let a = self.v256_to_v128x2(a);
         u64x2_shuffle::<0, 2>(a.0, a.1)
     }
-
-    mock256_instructions!();
 }
