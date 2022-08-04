@@ -16,7 +16,6 @@ pub unsafe trait SIMD128: InstructionSet {
     fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128;
-    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u8x16_any_zero(self, a: Self::V128) -> bool;
 
     // ----refactor----
@@ -39,6 +38,11 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u16x8_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128;
+
+    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn i8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn i16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
@@ -135,11 +139,6 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
                 <$super as SIMD128>::u8x16_swizzle(self.$upcast(), a, b)
-            }
-
-            #[inline(always)]
-            fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-                <$super as SIMD128>::u8x16_sub_sat(self.$upcast(), a, b)
             }
 
             #[inline(always)]
@@ -245,6 +244,26 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
                 <$super as SIMD128>::u64x2_sub(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::u8x16_sub_sat(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::u16x8_sub_sat(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn i8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::i8x16_sub_sat(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn i16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::i16x8_sub_sat(self.$upcast(), a, b)
             }
 
             #[inline(always)]

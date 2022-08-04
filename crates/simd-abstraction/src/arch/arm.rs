@@ -95,11 +95,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { vqsubq_u8(a, b) }
-    }
-
-    #[inline(always)]
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
         #[cfg(target_arch = "arm")]
         unsafe {
@@ -212,6 +207,38 @@ unsafe impl SIMD128 for NEON {
             let f = vreinterpretq_u64_u8;
             let g = vreinterpretq_u8_u64;
             g(vsubq_u64(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { vqsubq_u8(a, b) }
+    }
+
+    #[inline(always)]
+    fn u16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_u16_u8;
+            let g = vreinterpretq_u8_u16;
+            g(vqsubq_u16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s8_u8;
+            let g = vreinterpretq_u8_s8;
+            g(vqsubq_s8(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s16_u8;
+            let g = vreinterpretq_u8_s16;
+            g(vqsubq_s16(f(a), f(b)))
         }
     }
 

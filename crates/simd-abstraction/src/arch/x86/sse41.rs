@@ -62,11 +62,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_subs_epu8(a, b) } // sse2
-    }
-
-    #[inline(always)]
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
         unsafe {
             let cmp = _mm_cmpeq_epi8(a, _mm_setzero_si128()); // sse2
@@ -152,6 +147,26 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_sub_epi64(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_subs_epu8(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn u16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_subs_epu16(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn i8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_subs_epi8(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn i16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_subs_epi16(a, b) } // sse2
     }
 
     #[inline(always)]

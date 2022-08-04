@@ -102,6 +102,26 @@ pub fn u64x4_sub<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
 }
 
 #[inline(always)]
+pub fn u8x32_sub_sat<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u8x16_sub_sat)
+}
+
+#[inline(always)]
+pub fn u16x16_sub_sat<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u16x8_sub_sat)
+}
+
+#[inline(always)]
+pub fn i8x32_sub_sat<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::i8x16_sub_sat)
+}
+
+#[inline(always)]
+pub fn i16x16_sub_sat<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::i16x8_sub_sat)
+}
+
+#[inline(always)]
 pub fn u16x16_shl<S: SIMD256, const IMM8: i32>(s: S, a: S::V256) -> S::V256 {
     vmap(s, a, S::u16x8_shl::<IMM8>)
 }
@@ -321,6 +341,26 @@ macro_rules! mock256_instructions {
         #[inline(always)]
         fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
             $crate::isa::mock256::u64x4_sub(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u8x32_sub_sat(self, a, b)
+        }
+
+        #[inline(always)]
+        fn u16x16_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u16x16_sub_sat(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i8x32_sub_sat(self, a, b)
+        }
+
+        #[inline(always)]
+        fn i16x16_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::i16x16_sub_sat(self, a, b)
         }
 
         #[inline(always)]

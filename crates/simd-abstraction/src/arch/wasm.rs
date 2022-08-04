@@ -66,11 +66,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        u8x16_sub_sat(a, b)
-    }
-
-    #[inline(always)]
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
         !u8x16_all_true(a)
     }
@@ -153,6 +148,26 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     fn u64x2_sub(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u64x2_sub(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u8x16_sub_sat(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        u16x8_sub_sat(a, b)
+    }
+
+    #[inline(always)]
+    fn i8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i8x16_sub_sat(a, b)
+    }
+
+    #[inline(always)]
+    fn i16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i16x8_sub_sat(a, b)
     }
 
     #[inline(always)]

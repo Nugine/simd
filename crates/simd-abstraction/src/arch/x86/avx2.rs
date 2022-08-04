@@ -100,11 +100,6 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
-    fn u8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        unsafe { _mm256_subs_epu8(a, b) } // avx2
-    }
-
-    #[inline(always)]
     fn u8x32_splat(self, x: u8) -> Self::V256 {
         unsafe { _mm256_set1_epi8(x as i8) } // avx
     }
@@ -182,6 +177,26 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_sub_epi64(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_subs_epu8(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u16x16_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_subs_epu16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn i8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_subs_epi8(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn i16x16_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_subs_epi16(a, b) } // avx2
     }
 
     #[inline(always)]
