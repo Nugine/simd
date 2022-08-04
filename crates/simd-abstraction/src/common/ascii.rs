@@ -196,6 +196,7 @@ mod spec {
         use core::arch::x86_64::*;
 
         use crate::arch::x86::*;
+        use crate::isa::SIMD128;
 
         unsafe impl SIMDExt for AVX2 {
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {
@@ -205,11 +206,9 @@ mod spec {
 
         unsafe impl SIMDExt for SSE41 {
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {
-                unsafe {
-                    let m1 = _mm_movemask_epi8(a.0);
-                    let m2 = _mm_movemask_epi8(a.1);
-                    m1 | m2 == 0
-                }
+                let x = self.v128_or(a.0, a.1);
+                let m = unsafe { _mm_movemask_epi8(x) };
+                m == 0
             }
         }
     }
@@ -245,14 +244,15 @@ mod spec {
         use super::*;
 
         use crate::arch::wasm::*;
+        use crate::isa::SIMD128 as _;
 
         use core::arch::wasm32::*;
 
         unsafe impl SIMDExt for SIMD128 {
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {
-                let m1 = i8x16_bitmask(a.0);
-                let m2 = i8x16_bitmask(a.1);
-                (m1 | m2) == 0
+                let x = self.v128_or(a.0, a.1);
+                let m = i8x16_bitmask(x);
+                m == 0
             }
         }
     }
