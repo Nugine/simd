@@ -25,11 +25,6 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
-    fn u8x16_any_zero(self, a: Self::V128) -> bool {
-        !u8x16_all_true(a)
-    }
-
-    #[inline(always)]
     unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
         debug_assert_ptr_align!(addr, 16);
         v128_load(addr.cast())
@@ -319,6 +314,11 @@ unsafe impl isa::SIMD128 for SIMD128 {
     #[inline(always)]
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         u8x16_swizzle(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_any_zero(self, a: Self::V128) -> bool {
+        !u8x16_all_true(a)
     }
 }
 

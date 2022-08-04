@@ -7,8 +7,6 @@ pub unsafe trait SIMD128: InstructionSet {
     fn v128_create_zero(self) -> Self::V128;
     fn v128_all_zero(self, a: Self::V128) -> bool;
 
-    fn u8x16_any_zero(self, a: Self::V128) -> bool;
-
     // ----refactor----
 
     unsafe fn v128_load(self, addr: *const u8) -> Self::V128;
@@ -82,6 +80,8 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u64x2_bswap(self, a: Self::V128) -> Self::V128;
 
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128;
+
+    fn u8x16_any_zero(self, a: Self::V128) -> bool;
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -103,16 +103,6 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn v128_all_zero(self, a: Self::V128) -> bool {
                 <$super as SIMD128>::v128_all_zero(self.$upcast(), a)
-            }
-
-            #[inline(always)]
-            fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-                <$super as SIMD128>::u8x16_swizzle(self.$upcast(), a, b)
-            }
-
-            #[inline(always)]
-            fn u8x16_any_zero(self, a: Self::V128) -> bool {
-                <$super as SIMD128>::u8x16_any_zero(self.$upcast(), a)
             }
 
             #[inline(always)]
@@ -398,6 +388,16 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
                 <$super as SIMD128>::u64x2_bswap(self.$upcast(), a)
+            }
+
+            #[inline(always)]
+            fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::u8x16_swizzle(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u8x16_any_zero(self, a: Self::V128) -> bool {
+                <$super as SIMD128>::u8x16_any_zero(self.$upcast(), a)
             }
         }
     };

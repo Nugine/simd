@@ -30,14 +30,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn u8x16_any_zero(self, a: Self::V128) -> bool {
-        unsafe {
-            let cmp = _mm_cmpeq_epi8(a, _mm_setzero_si128()); // sse2
-            !self.v128_all_zero(cmp)
-        }
-    }
-
-    #[inline(always)]
     unsafe fn v128_load(self, addr: *const u8) -> Self::V128 {
         debug_assert_ptr_align!(addr, 16);
         _mm_load_si128(addr.cast()) // sse2
@@ -337,6 +329,13 @@ unsafe impl SIMD128 for SSE41 {
     fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_shuffle_epi8(a, b) } // ssse3
     }
+
+    #[inline(always)]
+    fn u8x16_any_zero(self, a: Self::V128) -> bool {
+        let zero = self.v128_create_zero();
+        let cmp = self.u8x16_eq(a, zero);
+        unsafe { _mm_movemask_epi8(cmp) != 0 }
+    }
 }
 
 unsafe impl SIMD256 for SSE41 {
@@ -413,14 +412,6 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn v256_get_high(self, a: Self::V256) -> Self::V128 {
         unsafe { _mm256_extracti128_si256::<1>(a) } // avx2
-    }
-
-    #[inline(always)]
-    fn u8x32_any_zero(self, a: Self::V256) -> bool {
-        unsafe {
-            let cmp = _mm256_cmpeq_epi8(a, _mm256_setzero_si256()); // avx2
-            _mm256_movemask_epi8(cmp) as u32 != 0 // avx2
-        }
     }
 
     #[inline(always)]
@@ -722,5 +713,12 @@ unsafe impl SIMD256 for AVX2 {
     #[inline(always)]
     fn u8x16x2_swizzle(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_shuffle_epi8(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u8x32_any_zero(self, a: Self::V256) -> bool {
+        let zero = self.v256_create_zero();
+        let cmp = self.u8x32_eq(a, zero);
+        unsafe { _mm256_movemask_epi8(cmp) != 0 } // avx2
     }
 }

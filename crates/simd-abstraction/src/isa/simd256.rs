@@ -49,12 +49,6 @@ pub unsafe trait SIMD256: SIMD128 {
         self.v256_to_v128x2(a).1
     }
 
-    #[inline(always)]
-    fn u8x32_any_zero(self, a: Self::V256) -> bool {
-        let a = self.v256_to_v128x2(a);
-        self.u8x16_any_zero(self.u8x16_min(a.0, a.1))
-    }
-
     // ----refactor----
 
     #[inline(always)]
@@ -355,6 +349,12 @@ pub unsafe trait SIMD256: SIMD128 {
     #[inline(always)]
     fn u8x16x2_swizzle(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         vmerge(self, a, b, Self::u8x16_swizzle)
+    }
+
+    #[inline(always)]
+    fn u8x32_any_zero(self, a: Self::V256) -> bool {
+        let a = self.v256_to_v128x2(a);
+        self.u8x16_any_zero(self.u8x16_min(a.0, a.1))
     }
 }
 
