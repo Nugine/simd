@@ -15,7 +15,6 @@ pub unsafe trait SIMD128: InstructionSet {
     fn v128_andnot(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn v128_xor(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
-    fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u8x16_any_zero(self, a: Self::V128) -> bool;
 
     // ----refactor----
@@ -78,6 +77,8 @@ pub unsafe trait SIMD128: InstructionSet {
     fn u16x8_bswap(self, a: Self::V128) -> Self::V128;
     fn u32x4_bswap(self, a: Self::V128) -> Self::V128;
     fn u64x2_bswap(self, a: Self::V128) -> Self::V128;
+
+    fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128;
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]

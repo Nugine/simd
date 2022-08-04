@@ -261,6 +261,11 @@ pub fn u64x4_bswap<S: SIMD256>(s: S, a: S::V256) -> S::V256 {
     vmap(s, a, S::u64x2_bswap)
 }
 
+#[inline(always)]
+pub fn u8x16x2_swizzle<S: SIMD256>(s: S, a: S::V256, b: S::V256) -> S::V256 {
+    vmerge(s, a, b, S::u8x16_swizzle)
+}
+
 macro_rules! mock256_instructions {
     () => {
         #[inline(always)]
@@ -501,6 +506,11 @@ macro_rules! mock256_instructions {
         #[inline(always)]
         fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
             $crate::isa::mock256::u64x4_bswap(self, a)
+        }
+
+        #[inline(always)]
+        fn u8x16x2_swizzle(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+            $crate::isa::mock256::u8x16x2_swizzle(self, a, b)
         }
     };
 }

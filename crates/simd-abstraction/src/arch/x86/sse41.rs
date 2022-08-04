@@ -57,11 +57,6 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
-    fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        unsafe { _mm_shuffle_epi8(a, b) } // ssse3
-    }
-
-    #[inline(always)]
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
         unsafe {
             let cmp = _mm_cmpeq_epi8(a, _mm_setzero_si128()); // sse2
@@ -316,6 +311,11 @@ unsafe impl SIMD128 for SSE41 {
     #[inline(always)]
     fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
         self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X2))
+    }
+
+    #[inline(always)]
+    fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_shuffle_epi8(a, b) } // ssse3
     }
 }
 

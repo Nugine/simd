@@ -79,22 +79,6 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
-    fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
-        #[cfg(target_arch = "arm")]
-        unsafe {
-            let a = uint8x8x2_t(vget_low_u8(a), vget_high_u8(a));
-            let (b0, b1) = (vget_low_u8(b), vget_high_u8(b));
-            let c0 = vget_lane_u64::<0>(vreinterpret_u64_u8(vtbl2_u8(a, b0)));
-            let c1 = vget_lane_u64::<0>(vreinterpret_u64_u8(vtbl2_u8(a, b1)));
-            vreinterpretq_u8_u64(vsetq_lane_u64::<1>(c1, vdupq_n_u64(c0)))
-        }
-        #[cfg(target_arch = "aarch64")]
-        unsafe {
-            vqtbl1q_u8(a, b)
-        }
-    }
-
-    #[inline(always)]
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
         #[cfg(target_arch = "arm")]
         unsafe {
@@ -455,6 +439,22 @@ unsafe impl SIMD128 for NEON {
     #[inline(always)]
     fn u64x2_bswap(self, a: Self::V128) -> Self::V128 {
         self.u8x16_swizzle(a, self.load(crate::common::bswap::SHUFFLE_U64X2))
+    }
+
+    #[inline(always)]
+    fn u8x16_swizzle(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        #[cfg(target_arch = "arm")]
+        unsafe {
+            let a = uint8x8x2_t(vget_low_u8(a), vget_high_u8(a));
+            let (b0, b1) = (vget_low_u8(b), vget_high_u8(b));
+            let c0 = vget_lane_u64::<0>(vreinterpret_u64_u8(vtbl2_u8(a, b0)));
+            let c1 = vget_lane_u64::<0>(vreinterpret_u64_u8(vtbl2_u8(a, b1)));
+            vreinterpretq_u8_u64(vsetq_lane_u64::<1>(c1, vdupq_n_u64(c0)))
+        }
+        #[cfg(target_arch = "aarch64")]
+        unsafe {
+            vqtbl1q_u8(a, b)
+        }
     }
 }
 

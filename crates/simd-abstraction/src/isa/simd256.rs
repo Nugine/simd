@@ -95,13 +95,6 @@ pub unsafe trait SIMD256: SIMD128 {
         self.u8x16_any_zero(self.u8x16_min(a.0, a.1))
     }
 
-    #[inline(always)]
-    fn u8x16x2_swizzle(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        split_merge(self, a, b, |a, b| {
-            (self.u8x16_swizzle(a.0, b.0), self.u8x16_swizzle(a.1, b.1))
-        })
-    }
-
     // ----refactor----
 
     fn u8x32_splat(self, x: u8) -> Self::V256;
@@ -162,6 +155,8 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u16x16_bswap(self, a: Self::V256) -> Self::V256;
     fn u32x8_bswap(self, a: Self::V256) -> Self::V256;
     fn u64x4_bswap(self, a: Self::V256) -> Self::V256;
+
+    fn u8x16x2_swizzle(self, a: Self::V256, b: Self::V256) -> Self::V256;
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -418,6 +413,11 @@ macro_rules! inherit_simd256 {
             #[inline(always)]
             fn i32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
                 <$super as SIMD256>::i32x8_min(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn u8x16x2_swizzle(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                <$super as SIMD256>::u8x16x2_swizzle(self.$upcast(), a, b)
             }
 
             #[inline(always)]
