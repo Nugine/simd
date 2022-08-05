@@ -8,6 +8,10 @@ pub struct Bytes16(pub [u8; 16]);
 #[repr(C, align(32))]
 pub struct Bytes32(pub [u8; 32]);
 
+#[derive(Debug, Clone)]
+#[repr(C, align(64))]
+pub struct Bytes64(pub [u8; 64]);
+
 impl Bytes32 {
     #[inline]
     pub const fn double(bytes16: [u8; 16]) -> Self {
@@ -43,6 +47,11 @@ pub fn align16<T: Scalar>(slice: &[T]) -> (&[T], &[Bytes16], &[T]) {
 
 #[inline(always)]
 pub fn align32<T: Scalar>(slice: &[T]) -> (&[T], &[Bytes32], &[T]) {
+    unsafe { slice.align_to() }
+}
+
+#[inline(always)]
+pub fn align64<T: Scalar>(slice: &[T]) -> (&[T], &[Bytes64], &[T]) {
     unsafe { slice.align_to() }
 }
 

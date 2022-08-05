@@ -1,6 +1,6 @@
-use super::{InstructionSet, SIMD128, SIMD256};
+use super::{InstructionSet, SIMD128, SIMD256, SIMD512};
 
-use crate::scalar::{Bytes16, Bytes32};
+use crate::scalar::{Bytes16, Bytes32, Bytes64};
 
 pub unsafe trait SimdLoad<T>: InstructionSet {
     type Output;
@@ -23,5 +23,14 @@ unsafe impl<S: SIMD256> SimdLoad<&'_ Bytes32> for S {
     #[inline(always)]
     fn load(self, src: &'_ Bytes32) -> Self::Output {
         unsafe { self.v256_load(src.0.as_ptr()) }
+    }
+}
+
+unsafe impl<S: SIMD512> SimdLoad<&'_ Bytes64> for S {
+    type Output = S::V512;
+
+    #[inline(always)]
+    fn load(self, src: &'_ Bytes64) -> Self::Output {
+        unsafe { self.v512_load(src.0.as_ptr()) }
     }
 }

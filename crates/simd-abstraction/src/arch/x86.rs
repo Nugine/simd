@@ -1,5 +1,5 @@
 use crate::isa::SimdLoad;
-use crate::isa::{InstructionSet, SIMD128, SIMD256};
+use crate::isa::{InstructionSet, SIMD128, SIMD256, SIMD512};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -357,6 +357,25 @@ unsafe impl SIMD256 for SSE41 {
     }
 }
 
+unsafe impl SIMD512 for SSE41 {
+    type V512 = (__m128i, __m128i, __m128i, __m128i);
+
+    #[inline(always)]
+    fn v512_from_v256x2(self, a: Self::V256, b: Self::V256) -> Self::V512 {
+        (a.0, a.1, b.0, b.1)
+    }
+
+    #[inline(always)]
+    fn v512_to_v256x2(self, a: Self::V512) -> (Self::V256, Self::V256) {
+        ((a.0, a.1), (a.2, a.3))
+    }
+
+    #[inline(always)]
+    fn v512_to_bytes(self, a: Self::V512) -> [u8; 64] {
+        unsafe { core::mem::transmute([a.0, a.1, a.2, a.3]) }
+    }
+}
+
 impl SSE42 {
     #[inline(always)]
     fn sse41(self) -> SSE41 {
@@ -366,6 +385,7 @@ impl SSE42 {
 
 inherit_simd128!(SSE42, SSE41, sse41);
 inherit_simd256!(SSE42, SSE41, sse41);
+inherit_simd512!(SSE42, SSE41, sse41);
 
 impl AVX2 {
     #[inline(always)]
@@ -720,5 +740,24 @@ unsafe impl SIMD256 for AVX2 {
         let zero = self.v256_create_zero();
         let cmp = self.u8x32_eq(a, zero);
         unsafe { _mm256_movemask_epi8(cmp) != 0 } // avx2
+    }
+}
+
+unsafe impl SIMD512 for AVX2 {
+    type V512 = (__m256i, __m256i);
+
+    #[inline(always)]
+    fn v512_from_v256x2(self, a: Self::V256, b: Self::V256) -> Self::V512 {
+        (a, b)
+    }
+
+    #[inline(always)]
+    fn v512_to_v256x2(self, a: Self::V512) -> (Self::V256, Self::V256) {
+        (a.0, a.1)
+    }
+
+    #[inline(always)]
+    fn v512_to_bytes(self, a: Self::V512) -> [u8; 64] {
+        unsafe { core::mem::transmute([a.0, a.1]) }
     }
 }

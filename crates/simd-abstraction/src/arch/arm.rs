@@ -1,4 +1,4 @@
-use crate::isa::{InstructionSet, SimdLoad, SIMD128, SIMD256};
+use crate::isa::{InstructionSet, SimdLoad, SIMD128, SIMD256, SIMD512};
 
 #[cfg(target_arch = "arm")]
 use core::arch::arm::*;
@@ -509,5 +509,46 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
         vst1q_u8_x2(addr, a)
+    }
+}
+
+unsafe impl SIMD512 for NEON {
+    type V512 = uint8x16x4_t;
+
+    #[inline(always)]
+    fn v512_from_v256x2(self, a: Self::V256, b: Self::V256) -> Self::V512 {
+        uint8x16x4_t(a.0, a.1, b.0, b.1)
+    }
+
+    #[inline(always)]
+    fn v512_to_v256x2(self, a: Self::V512) -> (Self::V256, Self::V256) {
+        (uint8x16x2_t(a.0, a.1), uint8x16x2_t(a.2, a.3))
+    }
+
+    #[inline(always)]
+    fn v512_to_bytes(self, a: Self::V512) -> [u8; 64] {
+        unsafe { core::mem::transmute([a.0, a.1, a.2, a.3]) }
+    }
+
+    #[inline(always)]
+    unsafe fn v512_load(self, addr: *const u8) -> Self::V512 {
+        debug_assert_ptr_align!(addr, 32);
+        vld1q_u8_x4(addr)
+    }
+
+    #[inline(always)]
+    unsafe fn v512_load_unaligned(self, addr: *const u8) -> Self::V512 {
+        vld1q_u8_x4(addr)
+    }
+
+    #[inline(always)]
+    unsafe fn v512_store(self, addr: *mut u8, a: Self::V512) {
+        debug_assert_ptr_align!(addr, 32);
+        vst1q_u8_x4(addr, a)
+    }
+
+    #[inline(always)]
+    unsafe fn v512_store_unaligned(self, addr: *mut u8, a: Self::V512) {
+        vst1q_u8_x4(addr, a)
     }
 }

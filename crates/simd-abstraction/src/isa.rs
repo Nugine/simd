@@ -8,9 +8,13 @@ mod simd128;
 #[macro_use]
 mod simd256;
 
+#[macro_use]
+mod simd512;
+
 pub use self::load::SimdLoad;
 pub use self::simd128::SIMD128;
 pub use self::simd256::SIMD256;
+pub use self::simd512::SIMD512;
 
 pub unsafe trait InstructionSet: Copy {
     fn is_enabled() -> bool;
