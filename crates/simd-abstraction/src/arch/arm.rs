@@ -7,13 +7,13 @@ use core::arch::arm::*;
 use core::arch::aarch64::*;
 
 #[cfg(target_arch = "arm")]
-define_isa!(NEON, "neon", is_arm_feature_detected);
+define_isa!(NEON, "neon");
 
 #[cfg(target_arch = "aarch64")]
-define_isa!(NEON, "neon", is_aarch64_feature_detected);
+define_isa!(NEON, "neon");
 
 #[cfg(target_arch = "aarch64")]
-define_isa!(CRC32, "crc", is_aarch64_feature_detected);
+define_isa!(CRC32, "crc");
 
 unsafe impl SIMD128 for NEON {
     type V128 = uint8x16_t;

@@ -50,23 +50,6 @@ macro_rules! define_isa {
         unsafe impl InstructionSet for $ty {
             #[inline(always)]
             fn is_enabled() -> bool {
-                cfg!(target_feature = $feature)
-            }
-
-            #[inline(always)]
-            unsafe fn new() -> Self {
-                Self(())
-            }
-        }
-    };
-
-    ($ty:ident, $feature: tt, $detect: tt) => {
-        #[derive(Debug, Clone, Copy)]
-        pub struct $ty(());
-
-        unsafe impl InstructionSet for $ty {
-            #[inline(always)]
-            fn is_enabled() -> bool {
                 #[cfg(target_feature = $feature)]
                 {
                     true
@@ -74,9 +57,21 @@ macro_rules! define_isa {
                 #[cfg(not(target_feature = $feature))]
                 {
                     #[cfg(feature = "detect")]
-                    if std::arch::$detect!($feature) {
-                        return true;
+                    {
+                        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+                        if std::arch::is_x86_feature_detected!($feature) {
+                            return true;
+                        }
+                        #[cfg(target_arch = "arm")]
+                        if std::arch::is_arm_feature_detected!($feature) {
+                            return true;
+                        }
+                        #[cfg(target_arch = "aarch64")]
+                        if std::arch::is_aarch64_feature_detected!($feature) {
+                            return true;
+                        }
                     }
+
                     false
                 }
             }

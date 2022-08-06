@@ -7,9 +7,9 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-define_isa!(SSE41, "sse4.1", is_x86_feature_detected);
-define_isa!(SSE42, "sse4.2", is_x86_feature_detected);
-define_isa!(AVX2, "avx2", is_x86_feature_detected);
+define_isa!(SSE41, "sse4.1");
+define_isa!(SSE42, "sse4.2");
+define_isa!(AVX2, "avx2");
 
 unsafe impl SIMD128 for SSE41 {
     type V128 = __m128i;
