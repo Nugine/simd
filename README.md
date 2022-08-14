@@ -55,3 +55,10 @@ References:
 
 + Daniel Lemire, Wojciech Muła,  [Transcoding Billions of Unicode Characters per Second with SIMD Instructions](https://arxiv.org/abs/2109.10433), Software: Practice and Experience (to appear)
 + <https://github.com/simdutf/simdutf>
+
+## base32-simd
+
+[![Crates.io](https://img.shields.io/crates/v/base32-simd.svg)](https://crates.io/crates/base32-simd)
+[![Docs](https://docs.rs/base32-simd/badge.svg)](https://docs.rs/base32-simd/)
+
+SIMD-accelerated base32 encoding and decoding.
