@@ -17,7 +17,7 @@ pub const unsafe fn encoded_length_unchecked(n: usize, padding: bool) -> usize {
     }
 }
 
-pub unsafe fn encode_raw_fallback(base64: &Base64, src: &[u8], dst: *mut u8) {
+pub unsafe fn encode_fallback(base64: &Base64, src: &[u8], dst: *mut u8) {
     let charset: *const u8 = base64.charset().as_ptr();
     let padding = base64.padding;
 
@@ -108,7 +108,7 @@ const fn encoding_shift(charset: &'static [u8; 64]) -> Bytes32 {
 const STANDARD_ENCODING_SHIFT: &Bytes32 = &encoding_shift(STANDARD_CHARSET);
 const URL_SAFE_ENCODING_SHIFT: &Bytes32 = &encoding_shift(URL_SAFE_CHARSET);
 
-pub unsafe fn encode_raw_simd<S: SIMDExt>(s: S, base64: &Base64, src: &[u8], dst: *mut u8) {
+pub unsafe fn encode_simd<S: SIMDExt>(s: S, base64: &Base64, src: &[u8], dst: *mut u8) {
     let (charset, shift_lut) = match base64.kind {
         Base64Kind::Standard => (STANDARD_CHARSET.as_ptr(), STANDARD_ENCODING_SHIFT),
         Base64Kind::UrlSafe => (URL_SAFE_CHARSET.as_ptr(), URL_SAFE_ENCODING_SHIFT),

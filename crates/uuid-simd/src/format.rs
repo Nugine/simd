@@ -26,7 +26,7 @@ const fn char_lut_simd(case: AsciiCase) -> &'static Bytes32 {
 }
 
 #[inline]
-pub unsafe fn format_simple_raw_fallback(src: *const u8, dst: *mut u8, case: AsciiCase) {
+pub unsafe fn format_simple_fallback(src: *const u8, dst: *mut u8, case: AsciiCase) {
     let lut = char_lut_fallback(case).as_ptr();
     for i in 0..16 {
         let x = read(src, i);
@@ -38,7 +38,7 @@ pub unsafe fn format_simple_raw_fallback(src: *const u8, dst: *mut u8, case: Asc
 }
 
 #[inline]
-pub unsafe fn format_simple_raw_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
+pub unsafe fn format_simple_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
     let lut = s.load(char_lut_simd(case));
     let a = s.v128_load_unaligned(src);
     let ans = sa_hex::encode_u8x16(s, a, lut);
@@ -46,7 +46,7 @@ pub unsafe fn format_simple_raw_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut
 }
 
 #[inline]
-pub unsafe fn format_hyphenated_raw_fallback(src: *const u8, dst: *mut u8, case: AsciiCase) {
+pub unsafe fn format_hyphenated_fallback(src: *const u8, dst: *mut u8, case: AsciiCase) {
     let lut = char_lut_fallback(case).as_ptr();
     let groups = [(0, 8), (9, 13), (14, 18), (19, 23), (24, 36)];
 
@@ -67,7 +67,7 @@ pub unsafe fn format_hyphenated_raw_fallback(src: *const u8, dst: *mut u8, case:
 }
 
 #[inline]
-pub unsafe fn format_hyphenated_raw_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
+pub unsafe fn format_hyphenated_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
     const SWIZZLE: &Bytes32 = &Bytes32([
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, //
         0x80, 0x08, 0x09, 0x0a, 0x0b, 0x80, 0x0c, 0x0d, //

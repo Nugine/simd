@@ -11,17 +11,17 @@ simd_dispatch!(
 );
 
 simd_dispatch!(
-    name        = utf32_swap_endianness_raw,
+    name        = utf32_swap_endianness,
     signature   = fn(src: *const u32, len: usize, dst: *mut u32) -> (),
-    fallback    = {crate::utf32::utf32_swap_endianness_raw_fallback},
-    simd        = {crate::utf32::utf32_swap_endianness_raw_simd},
+    fallback    = {crate::utf32::utf32_swap_endianness_fallback},
+    simd        = {crate::utf32::utf32_swap_endianness_simd},
     safety      = {unsafe},
 );
 
 simd_dispatch!(
-    name        = utf16_swap_endianness_raw,
+    name        = utf16_swap_endianness,
     signature   = fn(src: *const u16, len: usize, dst: *mut u16) -> (),
-    fallback    = {crate::utf16::utf16_swap_endianness_raw_fallback},
-    simd        = {crate::utf16::utf16_swap_endianness_raw_simd},
+    fallback    = {crate::utf16::utf16_swap_endianness_fallback},
+    simd        = {crate::utf16::utf16_swap_endianness_simd},
     safety      = {unsafe},
 );

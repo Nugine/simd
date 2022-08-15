@@ -24,7 +24,7 @@ const FULL_LOWER_TABLE: &[u16; 256] = &full_table(LOWER_TABLE);
 const FULL_UPPER_TABLE: &[u16; 256] = &full_table(UPPER_TABLE);
 
 #[inline(always)]
-pub unsafe fn encode_raw_fallback(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
+pub unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
     let (n, src) = (src.len(), src.as_ptr());
     let table = match case {
         AsciiCase::Lower => FULL_LOWER_TABLE.as_ptr(),
@@ -39,7 +39,7 @@ pub unsafe fn encode_raw_fallback(src: &[u8], mut dst: *mut u8, case: AsciiCase)
 }
 
 #[inline(always)]
-pub unsafe fn encode_raw_simd<S: SIMDExt>(s: S, src: &[u8], dst: *mut u8, case: AsciiCase) {
+pub unsafe fn encode_simd<S: SIMDExt>(s: S, src: &[u8], dst: *mut u8, case: AsciiCase) {
     let simd_lut = match case {
         AsciiCase::Lower => sa_hex::ENCODE_LOWER_LUT,
         AsciiCase::Upper => sa_hex::ENCODE_UPPER_LUT,
@@ -48,7 +48,7 @@ pub unsafe fn encode_raw_simd<S: SIMDExt>(s: S, src: &[u8], dst: *mut u8, case: 
     let (prefix, middle, suffix) = align16(src);
 
     if !prefix.is_empty() {
-        encode_raw_fallback(prefix, cur, case);
+        encode_fallback(prefix, cur, case);
         cur = cur.add(prefix.len() * 2);
     }
 
@@ -60,6 +60,6 @@ pub unsafe fn encode_raw_simd<S: SIMDExt>(s: S, src: &[u8], dst: *mut u8, case: 
     }
 
     if !suffix.is_empty() {
-        encode_raw_fallback(suffix, cur, case);
+        encode_fallback(suffix, cur, case);
     }
 }

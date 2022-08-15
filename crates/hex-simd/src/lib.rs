@@ -77,7 +77,7 @@ pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutBuf<'d, u8>, case: AsciiCase) -
     assert!(dst.len() / 2 >= src.len());
     let dst = dst.as_mut_ptr();
     unsafe {
-        crate::multiversion::encode_raw::auto_indirect(src, dst, case);
+        crate::multiversion::encode::auto_indirect(src, dst, case);
         slice_mut(dst, src.len() * 2)
     }
 }
@@ -100,7 +100,7 @@ pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutBuf<'d, u8>) -> Result<&'d mut 
     let dst = dst.as_mut_ptr();
     let src = src.as_ptr();
     unsafe {
-        crate::multiversion::decode_raw::auto_indirect(src, len, dst)?;
+        crate::multiversion::decode::auto_indirect(src, len, dst)?;
         Ok(slice_mut(dst, len / 2))
     }
 }
@@ -118,7 +118,7 @@ pub fn decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
     unsafe {
         let dst: *mut u8 = data.as_mut_ptr();
         let src: *const u8 = dst;
-        crate::multiversion::decode_raw::auto_indirect(src, len, dst)?;
+        crate::multiversion::decode::auto_indirect(src, len, dst)?;
         Ok(slice_mut(dst, len / 2))
     }
 }
@@ -151,7 +151,7 @@ pub fn encode_to_boxed_str(data: &[u8], case: AsciiCase) -> Box<str> {
         let mut uninit_buf = alloc_uninit_bytes(data.len() * 2);
 
         let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-        crate::multiversion::encode_raw::auto_indirect(data, dst, case);
+        crate::multiversion::encode::auto_indirect(data, dst, case);
 
         let len = uninit_buf.len();
         let ptr = Box::into_raw(uninit_buf).cast::<u8>();
@@ -181,7 +181,7 @@ pub fn decode_to_boxed_bytes(data: &[u8]) -> Result<Box<[u8]>, Error> {
         let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
         let src = data.as_ptr();
         let len = data.len();
-        crate::multiversion::decode_raw::auto_indirect(src, len, dst)?;
+        crate::multiversion::decode::auto_indirect(src, len, dst)?;
 
         Ok(assume_init(uninit_buf))
     }

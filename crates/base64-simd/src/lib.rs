@@ -160,7 +160,7 @@ impl Base64 {
             assert!(dst.len() >= m);
 
             let dst = dst.as_mut_ptr();
-            crate::multiversion::encode_raw::auto_indirect(self, src, dst);
+            crate::multiversion::encode::auto_indirect(self, src, dst);
 
             slice_mut(dst, m)
         }
@@ -192,7 +192,7 @@ impl Base64 {
 
             let src = src.as_ptr();
             let dst = dst.as_mut_ptr();
-            crate::multiversion::decode_raw::auto_indirect(self, n, m, src, dst)?;
+            crate::multiversion::decode::auto_indirect(self, n, m, src, dst)?;
 
             Ok(slice_mut(dst, m))
         }
@@ -209,7 +209,7 @@ impl Base64 {
 
             let dst: *mut u8 = data.as_mut_ptr();
             let src: *const u8 = dst;
-            crate::multiversion::decode_raw::auto_indirect(self, n, m, src, dst)?;
+            crate::multiversion::decode::auto_indirect(self, n, m, src, dst)?;
 
             Ok(slice_mut(dst, m))
         }
@@ -234,7 +234,7 @@ impl Base64 {
             let mut uninit_buf = alloc_uninit_bytes(m);
 
             let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-            crate::multiversion::encode_raw::auto_indirect(self, data, dst);
+            crate::multiversion::encode::auto_indirect(self, data, dst);
 
             let len = uninit_buf.len();
             let ptr = Box::into_raw(uninit_buf).cast::<u8>();
@@ -262,7 +262,7 @@ impl Base64 {
 
             let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
             let src: *const u8 = data.as_ptr();
-            crate::multiversion::decode_raw::auto_indirect(self, n, m, src, dst)?;
+            crate::multiversion::decode::auto_indirect(self, n, m, src, dst)?;
 
             Ok(assume_init(uninit_buf))
         }

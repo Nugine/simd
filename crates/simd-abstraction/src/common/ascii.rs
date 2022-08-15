@@ -140,7 +140,7 @@ pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
 
 #[allow(clippy::missing_safety_doc)]
 #[inline]
-pub unsafe fn remove_ascii_whitespace_raw_fallback(data: *mut u8, len: usize) -> usize {
+pub unsafe fn remove_ascii_whitespace_fallback(data: *mut u8, len: usize) -> usize {
     let mut src: *const u8 = data;
     let mut dst: *mut u8 = data;
     let end: *const u8 = data.add(len);

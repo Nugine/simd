@@ -12,7 +12,7 @@ const fn shl4(x: u8) -> u8 {
 }
 
 #[inline]
-pub unsafe fn parse_simple_raw_fallback(src: *const u8, dst: *mut u8) -> Result<(), Error> {
+pub unsafe fn parse_simple_fallback(src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let mut flag = 0;
     for i in 0..16 {
         let h1 = unhex(read(src, i * 2));
@@ -27,7 +27,7 @@ pub unsafe fn parse_simple_raw_fallback(src: *const u8, dst: *mut u8) -> Result<
 }
 
 #[inline]
-pub unsafe fn parse_simple_raw_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
+pub unsafe fn parse_simple_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let a = s.v256_load_unaligned(src);
     let ans = sa_hex::decode_u8x32(s, a).map_err(|()| ERROR)?;
     s.v128_store_unaligned(dst, ans);
@@ -35,7 +35,7 @@ pub unsafe fn parse_simple_raw_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut 
 }
 
 #[inline]
-pub unsafe fn parse_hyphenated_raw_fallback(src: *const u8, dst: *mut u8) -> Result<(), Error> {
+pub unsafe fn parse_hyphenated_fallback(src: *const u8, dst: *mut u8) -> Result<(), Error> {
     match [read(src, 8), read(src, 13), read(src, 18), read(src, 23)] {
         [b'-', b'-', b'-', b'-'] => {}
         _ => return Err(ERROR),
@@ -59,7 +59,7 @@ pub unsafe fn parse_hyphenated_raw_fallback(src: *const u8, dst: *mut u8) -> Res
 }
 
 #[inline]
-pub unsafe fn parse_hyphenated_raw_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
+pub unsafe fn parse_hyphenated_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     match [read(src, 8), read(src, 13), read(src, 18), read(src, 23)] {
         [b'-', b'-', b'-', b'-'] => {}
         _ => return Err(ERROR),

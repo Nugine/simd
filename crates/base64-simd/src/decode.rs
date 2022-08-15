@@ -51,7 +51,7 @@ pub fn decoded_length(src: &[u8], padding: bool) -> Result<(usize, usize), Error
     Ok((n, m))
 }
 
-pub unsafe fn decode_raw_fallback(
+pub unsafe fn decode_fallback(
     base64: &Base64,
     n: usize,
     m: usize,
@@ -164,7 +164,7 @@ unsafe fn decode_extra(extra: usize, src: *const u8, dst: *mut u8, table: *const
     Ok(())
 }
 
-pub unsafe fn decode_raw_simd<S: SIMDExt>(
+pub unsafe fn decode_simd<S: SIMDExt>(
     s: S,
     base64: &Base64,
     n: usize,

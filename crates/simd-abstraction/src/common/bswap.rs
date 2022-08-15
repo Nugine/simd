@@ -98,7 +98,7 @@ fn raw_align32<T: Scalar>(slice: &[T]) -> (SliceRawParts<T>, SliceRawParts<Bytes
 }
 
 #[inline]
-pub unsafe fn bswap_raw_fallback<T>(src: *const T, len: usize, mut dst: *mut T)
+pub unsafe fn bswap_fallback<T>(src: *const T, len: usize, mut dst: *mut T)
 where
     T: BSwapExt,
 {
@@ -112,7 +112,7 @@ where
 
 #[allow(clippy::missing_safety_doc)]
 #[inline]
-pub unsafe fn bswap_raw_simd<S: SIMD256, T>(s: S, src: *const T, len: usize, mut dst: *mut T)
+pub unsafe fn bswap_simd<S: SIMD256, T>(s: S, src: *const T, len: usize, mut dst: *mut T)
 where
     T: BSwapExt,
 {
@@ -120,7 +120,7 @@ where
 
     {
         let (src, len) = prefix;
-        bswap_raw_fallback(src, len, dst);
+        bswap_fallback(src, len, dst);
         dst = dst.add(len)
     }
 
@@ -136,6 +136,6 @@ where
 
     {
         let (src, len) = suffix;
-        bswap_raw_fallback(src, len, dst);
+        bswap_fallback(src, len, dst);
     }
 }

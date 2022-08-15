@@ -9,7 +9,7 @@ fn shl4(x: u8) -> u8 {
 }
 
 #[inline]
-pub unsafe fn decode_raw_fallback(src: *const u8, len: usize, dst: *mut u8) -> Result<(), Error> {
+pub unsafe fn decode_fallback(src: *const u8, len: usize, dst: *mut u8) -> Result<(), Error> {
     for i in 0..len / 2 {
         let y1 = unhex(read(src, i * 2));
         let y2 = unhex(read(src, i * 2 + 1));
@@ -23,7 +23,7 @@ pub unsafe fn decode_raw_fallback(src: *const u8, len: usize, dst: *mut u8) -> R
 }
 
 #[inline]
-pub unsafe fn decode_raw_simd<S: SIMDExt>(s: S, mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
+pub unsafe fn decode_simd<S: SIMDExt>(s: S, mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
     let end = src.add(len / 32 * 32);
     while src < end {
         let x = s.v256_load_unaligned(src);
@@ -32,6 +32,6 @@ pub unsafe fn decode_raw_simd<S: SIMDExt>(s: S, mut src: *const u8, len: usize, 
         src = src.add(32);
         dst = dst.add(16);
     }
-    decode_raw_fallback(src, len % 32, dst)?;
+    decode_fallback(src, len % 32, dst)?;
     Ok(())
 }

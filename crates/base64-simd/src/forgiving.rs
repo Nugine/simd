@@ -16,7 +16,7 @@ fn remove_ascii_whitespace(data: &mut [u8]) -> &mut [u8] {
         let dirty_len = data.len() - non_aw_pos;
         let dirty_data = data.as_mut_ptr().add(non_aw_pos);
 
-        let clean_len = sa_ascii::remove_ascii_whitespace_raw_fallback(dirty_data, dirty_len);
+        let clean_len = sa_ascii::remove_ascii_whitespace_fallback(dirty_data, dirty_len);
 
         data.get_unchecked_mut(..(non_aw_pos + clean_len))
     }
