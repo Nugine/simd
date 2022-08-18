@@ -231,40 +231,36 @@ struct B64Range<S: SIMD256> {
 #[inline(always)]
 fn b64_range<S: SIMD256>(s: S, base64: &Base64) -> B64Range<S> {
     const fn build_limits(b62: u8) -> (Bytes32, Bytes32) {
-        let mut low: [u8; 32] = [0x01; 32];
-        let mut high: [u8; 32] = [0x00; 32];
-        let mut j = 0;
-        while j < 32 {
-            low[j + 4] = b'A';
-            high[j + 4] = b'O';
-            low[j + 5] = b'P';
-            high[j + 5] = b'Z';
-            low[j + 6] = b'a';
-            high[j + 6] = b'o';
-            low[j + 7] = b'p';
-            high[j + 7] = b'z';
-            low[j + 3] = b'0';
-            high[j + 3] = b'9';
-            low[j + (b62 >> 4) as usize] = b62;
-            high[j + (b62 >> 4) as usize] = b62;
-            j += 16;
+        let mut low: [u8; 16] = [0x01; 16];
+        let mut high: [u8; 16] = [0x00; 16];
+        {
+            low[4] = b'A';
+            high[4] = b'O';
+            low[5] = b'P';
+            high[5] = b'Z';
+            low[6] = b'a';
+            high[6] = b'o';
+            low[7] = b'p';
+            high[7] = b'z';
+            low[3] = b'0';
+            high[3] = b'9';
+            low[(b62 >> 4) as usize] = b62;
+            high[(b62 >> 4) as usize] = b62;
         }
-        (Bytes32(low), Bytes32(high))
+        (Bytes32::double(low), Bytes32::double(high))
     }
 
     const fn decoding_shift(b62: u8) -> Bytes32 {
-        let mut lut = [0x00; 32];
-        let mut j = 0;
-        while j < 32 {
-            lut[j + 4] = 191; // 0 - b'A'
-            lut[j + 5] = 191; // 15 - b'P'
-            lut[j + 6] = 185; // 26 - b'a'
-            lut[j + 7] = 185; // 41 - b'p'
-            lut[j + 3] = 4; // 52 - b'0'
-            lut[j + (b62 >> 4) as usize] = 62_u8.wrapping_sub(b62);
-            j += 16;
+        let mut lut = [0x00; 16];
+        {
+            lut[4] = 191; // 0 - b'A'
+            lut[5] = 191; // 15 - b'P'
+            lut[6] = 185; // 26 - b'a'
+            lut[7] = 185; // 41 - b'p'
+            lut[3] = 4; // 52 - b'0'
+            lut[(b62 >> 4) as usize] = 62_u8.wrapping_sub(b62);
         }
-        Bytes32(lut)
+        Bytes32::double(lut)
     }
 
     const STANDARD_LIMITS: (Bytes32, Bytes32) = build_limits(b'+');
