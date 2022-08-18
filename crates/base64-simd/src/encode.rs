@@ -88,21 +88,17 @@ unsafe fn encode_extra(extra: usize, src: *const u8, dst: *mut u8, charset: *con
 }
 
 const fn encoding_shift(charset: &'static [u8; 64]) -> Bytes32 {
-    let mut lut = [0x80; 32];
-    let mut j = 0;
-    while j < 32 {
-        lut[j + 13] = b'A';
-        lut[j] = b'a' - 26;
-        let mut i = 1;
-        while i <= 10 {
-            lut[j + i] = b'0'.wrapping_sub(52);
-            i += 1;
-        }
-        lut[j + 11] = charset[62].wrapping_sub(62);
-        lut[j + 12] = charset[63].wrapping_sub(63);
-        j += 16;
+    let mut lut = [0x80; 16];
+    lut[13] = b'A';
+    lut[0] = b'a' - 26;
+    let mut i = 1;
+    while i <= 10 {
+        lut[i] = b'0'.wrapping_sub(52);
+        i += 1;
     }
-    Bytes32(lut)
+    lut[11] = charset[62].wrapping_sub(62);
+    lut[12] = charset[63].wrapping_sub(63);
+    Bytes32::double(lut)
 }
 
 const STANDARD_ENCODING_SHIFT: &Bytes32 = &encoding_shift(STANDARD_CHARSET);
