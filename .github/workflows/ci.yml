@@ -12,48 +12,32 @@ on:
 name: CI
 
 jobs:
-  check:
-    name: Check
+  stable:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
+          components: rustfmt, clippy
+      - run: |
+          cargo fmt --all -- --check
+      - run: |
+          cargo clippy -- -D warnings
+      - run: |
+          cargo test --release
 
-  fmt:
-    name: Fmt
+  nightly:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add clippy
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
+          components: rustfmt, clippy, miri
+      - run: |
+          cargo fmt --all -- --check
+      - run: |
+          cargo clippy -- -D warnings
+      - run: |
+          cargo test --release --all-features
+      - run: |
+          cargo miri test --all-features -- --nocapture --test-threads=1
