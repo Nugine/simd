@@ -12,21 +12,7 @@ on:
 name: CI
 
 jobs:
-  stable:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-      - run: |
-          cargo fmt --all -- --check
-      - run: |
-          cargo clippy -- -D warnings
-      - run: |
-          cargo test --release
-
-  nightly:
+  develop:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -41,3 +27,20 @@ jobs:
           cargo test --release --all-features
       - run: |
           cargo miri test --all-features -- --nocapture --test-threads=1
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - stable
+          - nightly
+          - 1.63.0 # MSRV
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - run: |
+          cargo test --release
