@@ -1,6 +1,6 @@
 [package]
 name = "hex-simd"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2021"
 description = "SIMD-accelerated hex encoding and decoding"
 license = "MIT"
@@ -23,7 +23,7 @@ unstable = ["simd-abstraction/unstable"]
 
 [dependencies]
 outref = "0.2.0"
-simd-abstraction = { path = "../simd-abstraction", version = "0.7.0" }
+simd-abstraction = { path = "../simd-abstraction", version = "0.8.0" }
 
 [dev-dependencies]
 rand = "0.8.5"
