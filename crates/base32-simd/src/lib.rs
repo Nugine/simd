@@ -12,6 +12,10 @@
     clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
+#![allow(dead_code, unused_macros)] // TODO
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
+
+#[macro_use]
+mod error;
