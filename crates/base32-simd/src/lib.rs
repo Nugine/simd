@@ -27,4 +27,4 @@ pub use self::rfc4648::{Rfc4648Base32, BASE32, BASE32HEX};
 mod crockford;
 pub use self::crockford::{CrockfordBase32, CROCKFORD_BASE32};
 
-pub use simd_abstraction::OutBuf;
+pub use outref::OutRef;

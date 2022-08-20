@@ -1,7 +1,6 @@
 use crate::error::Error;
 use crate::sa_ascii::AsciiCase;
-
-use simd_abstraction::{OutBuf, OutRef};
+use crate::OutRef;
 
 fn ok_cases() -> &'static [(&'static str, &'static str)] {
     const A1: &str = "67e5504410b1426f9247bb680e5fe0c8";
@@ -85,7 +84,7 @@ fn safety_unit_test(
 ) {
     for &(expected, input) in ok_cases() {
         let mut expected_buf = [0u8; 16];
-        let expected_bytes = hex_simd::decode(expected.as_bytes(), OutBuf::new(&mut expected_buf)).unwrap();
+        let expected_bytes = hex_simd::decode(expected.as_bytes(), OutRef::new(&mut expected_buf)).unwrap();
 
         let mut output_buf = [0; 16];
         let output_bytes = parse(input.as_bytes(), OutRef::new(&mut output_buf)).unwrap();
@@ -100,7 +99,7 @@ fn safety_unit_test(
 
     for &(input, expected) in format_cases() {
         let mut src = [0; 16];
-        hex_simd::decode(input.as_bytes(), OutBuf::new(&mut src)).unwrap();
+        hex_simd::decode(input.as_bytes(), OutRef::new(&mut src)).unwrap();
 
         let mut output_buf = [0; 32];
         let output = format_simple(&src, OutRef::new(&mut output_buf), AsciiCase::Upper);

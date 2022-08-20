@@ -23,7 +23,7 @@ mod multiversion;
 pub(crate) use simd_abstraction::common::ascii as sa_ascii;
 pub(crate) use simd_abstraction::common::bswap as sa_bswap;
 
-pub use simd_abstraction::OutBuf;
+pub use outref::OutRef;
 
 // ------------------------------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ pub fn utf32_swap_endianness_inplace(data: &mut [u32]) {
 
 /// TODO: test, bench
 #[inline]
-pub fn utf32_swap_endianness<'s, 'd>(src: &'s [u32], dst: &'d mut OutBuf<u32>) -> &'d mut [u32] {
+pub fn utf32_swap_endianness<'s, 'd>(src: &'s [u32], mut dst: OutRef<'d, [u32]>) -> &'d mut [u32] {
     assert_eq!(src.len(), dst.len());
     let len = src.len();
     let src = src.as_ptr();
@@ -78,7 +78,7 @@ pub fn utf16_swap_endianness_inplace(data: &mut [u16]) {
 
 /// TODO: test, bench
 #[inline]
-pub fn utf16_swap_endianness<'s, 'd>(src: &'s [u16], dst: &'d mut OutBuf<u16>) -> &'d mut [u16] {
+pub fn utf16_swap_endianness<'s, 'd>(src: &'s [u16], mut dst: OutRef<'d, [u16]>) -> &'d mut [u16] {
     assert_eq!(src.len(), dst.len());
     let len = src.len();
     let src = src.as_ptr();

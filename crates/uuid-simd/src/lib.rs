@@ -36,8 +36,8 @@ simd_abstraction::item_group! {
 pub(crate) use simd_abstraction::common::ascii as sa_ascii;
 pub(crate) use simd_abstraction::common::hex as sa_hex;
 
+pub use outref::OutRef;
 pub use sa_ascii::AsciiCase;
-pub use simd_abstraction::OutRef;
 
 // -------------------------------------------------------------------------------------------------
 

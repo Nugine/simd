@@ -46,8 +46,8 @@ mod tests;
 pub(crate) use simd_abstraction::common::ascii as sa_ascii;
 pub(crate) use simd_abstraction::common::hex as sa_hex;
 
+pub use outref::OutRef;
 pub use sa_ascii::AsciiCase;
-pub use simd_abstraction::OutBuf;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ pub fn check(data: &[u8]) -> bool {
 /// # Panics
 /// This function will panic if the length of `dst` is not enough.
 #[inline]
-pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutBuf<'d, u8>, case: AsciiCase) -> &'d mut [u8] {
+pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>, case: AsciiCase) -> &'d mut [u8] {
     assert!(dst.len() / 2 >= src.len());
     let dst = dst.as_mut_ptr();
     unsafe {
@@ -90,7 +90,7 @@ pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutBuf<'d, u8>, case: AsciiCase) -
 /// # Panics
 /// This function will panic if the length of `dst` is not enough.
 #[inline]
-pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
+pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error> {
     if src.len() % 2 != 0 {
         return Err(ERROR);
     }
@@ -128,7 +128,7 @@ pub fn decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
 /// # Panics
 /// This function will panic if the length of `dst` is not enough.
 #[inline]
-pub fn encode_as_str<'s, 'd>(src: &'s [u8], dst: OutBuf<'d, u8>, case: AsciiCase) -> &'d mut str {
+pub fn encode_as_str<'s, 'd>(src: &'s [u8], dst: OutRef<'d, [u8]>, case: AsciiCase) -> &'d mut str {
     let ans = encode(src, dst, case);
     unsafe { core::str::from_utf8_unchecked_mut(ans) }
 }

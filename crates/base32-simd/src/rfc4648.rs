@@ -1,8 +1,8 @@
 use crate::common::{decode_bits, encode_bits, read_be_bytes, write_be_bytes};
 use crate::error::Error;
 
+use outref::OutRef;
 use simd_abstraction::tools::{slice_mut, write};
-use simd_abstraction::OutBuf;
 
 const BASE32_CHARSET: &[u8; 32] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
@@ -206,7 +206,7 @@ impl Rfc4648Base32 {
 
     /// TODO
     #[inline]
-    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutBuf<'d, u8>) -> &'d mut [u8] {
+    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> &'d mut [u8] {
         let encoded_len = encoded_length_unchecked(src.len(), self.padding);
         assert!(dst.len() >= encoded_len);
 
@@ -220,7 +220,7 @@ impl Rfc4648Base32 {
 
     /// TODO
     #[inline]
-    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
+    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error> {
         let (data_len, decoded_len) = decoded_length(src, self.padding)?;
         assert!(dst.len() >= decoded_len);
 

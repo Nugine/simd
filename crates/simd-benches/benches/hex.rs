@@ -3,7 +3,7 @@ use simd_benches::rand_bytes;
 use criterion::{black_box, criterion_group, criterion_main};
 use criterion::{Bencher, BenchmarkId, Criterion, Throughput};
 
-use hex_simd::{AsciiCase, OutBuf};
+use hex_simd::{AsciiCase, OutRef};
 
 fn gen_hex_chars(len: usize) -> Vec<u8> {
     let mut buf = rand_bytes(len);
@@ -58,7 +58,7 @@ pub fn bench_decode(c: &mut Criterion) {
     let functions: &[(&str, fn(&mut Bencher, &[u8], &mut [u8]))] = &[
         ("hex-simd/auto-indirect", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
+                let (src, dst) = (black_box(src), black_box(OutRef::new(dst)));
                 hex_simd::decode(src, dst).unwrap();
             })
         }),
@@ -94,7 +94,7 @@ pub fn bench_encode(c: &mut Criterion) {
     let functions: &[(&str, fn(&mut Bencher, &[u8], &mut [u8]))] = &[
         ("hex-simd/auto-indirect", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutBuf::new(dst)));
+                let (src, dst) = (black_box(src), black_box(OutRef::new(dst)));
                 hex_simd::encode(src, dst, AsciiCase::Lower);
             })
         }),

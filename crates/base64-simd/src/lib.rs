@@ -48,7 +48,7 @@ mod tests;
 
 pub(crate) use simd_abstraction::common::ascii as sa_ascii;
 
-pub use simd_abstraction::OutBuf;
+pub use outref::OutRef;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -154,7 +154,7 @@ impl Base64 {
     /// # Panics
     /// This function will panic if the length of `dst` is not enough.
     #[inline]
-    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutBuf<'d, u8>) -> &'d mut [u8] {
+    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> &'d mut [u8] {
         unsafe {
             let m = crate::encode::encoded_length_unchecked(src.len(), self.padding);
             assert!(dst.len() >= m);
@@ -171,7 +171,7 @@ impl Base64 {
     /// # Panics
     /// This function will panic if the length of `dst` is not enough.
     #[inline]
-    pub fn encode_as_str<'s, 'd>(&'_ self, src: &'s [u8], dst: OutBuf<'d, u8>) -> &'d mut str {
+    pub fn encode_as_str<'s, 'd>(&'_ self, src: &'s [u8], dst: OutRef<'d, [u8]>) -> &'d mut str {
         let ans = self.encode(src, dst);
         unsafe { core::str::from_utf8_unchecked_mut(ans) }
     }
@@ -184,7 +184,7 @@ impl Base64 {
     /// # Panics
     /// This function will panic if the length of `dst` is not enough.
     #[inline]
-    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
+    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error> {
         unsafe {
             let (n, m) = crate::decode::decoded_length(src, self.padding)?;
 

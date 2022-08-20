@@ -1,6 +1,4 @@
-use crate::{AsciiCase, Error};
-
-use simd_abstraction::OutRef;
+use crate::{AsciiCase, Error, OutRef};
 
 use core::fmt;
 use core::mem::MaybeUninit;

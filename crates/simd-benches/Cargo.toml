@@ -7,14 +7,6 @@ publish = false
 [features]
 unstable = ["simd-abstraction/unstable"]
 
-[dependencies.base64-simd]
-path = "../base64-simd"
-version = "0.7.0"
-
-[dependencies.hex-simd]
-path = "../hex-simd"
-version = "0.7.0"
-
 [dependencies]
 base64 = "0.13.0"
 criterion = "0.3.6"
@@ -23,19 +15,11 @@ getrandom = { version = "0.2.7", features = ["js"] }
 radix64 = "0.6.2"
 rand = "0.8.5"
 uuid = "1.1.2"
-
-[dependencies.simd-abstraction]
-path = "../simd-abstraction"
-version = "0.7.0"
-
-[dependencies.unicode-simd]
-path = "../unicode-simd"
-version = "0.0.1"
-
-[dependencies.uuid-simd]
-path = "../uuid-simd"
-version = "0.7.0"
-features = ["uuid"]
+simd-abstraction = { path = "../simd-abstraction", version = "0.7.0" }
+unicode-simd = { path = "../unicode-simd", version = "0.0.1" }
+uuid-simd = { path = "../uuid-simd", version = "0.7.0" }
+hex-simd = { path = "../hex-simd", version = "0.7.0" }
+base64-simd = { path = "../base64-simd", version = "0.7.0" }
 
 [[bench]]
 name = "uuid"

@@ -1,8 +1,8 @@
 use crate::common::{decode_bits, encode_bits, read_be_bytes, write_be_bytes};
 use crate::error::Error;
 
+use outref::OutRef;
 use simd_abstraction::tools::slice_mut;
-use simd_abstraction::OutBuf;
 
 const CHARSET: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
@@ -167,7 +167,7 @@ impl CrockfordBase32 {
 
     /// TODO
     #[inline]
-    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutBuf<'d, u8>) -> &'d mut [u8] {
+    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> &'d mut [u8] {
         let encoded_len = encoded_length_unchecked(src.len());
         assert!(dst.len() >= encoded_len);
 
@@ -181,7 +181,7 @@ impl CrockfordBase32 {
 
     /// TODO
     #[inline]
-    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutBuf<'d, u8>) -> Result<&'d mut [u8], Error> {
+    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error> {
         let data_len = src.len();
         let decoded_len = decoded_length(data_len)?;
         assert!(dst.len() >= decoded_len);

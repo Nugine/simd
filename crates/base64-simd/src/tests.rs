@@ -1,4 +1,4 @@
-use crate::{Base64, Error, OutBuf};
+use crate::{Base64, Error, OutRef};
 
 use rand::RngCore;
 
@@ -34,8 +34,8 @@ macro_rules! dbgmsg {
 
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
-    encode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutBuf<'d, u8>) -> &'d mut [u8],
-    decode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutBuf<'d, u8>) -> Result<&'d mut [u8], Error>,
+    encode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutRef<'d, [u8]>) -> &'d mut [u8],
+    decode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error>,
     decode_inplace: for<'b> fn(&'_ Base64, &'b mut [u8]) -> Result<&'b mut [u8], Error>,
 ) {
     // canonicity tests
@@ -86,7 +86,7 @@ fn safety_unit_test(
 
             {
                 let mut buf = vec![0u8; base64.encoded_length(n)];
-                let buf = OutBuf::new(&mut buf);
+                let buf = OutRef::new(&mut *buf);
                 let ans = encode(&base64, &bytes, buf);
                 assert_eq!(ans, encoded);
                 dbgmsg!("encoding ... ok");
@@ -101,7 +101,7 @@ fn safety_unit_test(
 
             {
                 let mut buf = vec![0u8; n];
-                let buf = OutBuf::new(&mut buf);
+                let buf = OutRef::new(&mut *buf);
                 let ans = decode(&base64, encoded, buf).unwrap();
                 assert_eq!(ans, bytes);
                 dbgmsg!("decoding ... ok");
