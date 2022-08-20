@@ -21,3 +21,6 @@ extern crate alloc;
 mod error;
 
 mod common;
+
+mod rfc4648;
+pub use self::rfc4648::{Rfc4648Base32, BASE32, BASE32HEX};
