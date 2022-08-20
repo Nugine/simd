@@ -12,7 +12,6 @@
     clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
-#![allow(dead_code, unused_macros)] // TODO
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -24,3 +23,8 @@ mod common;
 
 mod rfc4648;
 pub use self::rfc4648::{Rfc4648Base32, BASE32, BASE32HEX};
+
+mod crockford;
+pub use self::crockford::{CrockfordBase32, CROCKFORD_BASE32};
+
+pub use simd_abstraction::OutBuf;
