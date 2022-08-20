@@ -1,3 +1,7 @@
+//! Abstract SIMD instruction sets.
+//!
+//! ⚠️ This crate contains shared implementation details. Do not directly depend on it.
+//!
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]
