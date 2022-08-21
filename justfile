@@ -24,7 +24,7 @@ js-bench:
     echo
 
     deno -V
-    deno run ./scripts/base64.js
+    deno run --allow-hrtime ./scripts/base64.js
     echo
 
     echo "bun" `bun --version`
