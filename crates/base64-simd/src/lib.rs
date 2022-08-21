@@ -124,7 +124,7 @@ impl Base64 {
     /// This function will panics if `n > isize::MAX`.
     #[inline]
     pub const fn encoded_length(&self, n: usize) -> usize {
-        assert!(n < usize::MAX / 2);
+        assert!(n <= usize::MAX / 2);
         unsafe { crate::encode::encoded_length_unchecked(n, self.padding) }
     }
 
@@ -229,7 +229,7 @@ impl Base64 {
 
         unsafe {
             let m = crate::encode::encoded_length_unchecked(data.len(), self.padding);
-            assert!(m < usize::MAX / 2);
+            assert!(m <= usize::MAX / 2);
 
             let mut uninit_buf = alloc_uninit_bytes(m);
 

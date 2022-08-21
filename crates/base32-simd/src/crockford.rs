@@ -156,7 +156,7 @@ impl CrockfordBase32 {
     /// TODO
     #[inline]
     pub fn encoded_length(&self, n: usize) -> usize {
-        assert!(n < usize::MAX / 2);
+        assert!(n <= usize::MAX / 2);
         encoded_length_unchecked(n)
     }
 
