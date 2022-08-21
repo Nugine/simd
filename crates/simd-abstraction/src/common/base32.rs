@@ -1,6 +1,6 @@
-use crate::error::Error;
+#![allow(clippy::missing_safety_doc)]
 
-use simd_abstraction::tools::{read, write};
+use crate::tools::{read, write};
 
 #[inline(always)]
 pub unsafe fn encode_bits<const N: usize>(dst: *mut u8, charset: *const u8, x: u64) {
@@ -17,7 +17,7 @@ pub unsafe fn encode_bits<const N: usize>(dst: *mut u8, charset: *const u8, x: u
 }
 
 #[inline(always)]
-pub unsafe fn decode_bits<const N: usize>(src: *const u8, table: *const u8) -> Result<u64, Error> {
+pub unsafe fn decode_bits<const N: usize>(src: *const u8, table: *const u8) -> (u64, u8) {
     debug_assert!(matches!(N, 2 | 4 | 5 | 7 | 8));
     let mut ans: u64 = 0;
     let mut flag = 0;
@@ -26,8 +26,7 @@ pub unsafe fn decode_bits<const N: usize>(src: *const u8, table: *const u8) -> R
         flag |= bits;
         ans = (ans << 5) | u64::from(bits);
     }
-    ensure!(flag != 0xff);
-    Ok(ans)
+    (ans, flag)
 }
 
 #[inline(always)]

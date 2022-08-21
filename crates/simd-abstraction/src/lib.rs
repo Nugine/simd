@@ -30,6 +30,7 @@ pub mod tools;
 
 pub mod common {
     pub mod ascii;
+    pub mod base32;
     pub mod bswap;
     pub mod crc32;
     pub mod hex;

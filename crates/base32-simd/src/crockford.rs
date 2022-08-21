@@ -1,7 +1,7 @@
-use crate::common::{decode_bits, encode_bits, read_be_bytes, write_be_bytes};
 use crate::error::Error;
 
 use outref::OutRef;
+use simd_abstraction::common::base32::{decode_bits, encode_bits, read_be_bytes, write_be_bytes};
 use simd_abstraction::tools::slice_mut;
 
 const CHARSET: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -28,26 +28,26 @@ unsafe fn decode_extra(src: *const u8, extra: usize, dst: *mut u8, table: *const
     match extra {
         0 => Ok(0),
         2 => {
-            let u10 = decode_bits::<2>(src, table)?;
-            ensure!(u10 >> 8 == 0);
+            let (u10, flag) = decode_bits::<2>(src, table);
+            ensure!(flag != 0xff && u10 >> 8 == 0);
             write_be_bytes::<1>(dst, u10);
             Ok(1)
         }
         4 => {
-            let u20 = decode_bits::<4>(src, table)?;
-            ensure!(u20 >> 16 == 0);
+            let (u20, flag) = decode_bits::<4>(src, table);
+            ensure!(flag != 0xff && u20 >> 16 == 0);
             write_be_bytes::<2>(dst, u20);
             Ok(2)
         }
         5 => {
-            let u25 = decode_bits::<5>(src, table)?;
-            ensure!(u25 >> 24 == 0);
+            let (u25, flag) = decode_bits::<5>(src, table);
+            ensure!(flag != 0xff && u25 >> 24 == 0);
             write_be_bytes::<3>(dst, u25);
             Ok(3)
         }
         7 => {
-            let u35 = decode_bits::<7>(src, table)?;
-            ensure!(u35 >> 32 == 0);
+            let (u35, flag) = decode_bits::<7>(src, table);
+            ensure!(flag != 0xff && u35 >> 32 == 0);
             write_be_bytes::<4>(dst, u35);
             Ok(4)
         }
@@ -65,7 +65,8 @@ unsafe fn decode_fallback(mut src: *const u8, len: usize, mut dst: *mut u8, tabl
     dst = dst.add(written as usize);
 
     while src < end {
-        let u40 = decode_bits::<8>(src, table)?;
+        let (u40, flag) = decode_bits::<8>(src, table);
+        ensure!(flag != 0xff);
         write_be_bytes::<5>(dst, u40);
         src = src.add(8);
         dst = dst.add(5);
