@@ -76,6 +76,7 @@ pub fn encode_u8x16<S: SIMDExt>(s: S, a: S::V128, lut: S::V256) -> S::V256 {
 }
 
 #[inline(always)]
+#[must_use]
 pub const fn unhex(x: u8) -> u8 {
     const UNHEX_TABLE: &[u8; 256] = &{
         let mut buf = [0; 256];

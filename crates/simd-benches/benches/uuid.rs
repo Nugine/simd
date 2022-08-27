@@ -55,7 +55,7 @@ pub fn bench_format(c: &mut Criterion) {
                     let mut buf = [0; 32];
                     let src = u.as_bytes();
                     let dst = OutRef::new(&mut buf);
-                    uuid_simd::format_simple(src, dst, AsciiCase::Lower);
+                    let _ = uuid_simd::format_simple(src, dst, AsciiCase::Lower);
                     buf
                 });
             }),
@@ -81,7 +81,7 @@ pub fn bench_format(c: &mut Criterion) {
                     let mut buf = [0; 36];
                     let src = u.as_bytes();
                     let dst = OutRef::new(&mut buf);
-                    uuid_simd::format_hyphenated(src, dst, AsciiCase::Lower);
+                    let _ = uuid_simd::format_hyphenated(src, dst, AsciiCase::Lower);
                     buf
                 });
             }),

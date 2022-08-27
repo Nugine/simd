@@ -12,6 +12,7 @@ pub enum AsciiCase {
 }
 
 #[inline]
+#[must_use]
 pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
     let mut ans = 0;
     unroll(data, 8, |&x| ans |= x);
@@ -50,6 +51,7 @@ fn lookup_ascii_whitespace(c: u8) -> u8 {
 }
 
 #[inline]
+#[must_use]
 pub fn find_non_ascii_whitespace_fallback(data: &[u8]) -> usize {
     unsafe {
         let n = data.len();

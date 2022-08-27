@@ -95,7 +95,7 @@ pub fn bench_encode(c: &mut Criterion) {
         ("hex-simd/auto-indirect", |b, src, dst| {
             b.iter(|| {
                 let (src, dst) = (black_box(src), black_box(OutRef::new(dst)));
-                hex_simd::encode(src, dst, AsciiCase::Lower);
+                let _ = hex_simd::encode(src, dst, AsciiCase::Lower);
             })
         }),
         ("faster-hex/auto-direct", |b, src, dst| {

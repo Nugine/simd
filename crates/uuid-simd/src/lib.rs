@@ -10,7 +10,8 @@
     missing_docs,
     clippy::all,
     clippy::cargo,
-    clippy::missing_inline_in_public_items
+    clippy::missing_inline_in_public_items,
+    clippy::must_use_candidate
 )]
 #![warn(clippy::todo)]
 
@@ -128,6 +129,7 @@ pub fn parse_hyphenated<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) ->
 
 /// Formats `src` to a simple UUID string.
 #[inline]
+#[must_use]
 pub fn format_simple<'s, 'd>(src: &'s [u8; 16], mut dst: OutRef<'d, [u8; 32]>, case: AsciiCase) -> &'d mut [u8; 32] {
     unsafe {
         let src = src.as_ptr();
@@ -139,6 +141,7 @@ pub fn format_simple<'s, 'd>(src: &'s [u8; 16], mut dst: OutRef<'d, [u8; 32]>, c
 
 /// Formats `src` to a hyphenated UUID string.
 #[inline]
+#[must_use]
 pub fn format_hyphenated<'s, 'd>(
     src: &'s [u8; 16],
     mut dst: OutRef<'d, [u8; 36]>,

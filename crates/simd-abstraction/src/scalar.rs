@@ -12,6 +12,7 @@ pub struct Bytes64(pub [u8; 64]);
 
 impl Bytes32 {
     #[inline]
+    #[must_use]
     pub const fn double(bytes16: [u8; 16]) -> Self {
         let mut bytes32 = [0u8; 32];
         let mut i = 0;

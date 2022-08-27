@@ -14,6 +14,7 @@ item_group! {
 ///
 #[cfg(feature = "alloc")]
 #[inline]
+#[must_use]
 pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
     #[cfg(any(debug_assertions, miri))]
     {
@@ -31,6 +32,7 @@ pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
 
 #[cfg(feature = "alloc")]
 #[inline]
+#[must_use]
 pub unsafe fn assume_init(b: Box<[MaybeUninit<u8>]>) -> Box<[u8]> {
     let len = b.len();
     let ptr = Box::into_raw(b).cast::<u8>();

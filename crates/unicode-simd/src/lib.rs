@@ -8,7 +8,8 @@
     missing_docs,
     clippy::all,
     clippy::cargo,
-    clippy::missing_inline_in_public_items
+    clippy::missing_inline_in_public_items,
+    clippy::must_use_candidate
 )]
 #![warn(clippy::todo)]
 
@@ -37,12 +38,14 @@ use simd_abstraction::tools::slice_mut;
 /// This function is faster than the short-circuiting version
 /// if the inputs are mostly valid ASCII strings.
 #[inline]
+#[must_use]
 pub fn is_ascii_ct(data: &[u8]) -> bool {
     sa_ascii::multiversion::is_ascii_ct::auto_indirect(data)
 }
 
 /// TODO: test, bench
 #[inline]
+#[must_use]
 pub fn is_utf32le_ct(data: &[u32]) -> bool {
     crate::multiversion::is_utf32le_ct::auto_indirect(data)
 }
@@ -58,6 +61,7 @@ pub fn utf32_swap_endianness_inplace(data: &mut [u32]) {
 
 /// TODO: test, bench
 #[inline]
+#[must_use]
 pub fn utf32_swap_endianness<'s, 'd>(src: &'s [u32], mut dst: OutRef<'d, [u32]>) -> &'d mut [u32] {
     assert_eq!(src.len(), dst.len());
     let len = src.len();
@@ -78,6 +82,7 @@ pub fn utf16_swap_endianness_inplace(data: &mut [u16]) {
 
 /// TODO: test, bench
 #[inline]
+#[must_use]
 pub fn utf16_swap_endianness<'s, 'd>(src: &'s [u16], mut dst: OutRef<'d, [u16]>) -> &'d mut [u16] {
     assert_eq!(src.len(), dst.len());
     let len = src.len();

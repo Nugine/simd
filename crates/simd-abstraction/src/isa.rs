@@ -22,6 +22,7 @@ pub unsafe trait InstructionSet: Copy {
     unsafe fn new() -> Self;
 
     #[inline(always)]
+    #[must_use]
     fn detect() -> Option<Self> {
         Self::is_enabled().then(|| unsafe { Self::new() })
     }

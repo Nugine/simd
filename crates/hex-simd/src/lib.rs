@@ -24,7 +24,8 @@
     missing_docs,
     clippy::all,
     clippy::cargo,
-    clippy::missing_inline_in_public_items
+    clippy::missing_inline_in_public_items,
+    clippy::must_use_candidate
 )]
 #![warn(clippy::todo)]
 
@@ -64,6 +65,7 @@ item_group! {
 
 /// Checks whether `data` is a hex string.
 #[inline]
+#[must_use]
 pub fn check(data: &[u8]) -> bool {
     crate::multiversion::check::auto_indirect(data)
 }
@@ -73,6 +75,7 @@ pub fn check(data: &[u8]) -> bool {
 /// # Panics
 /// This function will panic if the length of `dst` is not enough.
 #[inline]
+#[must_use]
 pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>, case: AsciiCase) -> &'d mut [u8] {
     assert!(dst.len() / 2 >= src.len());
     let dst = dst.as_mut_ptr();
@@ -128,6 +131,7 @@ pub fn decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
 /// # Panics
 /// This function will panic if the length of `dst` is not enough.
 #[inline]
+#[must_use]
 pub fn encode_as_str<'s, 'd>(src: &'s [u8], dst: OutRef<'d, [u8]>, case: AsciiCase) -> &'d mut str {
     let ans = encode(src, dst, case);
     unsafe { core::str::from_utf8_unchecked_mut(ans) }
@@ -140,6 +144,7 @@ pub fn encode_as_str<'s, 'd>(src: &'s [u8], dst: OutRef<'d, [u8]>, case: AsciiCa
 #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 #[cfg(feature = "alloc")]
 #[inline]
+#[must_use]
 pub fn encode_to_boxed_str(data: &[u8], case: AsciiCase) -> Box<str> {
     if data.is_empty() {
         return Box::from("");

@@ -26,8 +26,9 @@ macro_rules! simd_dispatch {
         pub mod $name {
             #![allow(
                 unsafe_op_in_unsafe_fn,
-                clippy::missing_safety_doc,
                 unused_unsafe,
+                clippy::missing_safety_doc,
+                clippy::must_use_candidate,
             )]
 
             use super::*;

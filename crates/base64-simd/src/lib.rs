@@ -25,7 +25,8 @@
     missing_docs,
     clippy::all,
     clippy::cargo,
-    clippy::missing_inline_in_public_items
+    clippy::missing_inline_in_public_items,
+    clippy::must_use_candidate
 )]
 #![warn(clippy::todo)]
 
@@ -111,6 +112,7 @@ impl Base64 {
 
     /// Returns the character set used for encoding.
     #[inline]
+    #[must_use]
     pub const fn charset(&self) -> &[u8; 64] {
         match self.kind {
             Base64Kind::Standard => STANDARD_CHARSET,
@@ -123,6 +125,7 @@ impl Base64 {
     /// # Panics
     /// This function will panics if `n > isize::MAX`.
     #[inline]
+    #[must_use]
     pub const fn encoded_length(&self, n: usize) -> usize {
         assert!(n <= usize::MAX / 2);
         unsafe { crate::encode::encoded_length_unchecked(n, self.padding) }
@@ -132,6 +135,7 @@ impl Base64 {
     ///
     /// The result is an upper bound which can be used for allocation.
     #[inline]
+    #[must_use]
     pub const fn estimated_decoded_length(&self, n: usize) -> usize {
         if n % 4 == 0 {
             n / 4 * 3
@@ -154,6 +158,7 @@ impl Base64 {
     /// # Panics
     /// This function will panic if the length of `dst` is not enough.
     #[inline]
+    #[must_use]
     pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> &'d mut [u8] {
         unsafe {
             let m = crate::encode::encoded_length_unchecked(src.len(), self.padding);
@@ -171,6 +176,7 @@ impl Base64 {
     /// # Panics
     /// This function will panic if the length of `dst` is not enough.
     #[inline]
+    #[must_use]
     pub fn encode_as_str<'s, 'd>(&'_ self, src: &'s [u8], dst: OutRef<'d, [u8]>) -> &'d mut str {
         let ans = self.encode(src, dst);
         unsafe { core::str::from_utf8_unchecked_mut(ans) }
@@ -222,6 +228,7 @@ impl Base64 {
     #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
     #[cfg(feature = "alloc")]
     #[inline]
+    #[must_use]
     pub fn encode_to_boxed_str(&self, data: &[u8]) -> Box<str> {
         if data.is_empty() {
             return Box::from("");

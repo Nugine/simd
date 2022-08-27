@@ -19,6 +19,7 @@ pub unsafe fn encode_bits<const N: usize>(dst: *mut u8, charset: *const u8, x: u
 }
 
 #[inline(always)]
+#[must_use]
 pub unsafe fn decode_bits<const N: usize>(src: *const u8, table: *const u8) -> (u64, u8) {
     debug_assert!(matches!(N, 2 | 4 | 5 | 7 | 8));
     let mut ans: u64 = 0;
@@ -32,6 +33,7 @@ pub unsafe fn decode_bits<const N: usize>(src: *const u8, table: *const u8) -> (
 }
 
 #[inline(always)]
+#[must_use]
 pub unsafe fn read_be_bytes<const N: usize>(src: *const u8) -> u64 {
     debug_assert!(matches!(N, 1 | 2 | 3 | 4 | 5));
 
