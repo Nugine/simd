@@ -1,3 +1,4 @@
+use crate::isa::mock::*;
 use crate::isa::SimdLoad;
 use crate::isa::{InstructionSet, SIMD128, SIMD256, SIMD512};
 
@@ -782,26 +783,137 @@ unsafe impl SIMD512 for AVX2 {
     }
 }
 
-impl SSE41 {
+#[inline(always)]
+pub fn simd256_vop3<S: SIMD256>(
+    s: S,
+    a: S::V256,
+    b: S::V256,
+    c: S::V256,
+    f: impl Fn(S, S::V128, S::V128, S::V128) -> S::V128,
+) -> S::V256 {
+    let a = s.v256_to_v128x2(a);
+    let b = s.v256_to_v128x2(b);
+    let c = s.v256_to_v128x2(c);
+    let d = (f(s, a.0, b.0, c.0), f(s, a.1, b.1, c.1));
+    s.v256_from_v128x2(d.0, d.1)
+}
+
+#[allow(clippy::missing_safety_doc)]
+pub unsafe trait SIMD128Ext: SIMD128 {
+    fn i16x8_mul_hi(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u16x8_mul_hi(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u8x16_blendv(self, a: Self::V128, b: Self::V128, m: Self::V128) -> Self::V128;
+    fn i16x8_maddubs(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u32x4_blend<const IMM8: i32>(self, a: Self::V128, b: Self::V128) -> Self::V128;
+}
+
+#[allow(clippy::missing_safety_doc)]
+pub unsafe trait SIMD256Ext: SIMD256 + SIMD128Ext {
     #[inline(always)]
-    pub fn i16x8_mul_hi(self, a: __m128i, b: __m128i) -> __m128i {
+    fn i16x16_mul_hi(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        simd256_vop2(self, a, b, Self::i16x8_mul_hi)
+    }
+
+    #[inline(always)]
+    fn u16x16_mul_hi(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        simd256_vop2(self, a, b, Self::u16x8_mul_hi)
+    }
+
+    #[inline(always)]
+    fn u8x32_blendv(self, a: Self::V256, b: Self::V256, m: Self::V256) -> Self::V256 {
+        simd256_vop3(self, a, b, m, Self::u8x16_blendv)
+    }
+
+    #[inline(always)]
+    fn i16x16_maddubs(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        simd256_vop2(self, a, b, Self::i16x8_maddubs)
+    }
+
+    #[inline(always)]
+    fn u32x8_blend<const IMM8: i32>(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        simd256_vop2(self, a, b, Self::u32x4_blend::<IMM8>)
+    }
+}
+
+unsafe impl SIMD128Ext for SSE41 {
+    #[inline(always)]
+    fn i16x8_mul_hi(self, a: __m128i, b: __m128i) -> __m128i {
         unsafe { _mm_mulhi_epi16(a, b) } // sse2
     }
 
     #[inline(always)]
-    pub fn u16x8_mul_hi(self, a: __m128i, b: __m128i) -> __m128i {
+    fn u16x8_mul_hi(self, a: __m128i, b: __m128i) -> __m128i {
         unsafe { _mm_mulhi_epu16(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn u8x16_blendv(self, a: __m128i, b: __m128i, m: __m128i) -> __m128i {
+        unsafe { _mm_blendv_epi8(a, b, m) } // sse41
+    }
+
+    #[inline(always)]
+    fn i16x8_maddubs(self, a: __m128i, b: __m128i) -> __m128i {
+        unsafe { _mm_maddubs_epi16(a, b) } // ssse3
+    }
+
+    #[inline(always)]
+    fn u32x4_blend<const IMM8: i32>(self, a: __m128i, b: __m128i) -> __m128i {
+        unsafe { _mm_blend_epi32::<IMM8>(a, b) }
     }
 }
 
-impl AVX2 {
+unsafe impl SIMD256Ext for SSE41 {}
+
+unsafe impl SIMD128Ext for AVX2 {
     #[inline(always)]
-    pub fn i16x16_mul_hi(self, a: __m256i, b: __m256i) -> __m256i {
+    fn i16x8_mul_hi(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().i16x8_mul_hi(a, b)
+    }
+
+    #[inline(always)]
+    fn u16x8_mul_hi(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u16x8_mul_hi(a, b)
+    }
+
+    #[inline(always)]
+    fn u8x16_blendv(self, a: Self::V128, b: Self::V128, m: Self::V128) -> Self::V128 {
+        self.sse41().u8x16_blendv(a, b, m)
+    }
+
+    #[inline(always)]
+    fn i16x8_maddubs(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().i16x8_maddubs(a, b)
+    }
+
+    #[inline(always)]
+    fn u32x4_blend<const IMM8: i32>(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        self.sse41().u32x4_blend::<IMM8>(a, b)
+    }
+}
+
+unsafe impl SIMD256Ext for AVX2 {
+    #[inline(always)]
+    fn i16x16_mul_hi(self, a: __m256i, b: __m256i) -> __m256i {
         unsafe { _mm256_mulhi_epi16(a, b) } // avx2
     }
 
     #[inline(always)]
-    pub fn u16x16_mul_hi(self, a: __m256i, b: __m256i) -> __m256i {
+    fn u16x16_mul_hi(self, a: __m256i, b: __m256i) -> __m256i {
         unsafe { _mm256_mulhi_epu16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u8x32_blendv(self, a: __m256i, b: __m256i, m: __m256i) -> __m256i {
+        unsafe { _mm256_blendv_epi8(a, b, m) } // avx2
+    }
+
+    #[inline(always)]
+    fn i16x16_maddubs(self, a: __m256i, b: __m256i) -> __m256i {
+        unsafe { _mm256_maddubs_epi16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn u32x8_blend<const IMM8: i32>(self, a: __m256i, b: __m256i) -> __m256i {
+        unsafe { _mm256_blend_epi32::<IMM8>(a, b) }
     }
 }

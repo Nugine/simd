@@ -16,21 +16,6 @@ pub fn simd256_vop2<S: SIMD256>(s: S, a: S::V256, b: S::V256, f: impl Fn(S, S::V
 }
 
 #[inline(always)]
-pub fn simd256_vop3<S: SIMD256>(
-    s: S,
-    a: S::V256,
-    b: S::V256,
-    c: S::V256,
-    f: impl Fn(S, S::V128, S::V128, S::V128) -> S::V128,
-) -> S::V256 {
-    let a = s.v256_to_v128x2(a);
-    let b = s.v256_to_v128x2(b);
-    let c = s.v256_to_v128x2(c);
-    let d = (f(s, a.0, b.0, c.0), f(s, a.1, b.1, c.1));
-    s.v256_from_v128x2(d.0, d.1)
-}
-
-#[inline(always)]
 pub fn simd256_double<S: SIMD256>(s: S, f: impl FnOnce() -> S::V128) -> S::V256 {
     let a = f();
     s.v256_from_v128x2(a, a)
