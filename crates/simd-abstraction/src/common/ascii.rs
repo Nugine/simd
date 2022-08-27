@@ -214,9 +214,6 @@ mod spec {
         use crate::arch::arm::*;
         use crate::isa::SIMD128;
 
-        #[cfg(target_arch = "aarch64")]
-        use core::arch::aarch64::*;
-
         unsafe impl SIMDExt for NEON {
             #[inline(always)]
             fn is_ascii_u8x32(self, a: Self::V256) -> bool {
@@ -227,8 +224,8 @@ mod spec {
                     self.v128_all_zero(self.i32x4_lt(x, self.v128_create_zero()))
                 }
                 #[cfg(target_arch = "aarch64")]
-                unsafe {
-                    vmaxvq_u8(x) < 0x80
+                {
+                    self.u8x16_hmax(x) < 0x80
                 }
             }
         }

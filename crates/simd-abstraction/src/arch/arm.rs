@@ -84,8 +84,8 @@ unsafe impl SIMD128 for NEON {
             vget_lane_u64::<0>(a1) == 0
         }
         #[cfg(target_arch = "aarch64")]
-        unsafe {
-            vmaxvq_u8(a) == 0
+        {
+            self.u8x16_hmax(a) == 0
         }
     }
 
@@ -573,11 +573,13 @@ unsafe impl SIMD512 for NEON {
 
 impl NEON {
     #[inline(always)]
+    #[must_use]
     pub fn v128_bsl(self, a: uint8x16_t, b: uint8x16_t, c: uint8x16_t) -> uint8x16_t {
         unsafe { vbslq_u8(a, b, c) }
     }
 
     #[inline(always)]
+    #[must_use]
     pub fn v256_bsl(self, a: uint8x16x2_t, b: uint8x16x2_t, c: uint8x16x2_t) -> uint8x16x2_t {
         let d0 = self.v128_bsl(a.0, b.0, c.0);
         let d1 = self.v128_bsl(a.1, b.1, c.1);
@@ -586,11 +588,26 @@ impl NEON {
 
     #[cfg(target_arch = "aarch64")]
     #[inline(always)]
+    #[must_use]
     pub fn u8x32_swizzle(self, a: uint8x16x2_t, b: uint8x16x2_t) -> uint8x16x2_t {
         unsafe {
             let c0 = vqtbl2q_u8(a, b.0);
             let c1 = vqtbl2q_u8(a, b.1);
             uint8x16x2_t(c0, c1)
         }
+    }
+
+    #[cfg(target_arch = "aarch64")]
+    #[inline(always)]
+    #[must_use]
+    pub fn u8x16_hmax(self, a: uint8x16_t) -> u8 {
+        unsafe { vmaxvq_u8(a) }
+    }
+
+    #[cfg(target_arch = "aarch64")]
+    #[inline(always)]
+    #[must_use]
+    pub fn u8x32_hmax(self, a: uint8x16x2_t) -> u8 {
+        self.u8x16_hmax(self.u8x16_max(a.0, a.1))
     }
 }
