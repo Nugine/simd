@@ -2,6 +2,8 @@
 
 mod load;
 
+pub(crate) mod mock;
+
 #[macro_use]
 mod simd128;
 

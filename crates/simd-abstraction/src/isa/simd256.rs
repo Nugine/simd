@@ -1,25 +1,5 @@
+use super::mock::*;
 use super::SIMD128;
-
-#[inline(always)]
-fn vmap<S: SIMD256>(s: S, a: S::V256, f: impl Fn(S, S::V128) -> S::V128) -> S::V256 {
-    let a = s.v256_to_v128x2(a);
-    let b = (f(s, a.0), f(s, a.1));
-    s.v256_from_v128x2(b.0, b.1)
-}
-
-#[inline(always)]
-fn vmerge<S: SIMD256>(s: S, a: S::V256, b: S::V256, f: impl Fn(S, S::V128, S::V128) -> S::V128) -> S::V256 {
-    let a = s.v256_to_v128x2(a);
-    let b = s.v256_to_v128x2(b);
-    let c = (f(s, a.0, b.0), f(s, a.1, b.1));
-    s.v256_from_v128x2(c.0, c.1)
-}
-
-#[inline(always)]
-fn double<S: SIMD256>(s: S, f: impl FnOnce() -> S::V128) -> S::V256 {
-    let a = f();
-    s.v256_from_v128x2(a, a)
-}
 
 pub unsafe trait SIMD256: SIMD128 {
     type V256: Copy;
@@ -75,27 +55,27 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn v256_not(self, a: Self::V256) -> Self::V256 {
-        vmap(self, a, Self::v128_not)
+        simd256_vop1(self, a, Self::v128_not)
     }
 
     #[inline(always)]
     fn v256_and(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::v128_and)
+        simd256_vop2(self, a, b, Self::v128_and)
     }
 
     #[inline(always)]
     fn v256_or(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::v128_or)
+        simd256_vop2(self, a, b, Self::v128_or)
     }
 
     #[inline(always)]
     fn v256_xor(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::v128_xor)
+        simd256_vop2(self, a, b, Self::v128_xor)
     }
 
     #[inline(always)]
     fn v256_andnot(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::v128_andnot)
+        simd256_vop2(self, a, b, Self::v128_andnot)
     }
 
     #[inline(always)]
@@ -106,257 +86,257 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn u8x32_splat(self, x: u8) -> Self::V256 {
-        double(self, || self.u8x16_splat(x))
+        simd256_double(self, || self.u8x16_splat(x))
     }
 
     #[inline(always)]
     fn u16x16_splat(self, x: u16) -> Self::V256 {
-        double(self, || self.u16x8_splat(x))
+        simd256_double(self, || self.u16x8_splat(x))
     }
 
     #[inline(always)]
     fn u32x8_splat(self, x: u32) -> Self::V256 {
-        double(self, || self.u32x4_splat(x))
+        simd256_double(self, || self.u32x4_splat(x))
     }
 
     #[inline(always)]
     fn u64x4_splat(self, x: u64) -> Self::V256 {
-        double(self, || self.u64x2_splat(x))
+        simd256_double(self, || self.u64x2_splat(x))
     }
 
     #[inline(always)]
     fn i8x32_splat(self, x: i8) -> Self::V256 {
-        double(self, || self.i8x16_splat(x))
+        simd256_double(self, || self.i8x16_splat(x))
     }
 
     #[inline(always)]
     fn i16x16_splat(self, x: i16) -> Self::V256 {
-        double(self, || self.i16x8_splat(x))
+        simd256_double(self, || self.i16x8_splat(x))
     }
 
     #[inline(always)]
     fn i32x8_splat(self, x: i32) -> Self::V256 {
-        double(self, || self.i32x4_splat(x))
+        simd256_double(self, || self.i32x4_splat(x))
     }
 
     #[inline(always)]
     fn i64x4_splat(self, x: i64) -> Self::V256 {
-        double(self, || self.i64x2_splat(x))
+        simd256_double(self, || self.i64x2_splat(x))
     }
 
     #[inline(always)]
     fn u8x32_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u8x16_add)
+        simd256_vop2(self, a, b, Self::u8x16_add)
     }
 
     #[inline(always)]
     fn u16x16_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u16x8_add)
+        simd256_vop2(self, a, b, Self::u16x8_add)
     }
 
     #[inline(always)]
     fn u32x8_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u32x4_add)
+        simd256_vop2(self, a, b, Self::u32x4_add)
     }
 
     #[inline(always)]
     fn u64x4_add(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u64x2_add)
+        simd256_vop2(self, a, b, Self::u64x2_add)
     }
 
     #[inline(always)]
     fn u8x32_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u8x16_sub)
+        simd256_vop2(self, a, b, Self::u8x16_sub)
     }
 
     #[inline(always)]
     fn u16x16_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u16x8_sub)
+        simd256_vop2(self, a, b, Self::u16x8_sub)
     }
 
     #[inline(always)]
     fn u32x8_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u32x4_sub)
+        simd256_vop2(self, a, b, Self::u32x4_sub)
     }
 
     #[inline(always)]
     fn u64x4_sub(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u64x2_sub)
+        simd256_vop2(self, a, b, Self::u64x2_sub)
     }
 
     #[inline(always)]
     fn u8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u8x16_sub_sat)
+        simd256_vop2(self, a, b, Self::u8x16_sub_sat)
     }
 
     #[inline(always)]
     fn u16x16_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u16x8_sub_sat)
+        simd256_vop2(self, a, b, Self::u16x8_sub_sat)
     }
 
     #[inline(always)]
     fn i8x32_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i8x16_sub_sat)
+        simd256_vop2(self, a, b, Self::i8x16_sub_sat)
     }
 
     #[inline(always)]
     fn i16x16_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i16x8_sub_sat)
+        simd256_vop2(self, a, b, Self::i16x8_sub_sat)
     }
 
     #[inline(always)]
     fn i16x16_mul_lo(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i16x8_mul_lo)
+        simd256_vop2(self, a, b, Self::i16x8_mul_lo)
     }
 
     #[inline(always)]
     fn i32x8_mul_lo(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i32x4_mul_lo)
+        simd256_vop2(self, a, b, Self::i32x4_mul_lo)
     }
 
     #[inline(always)]
     fn u16x16_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
-        vmap(self, a, Self::u16x8_shl::<IMM8>)
+        simd256_vop1(self, a, Self::u16x8_shl::<IMM8>)
     }
 
     #[inline(always)]
     fn u32x8_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
-        vmap(self, a, Self::u32x4_shl::<IMM8>)
+        simd256_vop1(self, a, Self::u32x4_shl::<IMM8>)
     }
 
     #[inline(always)]
     fn u16x16_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
-        vmap(self, a, Self::u16x8_shr::<IMM8>)
+        simd256_vop1(self, a, Self::u16x8_shr::<IMM8>)
     }
 
     #[inline(always)]
     fn u32x8_shr<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
-        vmap(self, a, Self::u32x4_shr::<IMM8>)
+        simd256_vop1(self, a, Self::u32x4_shr::<IMM8>)
     }
 
     #[inline(always)]
     fn u8x32_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u8x16_eq)
+        simd256_vop2(self, a, b, Self::u8x16_eq)
     }
 
     #[inline(always)]
     fn u16x16_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u16x8_eq)
+        simd256_vop2(self, a, b, Self::u16x8_eq)
     }
 
     #[inline(always)]
     fn u32x8_eq(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u32x4_eq)
+        simd256_vop2(self, a, b, Self::u32x4_eq)
     }
 
     #[inline(always)]
     fn u8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u8x16_lt)
+        simd256_vop2(self, a, b, Self::u8x16_lt)
     }
 
     #[inline(always)]
     fn u16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u16x8_lt)
+        simd256_vop2(self, a, b, Self::u16x8_lt)
     }
 
     #[inline(always)]
     fn u32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u32x4_lt)
+        simd256_vop2(self, a, b, Self::u32x4_lt)
     }
 
     #[inline(always)]
     fn i8x32_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i8x16_lt)
+        simd256_vop2(self, a, b, Self::i8x16_lt)
     }
 
     #[inline(always)]
     fn i16x16_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i16x8_lt)
+        simd256_vop2(self, a, b, Self::i16x8_lt)
     }
 
     #[inline(always)]
     fn i32x8_lt(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i32x4_lt)
+        simd256_vop2(self, a, b, Self::i32x4_lt)
     }
 
     #[inline(always)]
     fn u8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u8x16_max)
+        simd256_vop2(self, a, b, Self::u8x16_max)
     }
 
     #[inline(always)]
     fn u16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u16x8_max)
+        simd256_vop2(self, a, b, Self::u16x8_max)
     }
 
     #[inline(always)]
     fn u32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u32x4_max)
+        simd256_vop2(self, a, b, Self::u32x4_max)
     }
 
     #[inline(always)]
     fn i8x32_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i8x16_max)
+        simd256_vop2(self, a, b, Self::i8x16_max)
     }
 
     #[inline(always)]
     fn i16x16_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i16x8_max)
+        simd256_vop2(self, a, b, Self::i16x8_max)
     }
 
     #[inline(always)]
     fn i32x8_max(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i32x4_max)
+        simd256_vop2(self, a, b, Self::i32x4_max)
     }
 
     #[inline(always)]
     fn u8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u8x16_min)
+        simd256_vop2(self, a, b, Self::u8x16_min)
     }
 
     #[inline(always)]
     fn u16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u16x8_min)
+        simd256_vop2(self, a, b, Self::u16x8_min)
     }
 
     #[inline(always)]
     fn u32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u32x4_min)
+        simd256_vop2(self, a, b, Self::u32x4_min)
     }
 
     #[inline(always)]
     fn i8x32_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i8x16_min)
+        simd256_vop2(self, a, b, Self::i8x16_min)
     }
 
     #[inline(always)]
     fn i16x16_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i16x8_min)
+        simd256_vop2(self, a, b, Self::i16x8_min)
     }
 
     #[inline(always)]
     fn i32x8_min(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::i32x4_min)
+        simd256_vop2(self, a, b, Self::i32x4_min)
     }
 
     #[inline(always)]
     fn u16x16_bswap(self, a: Self::V256) -> Self::V256 {
-        vmap(self, a, Self::u16x8_bswap)
+        simd256_vop1(self, a, Self::u16x8_bswap)
     }
 
     #[inline(always)]
     fn u32x8_bswap(self, a: Self::V256) -> Self::V256 {
-        vmap(self, a, Self::u32x4_bswap)
+        simd256_vop1(self, a, Self::u32x4_bswap)
     }
 
     #[inline(always)]
     fn u64x4_bswap(self, a: Self::V256) -> Self::V256 {
-        vmap(self, a, Self::u64x2_bswap)
+        simd256_vop1(self, a, Self::u64x2_bswap)
     }
 
     #[inline(always)]
     fn u8x16x2_swizzle(self, a: Self::V256, b: Self::V256) -> Self::V256 {
-        vmerge(self, a, b, Self::u8x16_swizzle)
+        simd256_vop2(self, a, b, Self::u8x16_swizzle)
     }
 
     #[inline(always)]
