@@ -226,6 +226,24 @@ unsafe impl SIMD128 for NEON {
     }
 
     #[inline(always)]
+    fn i16x8_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s16_u8;
+            let g = vreinterpretq_u8_s16;
+            g(vmulq_s16(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
+    fn i32x4_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe {
+            let f = vreinterpretq_s32_u8;
+            let g = vreinterpretq_u8_s32;
+            g(vmulq_s32(f(a), f(b)))
+        }
+    }
+
+    #[inline(always)]
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         unsafe { vreinterpretq_u8_u16(vshlq_n_u16::<IMM8>(vreinterpretq_u16_u8(a))) }
     }

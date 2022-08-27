@@ -177,6 +177,16 @@ unsafe impl SIMD128 for SSE41 {
     }
 
     #[inline(always)]
+    fn i16x8_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_mullo_epi16(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    fn i32x4_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        unsafe { _mm_mullo_epi32(a, b) } // sse2
+    }
+
+    #[inline(always)]
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         unsafe { _mm_slli_epi16::<IMM8>(a) } // sse2
     }
@@ -582,6 +592,16 @@ unsafe impl SIMD256 for AVX2 {
     }
 
     #[inline(always)]
+    fn i16x16_mul_lo(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_mullo_epi16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    fn i32x8_mul_lo(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        unsafe { _mm256_mullo_epi32(a, b) } // avx2
+    }
+
+    #[inline(always)]
     fn u16x16_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         unsafe { _mm256_slli_epi16::<IMM8>(a) } // avx2
     }
@@ -759,5 +779,29 @@ unsafe impl SIMD512 for AVX2 {
     #[inline(always)]
     fn v512_to_bytes(self, a: Self::V512) -> [u8; 64] {
         unsafe { core::mem::transmute([a.0, a.1]) }
+    }
+}
+
+impl SSE41 {
+    #[inline(always)]
+    pub fn i16x8_mul_hi(self, a: __m128i, b: __m128i) -> __m128i {
+        unsafe { _mm_mulhi_epi16(a, b) } // sse2
+    }
+
+    #[inline(always)]
+    pub fn u16x8_mul_hi(self, a: __m128i, b: __m128i) -> __m128i {
+        unsafe { _mm_mulhi_epu16(a, b) } // sse2
+    }
+}
+
+impl AVX2 {
+    #[inline(always)]
+    pub fn i16x16_mul_hi(self, a: __m256i, b: __m256i) -> __m256i {
+        unsafe { _mm256_mulhi_epi16(a, b) } // avx2
+    }
+
+    #[inline(always)]
+    pub fn u16x16_mul_hi(self, a: __m256i, b: __m256i) -> __m256i {
+        unsafe { _mm256_mulhi_epu16(a, b) } // avx2
     }
 }

@@ -44,6 +44,9 @@ pub unsafe trait SIMD128: InstructionSet {
     fn i8x16_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn i16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128;
 
+    fn i16x8_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn i32x4_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128;
+
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
     fn u32x4_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128;
 
@@ -248,6 +251,16 @@ macro_rules! inherit_simd128 {
             #[inline(always)]
             fn i16x8_sub_sat(self, a: Self::V128, b: Self::V128) -> Self::V128 {
                 <$super as SIMD128>::i16x8_sub_sat(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn i16x8_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::i16x8_mul_lo(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn i32x4_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+                <$super as SIMD128>::i32x4_mul_lo(self.$upcast(), a, b)
             }
 
             #[inline(always)]

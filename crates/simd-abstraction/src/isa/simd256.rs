@@ -205,6 +205,16 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
+    fn i16x16_mul_lo(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        vmerge(self, a, b, Self::i16x8_mul_lo)
+    }
+
+    #[inline(always)]
+    fn i32x8_mul_lo(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+        vmerge(self, a, b, Self::i32x4_mul_lo)
+    }
+
+    #[inline(always)]
     fn u16x16_shl<const IMM8: i32>(self, a: Self::V256) -> Self::V256 {
         vmap(self, a, Self::u16x8_shl::<IMM8>)
     }
@@ -490,6 +500,16 @@ macro_rules! inherit_simd256 {
             #[inline(always)]
             fn i16x16_sub_sat(self, a: Self::V256, b: Self::V256) -> Self::V256 {
                 <$super as SIMD256>::i16x16_sub_sat(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn i16x16_mul_lo(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                <$super as SIMD256>::i16x16_mul_lo(self.$upcast(), a, b)
+            }
+
+            #[inline(always)]
+            fn i32x8_mul_lo(self, a: Self::V256, b: Self::V256) -> Self::V256 {
+                <$super as SIMD256>::i32x8_mul_lo(self.$upcast(), a, b)
             }
 
             #[inline(always)]

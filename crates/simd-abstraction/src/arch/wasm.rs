@@ -172,6 +172,16 @@ unsafe impl isa::SIMD128 for SIMD128 {
     }
 
     #[inline(always)]
+    fn i16x8_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i16x8_mul(a, b)
+    }
+
+    #[inline(always)]
+    fn i32x4_mul_lo(self, a: Self::V128, b: Self::V128) -> Self::V128 {
+        i32x4_mul(a, b)
+    }
+
+    #[inline(always)]
     fn u16x8_shl<const IMM8: i32>(self, a: Self::V128) -> Self::V128 {
         u16x8_shl(a, IMM8 as u32)
     }
