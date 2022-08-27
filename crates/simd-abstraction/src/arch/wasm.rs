@@ -1,4 +1,5 @@
 use crate::isa::SimdLoad;
+use crate::isa::SIMD256 as _;
 use crate::isa::{self, InstructionSet};
 
 #[cfg(target_arch = "wasm32")]
@@ -367,5 +368,20 @@ unsafe impl isa::SIMD512 for SIMD128 {
     #[inline(always)]
     fn v512_to_bytes(self, a: Self::V512) -> [u8; 64] {
         unsafe { core::mem::transmute([a.0, a.1, a.2, a.3]) }
+    }
+}
+
+impl SIMD128 {
+    /// for each bit: if a == 1 { b } else { c }
+    ///
+    /// ans = ((b ^ c) & a) ^ c
+    #[inline(always)]
+    pub fn v256_bsl(
+        self,
+        a: <Self as isa::SIMD256>::V256,
+        b: <Self as isa::SIMD256>::V256,
+        c: <Self as isa::SIMD256>::V256,
+    ) -> <Self as isa::SIMD256>::V256 {
+        self.v256_xor(self.v256_and(self.v256_xor(b, c), a), c)
     }
 }
