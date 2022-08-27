@@ -798,7 +798,6 @@ pub fn simd256_vop3<S: SIMD256>(
     s.v256_from_v128x2(d.0, d.1)
 }
 
-#[allow(clippy::missing_safety_doc)]
 pub unsafe trait SIMD128Ext: SIMD128 {
     fn i16x8_mul_hi(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u16x8_mul_hi(self, a: Self::V128, b: Self::V128) -> Self::V128;
@@ -807,7 +806,6 @@ pub unsafe trait SIMD128Ext: SIMD128 {
     fn u32x4_blend<const IMM8: i32>(self, a: Self::V128, b: Self::V128) -> Self::V128;
 }
 
-#[allow(clippy::missing_safety_doc)]
 pub unsafe trait SIMD256Ext: SIMD256 + SIMD128Ext {
     #[inline(always)]
     fn i16x16_mul_hi(self, a: Self::V256, b: Self::V256) -> Self::V256 {

@@ -138,7 +138,6 @@ pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
     pos
 }
 
-#[allow(clippy::missing_safety_doc)]
 #[inline]
 pub unsafe fn remove_ascii_whitespace_fallback(data: *mut u8, len: usize) -> usize {
     let mut src: *const u8 = data;
@@ -180,7 +179,6 @@ pub mod multiversion {
 mod spec {
     use crate::isa::SIMD256;
 
-    #[allow(clippy::missing_safety_doc)]
     pub unsafe trait SIMDExt: SIMD256 {
         fn is_ascii_u8x32(self, a: Self::V256) -> bool;
     }

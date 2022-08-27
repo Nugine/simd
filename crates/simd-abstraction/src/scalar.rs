@@ -1,5 +1,3 @@
-#![allow(clippy::missing_safety_doc)]
-
 #[derive(Debug, Clone)]
 #[repr(C, align(16))]
 pub struct Bytes16(pub [u8; 16]);

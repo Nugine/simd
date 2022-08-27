@@ -1,5 +1,3 @@
-#![allow(clippy::missing_safety_doc)]
-
 use crate::isa::{SimdLoad, SIMD256};
 use crate::scalar::{align32, Bytes16, Bytes32, Scalar};
 
@@ -110,7 +108,6 @@ where
     })
 }
 
-#[allow(clippy::missing_safety_doc)]
 #[inline]
 pub unsafe fn bswap_simd<S: SIMD256, T>(s: S, src: *const T, len: usize, mut dst: *mut T)
 where

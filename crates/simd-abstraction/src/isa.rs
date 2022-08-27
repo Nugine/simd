@@ -1,5 +1,3 @@
-#![allow(clippy::missing_safety_doc)]
-
 mod load;
 
 pub(crate) mod mock;

@@ -1,5 +1,3 @@
-#![allow(clippy::missing_safety_doc)]
-
 pub use self::spec::SIMDExt;
 
 use crate::isa::SimdLoad;

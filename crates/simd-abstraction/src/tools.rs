@@ -29,7 +29,6 @@ pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
     Box::from_raw(core::slice::from_raw_parts_mut(ptr, len))
 }
 
-#[allow(clippy::missing_safety_doc)]
 #[cfg(feature = "alloc")]
 #[inline]
 pub unsafe fn assume_init(b: Box<[MaybeUninit<u8>]>) -> Box<[u8]> {
@@ -38,19 +37,16 @@ pub unsafe fn assume_init(b: Box<[MaybeUninit<u8>]>) -> Box<[u8]> {
     Box::from_raw(core::ptr::slice_from_raw_parts_mut(ptr, len))
 }
 
-#[allow(clippy::missing_safety_doc)]
 #[inline(always)]
 pub unsafe fn read<T>(base: *const T, offset: usize) -> T {
     base.add(offset).read()
 }
 
-#[allow(clippy::missing_safety_doc)]
 #[inline(always)]
 pub unsafe fn write<T>(base: *mut T, offset: usize, value: T) {
     base.add(offset).write(value)
 }
 
-#[allow(clippy::missing_safety_doc)]
 #[inline(always)]
 pub unsafe fn slice_mut<'a, T>(data: *mut T, len: usize) -> &'a mut [T] {
     core::slice::from_raw_parts_mut(data, len)

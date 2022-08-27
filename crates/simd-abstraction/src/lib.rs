@@ -14,6 +14,9 @@
     clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
+#![allow(
+    clippy::missing_safety_doc, // TODO
+)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;

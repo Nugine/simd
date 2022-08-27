@@ -98,7 +98,6 @@ pub const fn unhex(x: u8) -> u8 {
 mod spec {
     use crate::isa::SIMD256;
 
-    #[allow(clippy::missing_safety_doc)]
     pub unsafe trait SIMDExt: SIMD256 {
         fn u16x16_from_u8x16(self, a: Self::V128) -> Self::V256;
         fn u64x4_unzip_low(self, a: Self::V256) -> Self::V128;
