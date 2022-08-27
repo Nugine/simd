@@ -570,3 +570,27 @@ unsafe impl SIMD512 for NEON {
         vst1q_u8_x4(addr, a)
     }
 }
+
+impl NEON {
+    #[inline(always)]
+    pub fn v128_bsl(self, a: uint8x16_t, b: uint8x16_t, c: uint8x16_t) -> uint8x16_t {
+        unsafe { vbslq_u8(a, b, c) }
+    }
+
+    #[inline(always)]
+    pub fn v256_bsl(self, a: uint8x16x2_t, b: uint8x16x2_t, c: uint8x16x2_t) -> uint8x16x2_t {
+        let d0 = self.v128_bsl(a.0, b.0, c.0);
+        let d1 = self.v128_bsl(a.1, b.1, c.1);
+        uint8x16x2_t(d0, d1)
+    }
+
+    #[cfg(target_arch = "aarch64")]
+    #[inline(always)]
+    pub fn u8x32_swizzle(self, a: uint8x16x2_t, b: uint8x16x2_t) -> uint8x16x2_t {
+        unsafe {
+            let c0 = vqtbl2q_u8(a, b.0);
+            let c1 = vqtbl2q_u8(a, b.1);
+            uint8x16x2_t(c0, c1)
+        }
+    }
+}
