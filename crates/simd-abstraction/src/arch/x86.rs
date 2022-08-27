@@ -804,6 +804,7 @@ pub unsafe trait SIMD128Ext: SIMD128 {
     fn u8x16_blendv(self, a: Self::V128, b: Self::V128, m: Self::V128) -> Self::V128;
     fn i16x8_maddubs(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_blend<const IMM8: i32>(self, a: Self::V128, b: Self::V128) -> Self::V128;
+    fn u8x16_movemask(self, a: Self::V128) -> u16;
 }
 
 pub unsafe trait SIMD256Ext: SIMD256 + SIMD128Ext {
@@ -831,32 +832,45 @@ pub unsafe trait SIMD256Ext: SIMD256 + SIMD128Ext {
     fn u32x8_blend<const IMM8: i32>(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         simd256_vop2(self, a, b, Self::u32x4_blend::<IMM8>)
     }
+
+    #[inline(always)]
+    fn u8x32_movemask(self, a: Self::V256) -> u32 {
+        let (a0, a1) = self.v256_to_v128x2(a);
+        let m0 = self.u8x16_movemask(a0) as u32;
+        let m1 = self.u8x16_movemask(a1) as u32;
+        (m1 << 16) | m0
+    }
 }
 
 unsafe impl SIMD128Ext for SSE41 {
     #[inline(always)]
-    fn i16x8_mul_hi(self, a: __m128i, b: __m128i) -> __m128i {
+    fn i16x8_mul_hi(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_mulhi_epi16(a, b) } // sse2
     }
 
     #[inline(always)]
-    fn u16x8_mul_hi(self, a: __m128i, b: __m128i) -> __m128i {
+    fn u16x8_mul_hi(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_mulhi_epu16(a, b) } // sse2
     }
 
     #[inline(always)]
-    fn u8x16_blendv(self, a: __m128i, b: __m128i, m: __m128i) -> __m128i {
+    fn u8x16_blendv(self, a: Self::V128, b: Self::V128, m: Self::V128) -> Self::V128 {
         unsafe { _mm_blendv_epi8(a, b, m) } // sse41
     }
 
     #[inline(always)]
-    fn i16x8_maddubs(self, a: __m128i, b: __m128i) -> __m128i {
+    fn i16x8_maddubs(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_maddubs_epi16(a, b) } // ssse3
     }
 
     #[inline(always)]
-    fn u32x4_blend<const IMM8: i32>(self, a: __m128i, b: __m128i) -> __m128i {
+    fn u32x4_blend<const IMM8: i32>(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         unsafe { _mm_blend_epi32::<IMM8>(a, b) }
+    }
+
+    #[inline(always)]
+    fn u8x16_movemask(self, a: Self::V128) -> u16 {
+        unsafe { _mm_movemask_epi8(a) as u16 }
     }
 }
 
@@ -887,31 +901,41 @@ unsafe impl SIMD128Ext for AVX2 {
     fn u32x4_blend<const IMM8: i32>(self, a: Self::V128, b: Self::V128) -> Self::V128 {
         self.sse41().u32x4_blend::<IMM8>(a, b)
     }
+
+    #[inline(always)]
+    fn u8x16_movemask(self, a: Self::V128) -> u16 {
+        self.sse41().u8x16_movemask(a)
+    }
 }
 
 unsafe impl SIMD256Ext for AVX2 {
     #[inline(always)]
-    fn i16x16_mul_hi(self, a: __m256i, b: __m256i) -> __m256i {
+    fn i16x16_mul_hi(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_mulhi_epi16(a, b) } // avx2
     }
 
     #[inline(always)]
-    fn u16x16_mul_hi(self, a: __m256i, b: __m256i) -> __m256i {
+    fn u16x16_mul_hi(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_mulhi_epu16(a, b) } // avx2
     }
 
     #[inline(always)]
-    fn u8x32_blendv(self, a: __m256i, b: __m256i, m: __m256i) -> __m256i {
+    fn u8x32_blendv(self, a: Self::V256, b: Self::V256, m: Self::V256) -> Self::V256 {
         unsafe { _mm256_blendv_epi8(a, b, m) } // avx2
     }
 
     #[inline(always)]
-    fn i16x16_maddubs(self, a: __m256i, b: __m256i) -> __m256i {
+    fn i16x16_maddubs(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_maddubs_epi16(a, b) } // avx2
     }
 
     #[inline(always)]
-    fn u32x8_blend<const IMM8: i32>(self, a: __m256i, b: __m256i) -> __m256i {
+    fn u32x8_blend<const IMM8: i32>(self, a: Self::V256, b: Self::V256) -> Self::V256 {
         unsafe { _mm256_blend_epi32::<IMM8>(a, b) }
+    }
+
+    #[inline(always)]
+    fn u8x32_movemask(self, a: Self::V256) -> u32 {
+        unsafe { _mm256_movemask_epi8(a) as u32 }
     }
 }
