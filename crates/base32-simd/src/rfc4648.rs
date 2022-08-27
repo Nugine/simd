@@ -151,25 +151,46 @@ fn decoded_length(data: &[u8], padding: bool) -> Result<(usize, usize), Error> {
     Ok((n, m))
 }
 
+#[derive(Debug)]
+enum Kind {
+    Base32,
+    Base32Hex,
+}
+
+impl Kind {
+    #[inline(always)]
+    fn charset(&self) -> &'static [u8; 32] {
+        match self {
+            Kind::Base32 => BASE32_CHARSET,
+            Kind::Base32Hex => BASE32HEX_CHARSET,
+        }
+    }
+
+    #[inline(always)]
+    fn decoding_table(&self) -> &'static [u8; 256] {
+        match self {
+            Kind::Base32 => BASE32_TABLE,
+            Kind::Base32Hex => BASE32HEX_TABLE,
+        }
+    }
+}
+
 /// TODO
 #[derive(Debug)]
 pub struct Rfc4648Base32 {
-    charset: &'static [u8; 32],
-    table: &'static [u8; 256],
+    kind: Kind,
     padding: bool,
 }
 
 /// TODO
 pub const BASE32: Rfc4648Base32 = Rfc4648Base32 {
-    charset: BASE32_CHARSET,
-    table: BASE32_TABLE,
+    kind: Kind::Base32,
     padding: true,
 };
 
 /// TODO
 pub const BASE32HEX: Rfc4648Base32 = Rfc4648Base32 {
-    charset: BASE32HEX_CHARSET,
-    table: BASE32HEX_TABLE,
+    kind: Kind::Base32Hex,
     padding: true,
 };
 
@@ -213,7 +234,8 @@ impl Rfc4648Base32 {
 
         unsafe {
             let dst = dst.as_mut_ptr();
-            encode_fallback(src, dst, self.charset, self.padding);
+            let charset = self.kind.charset();
+            encode_fallback(src, dst, charset, self.padding);
 
             slice_mut(dst, encoded_len)
         }
@@ -228,7 +250,8 @@ impl Rfc4648Base32 {
         unsafe {
             let src = src.as_ptr();
             let dst = dst.as_mut_ptr();
-            decode_fallback(src, data_len, dst, self.table)?;
+            let table = self.kind.decoding_table();
+            decode_fallback(src, data_len, dst, table)?;
 
             Ok(slice_mut(dst, decoded_len))
         }
