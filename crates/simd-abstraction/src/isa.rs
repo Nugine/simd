@@ -16,7 +16,7 @@ pub use self::simd128::SIMD128;
 pub use self::simd256::SIMD256;
 pub use self::simd512::SIMD512;
 
-pub unsafe trait InstructionSet: Copy {
+pub unsafe trait InstructionSet: Copy + 'static {
     fn is_enabled() -> bool;
 
     unsafe fn new() -> Self;
@@ -25,6 +25,13 @@ pub unsafe trait InstructionSet: Copy {
     #[must_use]
     fn detect() -> Option<Self> {
         Self::is_enabled().then(|| unsafe { Self::new() })
+    }
+
+    #[inline(always)]
+    fn concrete_type<T: InstructionSet>(self) -> Option<T> {
+        use core::any::TypeId;
+        let is_same_type = TypeId::of::<Self>() == TypeId::of::<T>();
+        is_same_type.then(|| unsafe { T::new() })
     }
 }
 
