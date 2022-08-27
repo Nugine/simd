@@ -300,8 +300,8 @@ cmplt(len1)
 or v256
     {{byte is valid}}x32
 
-any zero u8
-    is invalid
+mask8x32_all
+    all valid
 
 and v256
     {{symbol(range0)}}x32
@@ -377,8 +377,8 @@ or v256
 
     (m1 | (m2 & (!m3)))
 
-any zero u8
-    is invalid
+mask8x32_all
+    all valid
 
 add(1)
     {{byte - 'L'}}x32

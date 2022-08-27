@@ -3,6 +3,9 @@ pub use self::spec::SIMDExt;
 use crate::isa::SimdLoad;
 use crate::scalar::Bytes32;
 use crate::tools::{read, write};
+use crate::vector::mask8x32_all;
+
+use core::ops::Not;
 
 #[inline(always)]
 pub unsafe fn encode_bits<const N: usize>(dst: *mut u8, charset: *const u8, x: u64) {
@@ -103,7 +106,8 @@ pub fn rfc4648_decode_bits_simd<S: SIMDExt>(
     let x2 = s.u8x32_sub(x, s.u8x32_splat(ch1));
     let m2 = s.u8x32_lt(x2, s.u8x32_splat(len1));
 
-    if s.u8x32_any_zero(s.v256_or(m1, m2)) {
+    let is_valid = s.v256_or(m1, m2);
+    if mask8x32_all(s, is_valid).not() {
         return Err(());
     }
 
@@ -137,7 +141,8 @@ pub fn crockford_decode_bits_simd<S: SIMDExt>(s: S, x: S::V256) -> Result<S::V25
     let x3 = s.u8x32_sub(x, s.u8x32_splat(b'I'));
     let m3 = s.u8x16x2_swizzle(s.load(M3), x3);
 
-    if s.u8x32_any_zero(s.v256_or(m1, s.v256_andnot(m2, m3))) {
+    let is_valid = s.v256_or(m1, s.v256_andnot(m2, m3));
+    if mask8x32_all(s, is_valid).not() {
         return Err(());
     }
 
