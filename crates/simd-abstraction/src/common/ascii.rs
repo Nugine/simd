@@ -195,14 +195,14 @@ mod spec {
         unsafe impl SIMDExt for AVX2 {
             #[inline(always)]
             fn is_ascii_u8x32(self, x: Self::V256) -> bool {
-                self.u8x32_movemask(x) == 0
+                self.u8x32_bitmask(x) == 0
             }
         }
 
         unsafe impl SIMDExt for SSE41 {
             #[inline(always)]
             fn is_ascii_u8x32(self, x: Self::V256) -> bool {
-                self.u8x16_movemask(self.v128_or(x.0, x.1)) == 0
+                self.u8x16_bitmask(self.v128_or(x.0, x.1)) == 0
             }
         }
     }

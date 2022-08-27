@@ -12,12 +12,12 @@ pub fn mask8x32_all<S: SIMD256>(s: S, x: S::V256) -> bool {
 
         if let Some(s) = s.concrete_type::<AVX2>() {
             let x: <AVX2 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
-            return s.u8x32_movemask(x) == u32::MAX;
+            return s.u8x32_bitmask(x) == u32::MAX;
         }
 
         if let Some(s) = s.concrete_type::<SSE41>() {
             let x: <SSE41 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
-            return s.u8x16_movemask(s.v128_and(x.0, x.1)) == u16::MAX;
+            return s.u8x16_bitmask(s.v128_and(x.0, x.1)) == u16::MAX;
         }
     }
     {

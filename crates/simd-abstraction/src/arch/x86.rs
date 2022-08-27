@@ -345,7 +345,7 @@ unsafe impl SIMD128 for SSE41 {
     fn u8x16_any_zero(self, a: Self::V128) -> bool {
         let zero = self.v128_create_zero();
         let cmp = self.u8x16_eq(a, zero);
-        unsafe { _mm_movemask_epi8(cmp) != 0 }
+        self.u8x16_bitmask(cmp) != 0
     }
 }
 
@@ -760,7 +760,7 @@ unsafe impl SIMD256 for AVX2 {
     fn u8x32_any_zero(self, a: Self::V256) -> bool {
         let zero = self.v256_create_zero();
         let cmp = self.u8x32_eq(a, zero);
-        unsafe { _mm256_movemask_epi8(cmp) != 0 } // avx2
+        self.u8x32_bitmask(cmp) != 0
     }
 }
 
@@ -804,7 +804,7 @@ pub unsafe trait SIMD128Ext: SIMD128 {
     fn u8x16_blendv(self, a: Self::V128, b: Self::V128, m: Self::V128) -> Self::V128;
     fn i16x8_maddubs(self, a: Self::V128, b: Self::V128) -> Self::V128;
     fn u32x4_blend<const IMM8: i32>(self, a: Self::V128, b: Self::V128) -> Self::V128;
-    fn u8x16_movemask(self, a: Self::V128) -> u16;
+    fn u8x16_bitmask(self, a: Self::V128) -> u16;
 }
 
 pub unsafe trait SIMD256Ext: SIMD256 + SIMD128Ext {
@@ -834,10 +834,10 @@ pub unsafe trait SIMD256Ext: SIMD256 + SIMD128Ext {
     }
 
     #[inline(always)]
-    fn u8x32_movemask(self, a: Self::V256) -> u32 {
+    fn u8x32_bitmask(self, a: Self::V256) -> u32 {
         let (a0, a1) = self.v256_to_v128x2(a);
-        let m0 = self.u8x16_movemask(a0) as u32;
-        let m1 = self.u8x16_movemask(a1) as u32;
+        let m0 = self.u8x16_bitmask(a0) as u32;
+        let m1 = self.u8x16_bitmask(a1) as u32;
         (m1 << 16) | m0
     }
 }
@@ -869,7 +869,7 @@ unsafe impl SIMD128Ext for SSE41 {
     }
 
     #[inline(always)]
-    fn u8x16_movemask(self, a: Self::V128) -> u16 {
+    fn u8x16_bitmask(self, a: Self::V128) -> u16 {
         unsafe { _mm_movemask_epi8(a) as u16 }
     }
 }
@@ -903,8 +903,8 @@ unsafe impl SIMD128Ext for AVX2 {
     }
 
     #[inline(always)]
-    fn u8x16_movemask(self, a: Self::V128) -> u16 {
-        self.sse41().u8x16_movemask(a)
+    fn u8x16_bitmask(self, a: Self::V128) -> u16 {
+        self.sse41().u8x16_bitmask(a)
     }
 }
 
@@ -935,7 +935,7 @@ unsafe impl SIMD256Ext for AVX2 {
     }
 
     #[inline(always)]
-    fn u8x32_movemask(self, a: Self::V256) -> u32 {
+    fn u8x32_bitmask(self, a: Self::V256) -> u32 {
         unsafe { _mm256_movemask_epi8(a) as u32 }
     }
 }
