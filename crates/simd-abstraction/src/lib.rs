@@ -29,6 +29,7 @@ mod macros;
 pub mod isa;
 
 pub mod scalar;
+pub mod vector;
 
 pub mod tools;
 
