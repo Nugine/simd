@@ -71,17 +71,21 @@ x86-test *ARGS:
     export RUSTFLAGS=""
     x86test
 
-arm-test *ARGS:
+arm-test pkg *ARGS:
     #!/bin/bash -ex
     function armtest(){
         cross test --target armv7-unknown-linux-gnueabihf \
-            --no-default-features --features 'std,unstable' {{ARGS}}
+            --no-default-features --features 'std,unstable' \
+            -p {{pkg}} -- {{ARGS}}
         cross test --target aarch64-unknown-linux-gnu \
-            --no-default-features --features 'std,unstable' {{ARGS}}
+            --no-default-features --features 'std,unstable' \
+            -p {{pkg}} -- {{ARGS}}
         cross test --target armv7-unknown-linux-gnueabihf \
-            --features 'unstable' {{ARGS}}
+            --features 'unstable' \
+            -p {{pkg}} -- {{ARGS}}
         cross test --target aarch64-unknown-linux-gnu \
-            --features 'unstable' {{ARGS}}
+            --features 'unstable' \
+            -p {{pkg}} -- {{ARGS}}
     }
 
     export RUSTFLAGS="-C target-feature=+neon"
@@ -104,17 +108,20 @@ miri *ARGS:
 test-all:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
+
     declare -a members
     members[0]="simd-abstraction"
     members[1]="uuid-simd"
     members[2]="hex-simd"
     members[3]="base64-simd"
     members[4]="unicode-simd"
-    just arm-test
+    members[5]="base32-simd"
+
     for member in "${members[@]}"
     do
         pushd crates/$member
         just x86-test
+        just arm-test $member
         just wasm-test
         popd
     done
