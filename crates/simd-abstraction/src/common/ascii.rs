@@ -2,8 +2,6 @@ use crate::isa::{SimdLoad, SIMD256};
 use crate::scalar::{align32, Bytes32};
 use crate::tools::unroll;
 
-use self::spec::SIMDExt;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum AsciiCase {
@@ -20,14 +18,14 @@ pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
 }
 
 #[inline]
-pub fn is_ascii_ct_simd<S: SIMDExt>(s: S, data: &[u8]) -> bool {
+pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
     let (prefix, middle, suffix) = align32(data);
 
     let mut ans = is_ascii_ct_fallback(prefix);
 
     let mut mask = s.v256_create_zero();
     unroll(middle, 8, |chunk| mask = s.v256_or(mask, s.load(chunk)));
-    ans &= s.is_ascii_u8x32(mask);
+    ans &= is_ascii_u8x32(s, mask);
 
     ans &= is_ascii_ct_fallback(suffix);
     ans
@@ -178,71 +176,59 @@ pub mod multiversion {
     );
 }
 
-mod spec {
-    use crate::isa::SIMD256;
-
-    pub unsafe trait SIMDExt: SIMD256 {
-        fn is_ascii_u8x32(self, a: Self::V256) -> bool;
-    }
-
+#[inline(always)]
+fn is_ascii_u8x32<S: SIMD256>(s: S, x: S::V256) -> bool {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    mod x86 {
-        use super::*;
-
+    {
         use crate::arch::x86::*;
-        use crate::isa::SIMD128;
+        use crate::isa::SIMD128 as _;
+        use core::mem::transmute_copy;
 
-        unsafe impl SIMDExt for AVX2 {
-            #[inline(always)]
-            fn is_ascii_u8x32(self, x: Self::V256) -> bool {
-                self.u8x32_bitmask(x) == 0
-            }
+        if let Some(s) = s.concrete_type::<AVX2>() {
+            let x: <AVX2 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            return s.u8x32_bitmask(x) == 0;
         }
 
-        unsafe impl SIMDExt for SSE41 {
-            #[inline(always)]
-            fn is_ascii_u8x32(self, x: Self::V256) -> bool {
-                self.u8x16_bitmask(self.v128_or(x.0, x.1)) == 0
-            }
+        if let Some(s) = s.concrete_type::<SSE41>() {
+            let x: <SSE41 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            return s.u8x16_bitmask(s.v128_or(x.0, x.1)) == 0;
         }
     }
-
     #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
-    mod arm {
-        use super::*;
-
+    {
         use crate::arch::arm::*;
-        use crate::isa::SIMD128;
+        use crate::isa::SIMD128 as _;
+        use core::mem::transmute_copy;
 
-        unsafe impl SIMDExt for NEON {
-            #[inline(always)]
-            fn is_ascii_u8x32(self, a: Self::V256) -> bool {
-                let x = self.v128_or(a.0, a.1);
+        if let Some(s) = s.concrete_type::<NEON>() {
+            let x: <NEON as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            return {
+                let x = s.v128_or(x.0, x.1);
 
                 #[cfg(target_arch = "arm")]
                 {
-                    self.v128_all_zero(self.i32x4_lt(x, self.v128_create_zero()))
+                    s.v128_all_zero(s.i32x4_lt(x, s.v128_create_zero()))
                 }
                 #[cfg(target_arch = "aarch64")]
                 {
-                    self.u8x16_hmax(x) < 0x80
+                    s.u8x16_hmax(x) < 0x80
                 }
-            }
+            };
         }
     }
-
     #[cfg(target_arch = "wasm32")]
-    mod wasm {
-        use super::*;
-
+    {
         use crate::arch::wasm::*;
         use crate::isa::SIMD128 as _;
+        use core::mem::transmute_copy;
 
-        unsafe impl SIMDExt for SIMD128 {
-            #[inline(always)]
-            fn is_ascii_u8x32(self, x: Self::V256) -> bool {
-                self.u8x16_bitmask(self.v128_or(x.0, x.1)) == 0
-            }
+        if let Some(s) = s.concrete_type::<SIMD128>() {
+            let x: <SIMD128 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            return s.u8x16_bitmask(s.v128_or(x.0, x.1)) == 0;
         }
+    }
+    {
+        // generic
+        unimplemented!()
     }
 }
