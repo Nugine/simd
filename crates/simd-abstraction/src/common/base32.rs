@@ -1,6 +1,6 @@
 pub use self::spec::SIMDExt;
 
-use crate::isa::SimdLoad;
+use crate::isa::{SimdLoad, SIMD256};
 use crate::scalar::Bytes32;
 use crate::tools::{read, write};
 use crate::vector::mask8x32_all;
@@ -114,7 +114,7 @@ pub fn rfc4648_decode_bits_simd<S: SIMDExt>(
     let r0 = s.v256_and(x1, m1);
     let r1 = s.v256_and(s.u8x32_add(x2, s.u8x32_splat(len0)), m2);
 
-    Ok(s.base32_merge_bits(s.v256_or(r0, r1)))
+    Ok(merge_bits_u8x32(s, s.v256_or(r0, r1)))
 }
 
 #[allow(clippy::result_unit_err)]
@@ -153,17 +153,15 @@ pub fn crockford_decode_bits_simd<S: SIMDExt>(s: S, x: S::V256) -> Result<S::V25
     let x5 = s.u8x32_add(x2, s.u8x32_splat(len0));
     let r1 = s.u8x32_add(s.v256_and(x5, m2), shift);
 
-    Ok(s.base32_merge_bits(s.v256_or(r0, r1)))
+    Ok(merge_bits_u8x32(s, s.v256_or(r0, r1)))
 }
 
-mod spec {
-    use crate::isa::{SimdLoad, SIMD256};
-    use crate::scalar::Bytes32;
+const fn u16x4_to_u64(x: [u16; 4]) -> u64 {
+    unsafe { core::mem::transmute(x) }
+}
 
-    const fn u16x4_to_u64(x: [u16; 4]) -> u64 {
-        unsafe { core::mem::transmute(x) }
-    }
-
+#[inline(always)]
+pub fn split_bits_u8x32<S: SIMD256>(s: S, x: S::V256) -> S::V256 {
     const SPLIT_SHUFFLE: &Bytes32 = &Bytes32([
         0x07, 0x06, 0x08, 0x07, 0x09, 0x08, 0x0A, 0x09, //
         0x0C, 0x0B, 0x0D, 0x0C, 0x0E, 0x0D, 0x0F, 0x0E, //
@@ -171,72 +169,13 @@ mod spec {
         0x06, 0x05, 0x07, 0x06, 0x08, 0x07, 0x09, 0x08, //
     ]);
 
-    pub unsafe trait SIMDExt: SIMD256 {
-        #[inline(always)]
-        fn base32_split_bits(self, x: Self::V256) -> Self::V256 {
-            const SPLIT_M1: u64 = u16x4_to_u64([1 << 1, 1 << 3, 1 << 5, 1 << 7]);
-            const SPLIT_M2: u64 = u16x4_to_u64([1 << 2, 1 << 4, 1 << 6, 1 << 8]);
-            const SPLIT_M3: u16 = u16::from_le_bytes([0x00, 0x1f]);
-
-            let x1 = self.u8x16x2_swizzle(x, self.load(SPLIT_SHUFFLE));
-            let x2 = self.u16x16_shr::<4>(x1);
-            let x3 = self.i16x16_mul_lo(x2, self.u64x4_splat(SPLIT_M1));
-            let x4 = self.i16x16_mul_lo(x1, self.u64x4_splat(SPLIT_M2));
-            let m3 = self.u16x16_splat(SPLIT_M3);
-            let x5 = self.v256_and(x3, m3);
-            let x6 = self.v256_and(x4, m3);
-            let x7 = self.u16x16_shr::<8>(x5);
-            self.v256_or(x6, x7)
-        }
-
-        fn base32_encode_symbols(self, x: Self::V256, lut0: Self::V256, lut1: Self::V256) -> Self::V256;
-
-        #[inline(always)]
-        fn base32_merge_bits(self, x: Self::V256) -> Self::V256 {
-            const MERGE_M1: u16 = u16::from_le_bytes([0x1f, 0x00]);
-            const MERGE_M2: u64 = u16x4_to_u64([1 << 3, 1 << 1, 1 << 7, 1 << 5]);
-            const MERGE_M3: u64 = u16x4_to_u64([1 << 6, 1 << 4, 1 << 2, 1 << 0]);
-
-            const MERGE_S1: &Bytes32 = &Bytes32::double([
-                0x00, 0x02, 0x05, 0x07, 0x06, 0x80, 0x80, 0x04, //
-                0x08, 0x0A, 0x0D, 0x0F, 0x0E, 0x80, 0x80, 0x0C, //
-            ]);
-            const MERGE_S2: &Bytes32 = &Bytes32::double([
-                0x01, 0x00, 0x02, 0x04, 0x06, 0x03, 0x80, 0x80, //
-                0x09, 0x08, 0x0A, 0x0C, 0x0E, 0x0B, 0x80, 0x80, //
-            ]);
-            const MERGE_S3: &Bytes32 = &Bytes32::double([
-                0x00, 0x01, 0x02, 0x03, 0x04, //
-                0x08, 0x09, 0x0A, 0x0B, 0x0C, //
-                0x80, 0x80, 0x80, 0x80, 0x80, 0x80, //
-            ]);
-            const MERGE_S4: &Bytes32 = &Bytes32::double([
-                0x80, 0x05, 0x80, 0x07, 0x80, //
-                0x80, 0x0D, 0x80, 0x0F, 0x80, //
-                0x80, 0x80, 0x80, 0x80, 0x80, 0x80, //
-            ]);
-
-            let x1 = self.v256_and(x, self.u16x16_splat(MERGE_M1));
-            let x2 = self.i16x16_mul_lo(x1, self.u64x4_splat(MERGE_M2));
-            let x3 = self.u16x16_shr::<8>(x);
-            let x4 = self.i16x16_mul_lo(x3, self.u64x4_splat(MERGE_M3));
-            let x5 = self.u8x16x2_swizzle(x2, self.load(MERGE_S1));
-            let x6 = self.u8x16x2_swizzle(x4, self.load(MERGE_S2));
-            let x7 = self.v256_or(x5, x6);
-            let x8 = self.u8x16x2_swizzle(x7, self.load(MERGE_S3));
-            let x9 = self.u8x16x2_swizzle(x7, self.load(MERGE_S4));
-            self.v256_or(x8, x9)
-        }
-    }
-
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    mod x86 {
-        use super::*;
-
+    {
         use crate::arch::x86::*;
+        use core::mem::transmute_copy;
 
         #[inline(always)]
-        fn base32_split_bits<S: SIMD256Ext>(s: S, x: S::V256) -> S::V256 {
+        fn split_bits_u8x32_x86<S: SIMD256Ext>(s: S, x: S::V256) -> S::V256 {
             const SPLIT_M1: u64 = u16x4_to_u64([1 << 5, 1 << 7, 1 << 9, 1 << 11]);
             const SPLIT_M2: u64 = u16x4_to_u64([1 << 2, 1 << 4, 1 << 6, 1 << 8]);
             const SPLIT_M3: u16 = u16::from_le_bytes([0x00, 0x1f]);
@@ -248,16 +187,45 @@ mod spec {
             s.v256_or(x2, x4)
         }
 
-        #[inline(always)]
-        fn base32_encode_symbols<S: SIMD256Ext>(s: S, x: S::V256, lut0: S::V256, lut1: S::V256) -> S::V256 {
-            let x1 = s.u8x16x2_swizzle(lut0, x);
-            let x2 = s.u8x16x2_swizzle(lut1, x);
-            let x3 = s.v256_and(x, s.u8x32_splat(0x10));
-            s.u8x32_blendv(x1, x2, x3)
+        if let Some(s) = s.concrete_type::<AVX2>() {
+            let x: <AVX2 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            let y = split_bits_u8x32_x86(s, x);
+            return unsafe { transmute_copy(&y) };
         }
 
+        if let Some(s) = s.concrete_type::<SSE41>() {
+            let x: <SSE41 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            let y = split_bits_u8x32_x86(s, x);
+            return unsafe { transmute_copy(&y) };
+        }
+    }
+    {
+        // generic
+        const SPLIT_M1: u64 = u16x4_to_u64([1 << 1, 1 << 3, 1 << 5, 1 << 7]);
+        const SPLIT_M2: u64 = u16x4_to_u64([1 << 2, 1 << 4, 1 << 6, 1 << 8]);
+        const SPLIT_M3: u16 = u16::from_le_bytes([0x00, 0x1f]);
+
+        let x1 = s.u8x16x2_swizzle(x, s.load(SPLIT_SHUFFLE));
+        let x2 = s.u16x16_shr::<4>(x1);
+        let x3 = s.i16x16_mul_lo(x2, s.u64x4_splat(SPLIT_M1));
+        let x4 = s.i16x16_mul_lo(x1, s.u64x4_splat(SPLIT_M2));
+        let m3 = s.u16x16_splat(SPLIT_M3);
+        let x5 = s.v256_and(x3, m3);
+        let x6 = s.v256_and(x4, m3);
+        let x7 = s.u16x16_shr::<8>(x5);
+        s.v256_or(x6, x7)
+    }
+}
+
+#[inline(always)]
+pub fn merge_bits_u8x32<S: SIMD256>(s: S, x: S::V256) -> S::V256 {
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    {
+        use crate::arch::x86::*;
+        use core::mem::transmute_copy;
+
         #[inline(always)]
-        fn base32_merge_bits<S: SIMD256Ext>(s: S, x: S::V256) -> S::V256 {
+        fn merge_bits_u8x32_x86<S: SIMD256Ext>(s: S, x: S::V256) -> S::V256 {
             const MERGE_M1: u32 = u32::from_le_bytes([1 << 7, 1 << 2, 1 << 5, 1 << 0]);
             const MERGE_S1: &Bytes32 = &Bytes32::double([
                 0x01, 0x00, 0x02, 0x04, 0x06, //
@@ -278,37 +246,88 @@ mod spec {
             s.v256_or(x4, x5)
         }
 
-        unsafe impl SIMDExt for AVX2 {
-            #[inline(always)]
-            fn base32_split_bits(self, x: Self::V256) -> Self::V256 {
-                base32_split_bits(self, x)
-            }
+        if let Some(s) = s.concrete_type::<AVX2>() {
+            let x: <AVX2 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            let y = merge_bits_u8x32_x86(s, x);
+            return unsafe { transmute_copy(&y) };
+        }
 
+        if let Some(s) = s.concrete_type::<SSE41>() {
+            let x: <SSE41 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            let y = merge_bits_u8x32_x86(s, x);
+            return unsafe { transmute_copy(&y) };
+        }
+    }
+    {
+        // generic
+        const MERGE_M1: u16 = u16::from_le_bytes([0x1f, 0x00]);
+        const MERGE_M2: u64 = u16x4_to_u64([1 << 3, 1 << 1, 1 << 7, 1 << 5]);
+        const MERGE_M3: u64 = u16x4_to_u64([1 << 6, 1 << 4, 1 << 2, 1 << 0]);
+
+        const MERGE_S1: &Bytes32 = &Bytes32::double([
+            0x00, 0x02, 0x05, 0x07, 0x06, 0x80, 0x80, 0x04, //
+            0x08, 0x0A, 0x0D, 0x0F, 0x0E, 0x80, 0x80, 0x0C, //
+        ]);
+        const MERGE_S2: &Bytes32 = &Bytes32::double([
+            0x01, 0x00, 0x02, 0x04, 0x06, 0x03, 0x80, 0x80, //
+            0x09, 0x08, 0x0A, 0x0C, 0x0E, 0x0B, 0x80, 0x80, //
+        ]);
+        const MERGE_S3: &Bytes32 = &Bytes32::double([
+            0x00, 0x01, 0x02, 0x03, 0x04, //
+            0x08, 0x09, 0x0A, 0x0B, 0x0C, //
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, //
+        ]);
+        const MERGE_S4: &Bytes32 = &Bytes32::double([
+            0x80, 0x05, 0x80, 0x07, 0x80, //
+            0x80, 0x0D, 0x80, 0x0F, 0x80, //
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, //
+        ]);
+
+        let x1 = s.v256_and(x, s.u16x16_splat(MERGE_M1));
+        let x2 = s.i16x16_mul_lo(x1, s.u64x4_splat(MERGE_M2));
+        let x3 = s.u16x16_shr::<8>(x);
+        let x4 = s.i16x16_mul_lo(x3, s.u64x4_splat(MERGE_M3));
+        let x5 = s.u8x16x2_swizzle(x2, s.load(MERGE_S1));
+        let x6 = s.u8x16x2_swizzle(x4, s.load(MERGE_S2));
+        let x7 = s.v256_or(x5, x6);
+        let x8 = s.u8x16x2_swizzle(x7, s.load(MERGE_S3));
+        let x9 = s.u8x16x2_swizzle(x7, s.load(MERGE_S4));
+        s.v256_or(x8, x9)
+    }
+}
+
+mod spec {
+    use crate::isa::SIMD256;
+
+    pub unsafe trait SIMDExt: SIMD256 {
+        fn base32_encode_symbols(self, x: Self::V256, lut0: Self::V256, lut1: Self::V256) -> Self::V256;
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    mod x86 {
+        use super::*;
+
+        use crate::arch::x86::*;
+
+        #[inline(always)]
+        fn base32_encode_symbols<S: SIMD256Ext>(s: S, x: S::V256, lut0: S::V256, lut1: S::V256) -> S::V256 {
+            let x1 = s.u8x16x2_swizzle(lut0, x);
+            let x2 = s.u8x16x2_swizzle(lut1, x);
+            let x3 = s.v256_and(x, s.u8x32_splat(0x10));
+            s.u8x32_blendv(x1, x2, x3)
+        }
+
+        unsafe impl SIMDExt for AVX2 {
             #[inline(always)]
             fn base32_encode_symbols(self, x: Self::V256, lut0: Self::V256, lut1: Self::V256) -> Self::V256 {
                 base32_encode_symbols(self, x, lut0, lut1)
-            }
-
-            #[inline(always)]
-            fn base32_merge_bits(self, x: Self::V256) -> Self::V256 {
-                base32_merge_bits(self, x)
             }
         }
 
         unsafe impl SIMDExt for SSE41 {
             #[inline(always)]
-            fn base32_split_bits(self, x: Self::V256) -> Self::V256 {
-                base32_split_bits(self, x)
-            }
-
-            #[inline(always)]
             fn base32_encode_symbols(self, x: Self::V256, lut0: Self::V256, lut1: Self::V256) -> Self::V256 {
                 base32_encode_symbols(self, x, lut0, lut1)
-            }
-
-            #[inline(always)]
-            fn base32_merge_bits(self, x: Self::V256) -> Self::V256 {
-                base32_merge_bits(self, x)
             }
         }
     }
