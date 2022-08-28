@@ -238,14 +238,10 @@ mod spec {
         use crate::arch::wasm::*;
         use crate::isa::SIMD128 as _;
 
-        use core::arch::wasm32::*;
-
         unsafe impl SIMDExt for SIMD128 {
             #[inline(always)]
-            fn is_ascii_u8x32(self, a: Self::V256) -> bool {
-                let x = self.v128_or(a.0, a.1);
-                let m = i8x16_bitmask(x);
-                m == 0
+            fn is_ascii_u8x32(self, x: Self::V256) -> bool {
+                self.u8x16_bitmask(self.v128_or(x.0, x.1)) == 0
             }
         }
     }

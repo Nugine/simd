@@ -376,6 +376,7 @@ impl SIMD128 {
     ///
     /// ans = ((b ^ c) & a) ^ c
     #[inline(always)]
+    #[must_use]
     pub fn v256_bsl(
         self,
         a: <Self as isa::SIMD256>::V256,
@@ -383,5 +384,19 @@ impl SIMD128 {
         c: <Self as isa::SIMD256>::V256,
     ) -> <Self as isa::SIMD256>::V256 {
         self.v256_xor(self.v256_and(self.v256_xor(b, c), a), c)
+    }
+
+    #[inline(always)]
+    #[must_use]
+    pub fn u8x16_bitmask(self, a: v128) -> u16 {
+        i8x16_bitmask(a)
+    }
+
+    #[inline(always)]
+    #[must_use]
+    pub fn u8x32_bitmask(self, a: <Self as isa::SIMD256>::V256) -> u32 {
+        let m0 = self.u8x16_bitmask(a.0) as u32;
+        let m1 = self.u8x16_bitmask(a.1) as u32;
+        (m1 << 16) | m0
     }
 }
