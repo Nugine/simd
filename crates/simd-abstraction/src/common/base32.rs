@@ -1,5 +1,3 @@
-pub use self::spec::SIMDExt;
-
 use crate::isa::{SimdLoad, SIMD256};
 use crate::scalar::Bytes32;
 use crate::tools::{read, write};
@@ -92,7 +90,7 @@ pub unsafe fn write_be_bytes<const N: usize>(dst: *mut u8, x: u64) {
 
 #[allow(clippy::result_unit_err)]
 #[inline(always)]
-pub fn rfc4648_decode_bits_simd<S: SIMDExt>(
+pub fn rfc4648_decode_bits_simd<S: SIMD256>(
     s: S,
     x: S::V256,
     ch0: u8,
@@ -119,7 +117,7 @@ pub fn rfc4648_decode_bits_simd<S: SIMDExt>(
 
 #[allow(clippy::result_unit_err)]
 #[inline(always)]
-pub fn crockford_decode_bits_simd<S: SIMDExt>(s: S, x: S::V256) -> Result<S::V256, ()> {
+pub fn crockford_decode_bits_simd<S: SIMD256>(s: S, x: S::V256) -> Result<S::V256, ()> {
     const M3: &Bytes32 = &Bytes32::double([
         0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, //
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
@@ -296,84 +294,90 @@ pub fn merge_bits_u8x32<S: SIMD256>(s: S, x: S::V256) -> S::V256 {
     }
 }
 
-mod spec {
-    use crate::isa::SIMD256;
-
-    pub unsafe trait SIMDExt: SIMD256 {
-        fn base32_encode_symbols(self, x: Self::V256, lut0: Self::V256, lut1: Self::V256) -> Self::V256;
-    }
-
+#[inline(always)]
+pub fn encode_symbols_u8x32<S: SIMD256>(s: S, x: S::V256, lut0: S::V256, lut1: S::V256) -> S::V256 {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    mod x86 {
-        use super::*;
-
+    {
         use crate::arch::x86::*;
+        use core::mem::transmute_copy;
 
         #[inline(always)]
-        fn base32_encode_symbols<S: SIMD256Ext>(s: S, x: S::V256, lut0: S::V256, lut1: S::V256) -> S::V256 {
+        fn encode_symbols_u8x32_x86<S: SIMD256Ext>(s: S, x: S::V256, lut0: S::V256, lut1: S::V256) -> S::V256 {
             let x1 = s.u8x16x2_swizzle(lut0, x);
             let x2 = s.u8x16x2_swizzle(lut1, x);
             let x3 = s.v256_and(x, s.u8x32_splat(0x10));
             s.u8x32_blendv(x1, x2, x3)
         }
 
-        unsafe impl SIMDExt for AVX2 {
-            #[inline(always)]
-            fn base32_encode_symbols(self, x: Self::V256, lut0: Self::V256, lut1: Self::V256) -> Self::V256 {
-                base32_encode_symbols(self, x, lut0, lut1)
-            }
+        if let Some(s) = s.concrete_type::<AVX2>() {
+            let x: <AVX2 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            let lut0: <AVX2 as SIMD256>::V256 = unsafe { transmute_copy(&lut0) };
+            let lut1: <AVX2 as SIMD256>::V256 = unsafe { transmute_copy(&lut1) };
+
+            let y = encode_symbols_u8x32_x86(s, x, lut0, lut1);
+            return unsafe { transmute_copy(&y) };
         }
 
-        unsafe impl SIMDExt for SSE41 {
-            #[inline(always)]
-            fn base32_encode_symbols(self, x: Self::V256, lut0: Self::V256, lut1: Self::V256) -> Self::V256 {
-                base32_encode_symbols(self, x, lut0, lut1)
-            }
+        if let Some(s) = s.concrete_type::<SSE41>() {
+            let x: <SSE41 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            let lut0: <SSE41 as SIMD256>::V256 = unsafe { transmute_copy(&lut0) };
+            let lut1: <SSE41 as SIMD256>::V256 = unsafe { transmute_copy(&lut1) };
+
+            let y = encode_symbols_u8x32_x86(s, x, lut0, lut1);
+            return unsafe { transmute_copy(&y) };
         }
     }
-
     #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
-    mod arm {
-        use super::*;
-
+    {
         use crate::arch::arm::*;
+        use core::mem::transmute_copy;
 
-        unsafe impl SIMDExt for NEON {
-            #[inline(always)]
-            fn base32_encode_symbols(self, x: Self::V256, lut0: Self::V256, lut1: Self::V256) -> Self::V256 {
+        if let Some(s) = s.concrete_type::<NEON>() {
+            let x: <NEON as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            let lut0: <NEON as SIMD256>::V256 = unsafe { transmute_copy(&lut0) };
+            let lut1: <NEON as SIMD256>::V256 = unsafe { transmute_copy(&lut1) };
+
+            let y = {
                 #[cfg(target_arch = "aarch64")]
                 {
-                    let lut = self.v256_from_v128x2(lut0.0, lut1.0);
-                    self.u8x32_swizzle(lut, x)
+                    let lut = s.v256_from_v128x2(lut0.0, lut1.0);
+                    s.u8x32_swizzle(lut, x)
                     // 32B table lookup
                 }
                 #[cfg(target_arch = "arm")]
                 {
-                    let x1 = self.u8x16x2_swizzle(lut0, x);
-                    let x2 = self.u8x16x2_swizzle(lut1, x);
-                    let x3 = self.u8x32_lt(self.u8x32_splat(0x0f), x);
-                    self.v256_bsl(x3, x2, x1)
+                    let x1 = s.u8x16x2_swizzle(lut0, x);
+                    let x2 = s.u8x16x2_swizzle(lut1, x);
+                    let x3 = s.u8x32_lt(s.u8x32_splat(0x0f), x);
+                    s.v256_bsl(x3, x2, x1)
                     // for each bit: if x3 == 1 { x2 } else { x1 }
                 }
-            }
+            };
+            return unsafe { transmute_copy(&y) };
         }
     }
-
     #[cfg(target_arch = "wasm32")]
-    mod wasm {
-        use super::*;
-
+    {
         use crate::arch::wasm::*;
+        use core::mem::transmute_copy;
 
-        unsafe impl SIMDExt for SIMD128 {
-            #[inline(always)]
-            fn base32_encode_symbols(self, x: Self::V256, lut0: Self::V256, lut1: Self::V256) -> Self::V256 {
-                let x1 = self.u8x16x2_swizzle(lut0, x);
-                let x2 = self.u8x16x2_swizzle(lut1, x);
-                let x3 = self.u8x32_lt(self.u8x32_splat(0x0f), x);
-                self.v256_bsl(x3, x2, x1)
+        if let Some(s) = s.concrete_type::<SIMD128>() {
+            let x: <SIMD128 as SIMD256>::V256 = unsafe { transmute_copy(&x) };
+            let lut0: <SIMD128 as SIMD256>::V256 = unsafe { transmute_copy(&lut0) };
+            let lut1: <SIMD128 as SIMD256>::V256 = unsafe { transmute_copy(&lut1) };
+
+            let y = {
+                let x1 = s.u8x16x2_swizzle(lut0, x);
+                let x2 = s.u8x16x2_swizzle(lut1, x);
+                let x3 = s.u8x32_lt(s.u8x32_splat(0x0f), x);
+                s.v256_bsl(x3, x2, x1)
                 // for each bit: if x3 == 1 { x2 } else { x1 }
-            }
+            };
+            return unsafe { transmute_copy(&y) };
         }
+    }
+    {
+        // generic
+        unimplemented!()
     }
 }
