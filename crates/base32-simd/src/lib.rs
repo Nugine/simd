@@ -21,3 +21,9 @@ mod error;
 pub use self::error::Error;
 
 pub use outref::OutRef;
+
+mod rfc4648;
+pub use self::rfc4648::*;
+
+mod crockford;
+pub use self::crockford::*;
