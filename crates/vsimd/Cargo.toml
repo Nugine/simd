@@ -1,0 +1,21 @@
+[package]
+name = "vsimd"
+version = "0.0.1"
+edition = "2021"
+description = "SIMD utilities"
+license = "MIT"
+repository = "https://github.com/Nugine/simd"
+keywords = ["simd"]
+categories = ["no-std"]
+readme = "README.md"
+rust-version = "1.63"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+alloc = []
+std = ["alloc"]
+detect = ["std"]
+unstable = []

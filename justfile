@@ -105,6 +105,15 @@ miri *ARGS:
     cd {{invocation_directory()}}
     time cargo miri test -- --nocapture --test-threads=1 {{ARGS}}
 
+test member:
+    #!/bin/bash -ex
+    cd {{justfile_directory()}}
+    pushd crates/{{member}}
+    just x86-test
+    just arm-test {{member}}
+    just wasm-test
+    popd
+
 test-all:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
@@ -116,14 +125,11 @@ test-all:
     members[3]="base64-simd"
     members[4]="unicode-simd"
     members[5]="base32-simd"
+    members[6]="vsimd"
 
     for member in "${members[@]}"
     do
-        pushd crates/$member
-        just x86-test
-        just arm-test $member
-        just wasm-test
-        popd
+        just test $member
     done
 
 sync-version:
@@ -136,6 +142,7 @@ sync-version:
     cargo set-version -p base64-simd        '0.8.0'
     cargo set-version -p unicode-simd       '0.0.1'
     cargo set-version -p base32-simd        '0.0.1'
+    cargo set-version -p vsimd              '0.0.1'
 
 fmt:
     #!/bin/bash -ex
