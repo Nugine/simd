@@ -18,14 +18,14 @@ use core::arch::aarch64::*;
 use core::arch::wasm32::*;
 
 #[inline(always)]
-fn simd256_vop1<S: SIMD256>(s: S, a: V256, f: impl Fn(S, V128) -> V128) -> V256 {
+pub(crate) fn simd256_vop1<S: SIMD256>(s: S, a: V256, f: impl Fn(S, V128) -> V128) -> V256 {
     let a = a.to_v128x2();
     let b = (f(s, a.0), f(s, a.1));
     V256::from_v128x2(b)
 }
 
 #[inline(always)]
-fn simd256_vop2<S: SIMD256>(s: S, a: V256, b: V256, f: impl Fn(S, V128, V128) -> V128) -> V256 {
+pub(crate) fn simd256_vop2<S: SIMD256>(s: S, a: V256, b: V256, f: impl Fn(S, V128, V128) -> V128) -> V256 {
     let a = a.to_v128x2();
     let b = b.to_v128x2();
     let c = (f(s, a.0, b.0), f(s, a.1, b.1));

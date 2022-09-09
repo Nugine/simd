@@ -27,16 +27,16 @@ extern crate alloc;
 mod macros;
 
 mod isa;
-pub use self::isa::*;
+pub use self::isa::{InstructionSet, AVX2, NEON, SSE41, WASM128};
 
 mod vector;
-pub use self::vector::*;
+pub use self::vector::{V128, V256, V512};
 
 mod simd128;
-pub use self::simd128::*;
+pub use self::simd128::SIMD128;
 
 mod simd256;
-pub use self::simd256::*;
+pub use self::simd256::SIMD256;
 
 pub mod scalar;
 pub mod tools;
