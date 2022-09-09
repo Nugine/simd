@@ -1,5 +1,5 @@
-use crate::mask::mask8x32_all;
-use crate::{AVX2, NEON, SIMD256, SSE41, V128, V256, WASM128};
+use crate::mask::{mask8x16_all, mask8x32_all};
+use crate::{AVX2, NEON, SIMD128, SIMD256, SSE41, V128, V256, WASM128};
 
 use core::ops::Not;
 
@@ -22,6 +22,17 @@ pub const fn unhex(x: u8) -> u8 {
         buf
     };
     UNHEX_TABLE[x as usize]
+}
+
+#[inline(always)]
+pub fn check_ascii16<S: SIMD128>(s: S, x: V128) -> bool {
+    let x1 = s.u8x16_sub(x, s.u8x16_splat(0xb0));
+    let x2 = s.v128_and(x1, s.u8x16_splat(0xdf));
+    let x3 = s.u8x16_sub(x2, s.u8x16_splat(0x11));
+    let x4 = s.i8x16_lt(x1, s.i8x16_splat(-118));
+    let x5 = s.i8x16_lt(x3, s.i8x16_splat(-122));
+    let x6 = s.v128_or(x4, x5);
+    mask8x16_all(s, x6)
 }
 
 #[inline(always)]
