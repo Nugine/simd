@@ -983,4 +983,60 @@ pub unsafe trait SIMD256: SIMD128 {
             unreachable!()
         }
     }
+
+    #[inline(always)]
+    fn u8x32_unzip_even(self, a: V256, b: V256) -> V256 {
+        if is_subtype!(Self, SSE41) {
+            unimplemented!()
+        }
+        {
+            let ((a, b), (c, d)) = (a.to_v128x2(), b.to_v128x2());
+            let ab = self.u8x16_unzip_even(a, b);
+            let cd = self.u8x16_unzip_even(c, d);
+            V256::from_v128x2((ab, cd))
+        }
+    }
+
+    #[inline(always)]
+    fn u8x32_unzip_odd(self, a: V256, b: V256) -> V256 {
+        if is_subtype!(Self, SSE41) {
+            unimplemented!()
+        }
+        {
+            let ((a, b), (c, d)) = (a.to_v128x2(), b.to_v128x2());
+            let ab = self.u8x16_unzip_odd(a, b);
+            let cd = self.u8x16_unzip_odd(c, d);
+            V256::from_v128x2((ab, cd))
+        }
+    }
+
+    #[inline(always)]
+    fn u64x4_unzip_even(self, a: V256, b: V256) -> V256 {
+        if is_subtype!(Self, AVX2) {
+            let acbd = self.u64x2x2_zip_lo(a, b);
+            let abcd = self.u64x4_permute::<0b11011000>(acbd); // 0213
+            return abcd;
+        }
+        {
+            let ((a, b), (c, d)) = (a.to_v128x2(), b.to_v128x2());
+            let ab = self.u64x2_zip_lo(a, b);
+            let cd = self.u64x2_zip_lo(c, d);
+            V256::from_v128x2((ab, cd))
+        }
+    }
+
+    #[inline(always)]
+    fn u64x4_unzip_odd(self, a: V256, b: V256) -> V256 {
+        if is_subtype!(Self, AVX2) {
+            let acbd = self.u64x2x2_zip_hi(a, b);
+            let abcd = self.u64x4_permute::<0b11011000>(acbd); // 0213
+            return abcd;
+        }
+        {
+            let ((a, b), (c, d)) = (a.to_v128x2(), b.to_v128x2());
+            let ab = self.u64x2_zip_hi(a, b);
+            let cd = self.u64x2_zip_hi(c, d);
+            V256::from_v128x2((ab, cd))
+        }
+    }
 }

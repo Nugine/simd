@@ -1596,4 +1596,56 @@ pub unsafe trait SIMD128: InstructionSet {
             unreachable!()
         }
     }
+
+    #[inline(always)]
+    fn u8x16_unzip_even(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            unimplemented!()
+        }
+        #[cfg(all(feature = "unstable", target_arch = "arm"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vuzpq_u8(t(a), t(b)).0) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vuzp1q_u8(t(a), t(b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(Self, WASM128) {
+            let (a, b) = unsafe { (t(a), t(b)) };
+            let ans = u8x16_shuffle::<0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30>(a, b);
+            return unsafe { t(ans) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
+
+    #[inline(always)]
+    fn u8x16_unzip_odd(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            unimplemented!()
+        }
+        #[cfg(all(feature = "unstable", target_arch = "arm"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vuzpq_u8(t(a), t(b)).1) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vuzp2q_u8(t(a), t(b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(Self, WASM128) {
+            let (a, b) = unsafe { (t(a), t(b)) };
+            let ans = u8x16_shuffle::<1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31>(a, b);
+            return unsafe { t(ans) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
 }
