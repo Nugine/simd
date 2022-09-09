@@ -76,7 +76,7 @@ fn is_ascii_u8x32<S: SIMD256>(s: S, x: V256) -> bool {
         }
 
         if cfg!(target_arch = "aarch64") {
-            return s.u8x16_hmax(x) < 0x80;
+            return s.u8x16_reduce_max(x) < 0x80;
         }
 
         unreachable!()

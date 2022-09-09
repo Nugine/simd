@@ -816,15 +816,15 @@ pub unsafe trait SIMD256: SIMD128 {
     }
 
     #[inline(always)]
-    fn u8x32_hmax(self, a: V256) -> u8 {
+    fn u8x32_reduce_max(self, a: V256) -> u8 {
         let a = a.to_v128x2();
-        self.u8x16_hmax(self.u8x16_max(a.0, a.1))
+        self.u8x16_reduce_max(self.u8x16_max(a.0, a.1))
     }
 
     #[inline(always)]
-    fn u8x32_hmin(self, a: V256) -> u8 {
+    fn u8x32_reduce_min(self, a: V256) -> u8 {
         let a = a.to_v128x2();
-        self.u8x16_hmin(self.u8x16_min(a.0, a.1))
+        self.u8x16_reduce_min(self.u8x16_min(a.0, a.1))
     }
 
     /// for each bit: if a == 1 { b } else { c }

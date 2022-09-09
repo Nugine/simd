@@ -1334,7 +1334,7 @@ pub unsafe trait SIMD128: InstructionSet {
     }
 
     #[inline(always)]
-    fn u8x16_hmax(self, a: V128) -> u8 {
+    fn u8x16_reduce_max(self, a: V128) -> u8 {
         if is_subtype!(Self, SSE41 | WASM128) {
             unimplemented!()
         }
@@ -1353,7 +1353,7 @@ pub unsafe trait SIMD128: InstructionSet {
     }
 
     #[inline(always)]
-    fn u8x16_hmin(self, a: V128) -> u8 {
+    fn u8x16_reduce_min(self, a: V128) -> u8 {
         if is_subtype!(Self, SSE41 | WASM128) {
             unimplemented!()
         }
