@@ -967,4 +967,20 @@ pub unsafe trait SIMD256: SIMD128 {
             unreachable!()
         }
     }
+
+    #[inline(always)]
+    fn u64x4_permute<const IMM8: i32>(self, a: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_permute4x64_epi64::<IMM8>(t(a))) };
+        }
+        if is_subtype!(Self, SSE41 | NEON | WASM128) {
+            let _ = a;
+            unimplemented!()
+        }
+        {
+            let _ = a;
+            unreachable!()
+        }
+    }
 }
