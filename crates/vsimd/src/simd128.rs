@@ -1,7 +1,4 @@
-use crate::{InstructionSet, SSE41, V128, WASM128};
-
-#[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
-use crate::NEON;
+use crate::{InstructionSet, NEON, SSE41, V128, WASM128};
 
 use core::mem::transmute as t;
 
@@ -1640,6 +1637,36 @@ pub unsafe trait SIMD128: InstructionSet {
             let (a, b) = unsafe { (t(a), t(b)) };
             let ans = u8x16_shuffle::<1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31>(a, b);
             return unsafe { t(ans) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
+
+    #[inline(always)]
+    fn u16x8_mul_hi(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_mulhi_epu16(t(a), t(b))) };
+        }
+        if is_subtype!(Self, NEON | WASM128) {
+            unimplemented!()
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
+
+    #[inline(always)]
+    fn i16x8_mul_hi(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_mulhi_epi16(t(a), t(b))) };
+        }
+        if is_subtype!(Self, NEON | WASM128) {
+            unimplemented!()
         }
         {
             let _ = (a, b);
