@@ -1079,4 +1079,19 @@ pub unsafe trait SIMD256: SIMD128 {
             simd256_vop2(self, a, b, Self::i16x8_madd_sat)
         }
     }
+
+    #[inline(always)]
+    fn u32x8_blend<const IMM8: i32>(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_blend_epi32::<IMM8>(t(a), t(b))) };
+        }
+        if is_subtype!(Self, NEON | WASM128) {
+            unimplemented!()
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
 }

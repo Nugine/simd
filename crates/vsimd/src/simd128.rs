@@ -1688,4 +1688,19 @@ pub unsafe trait SIMD128: InstructionSet {
             unreachable!()
         }
     }
+
+    #[inline(always)]
+    fn u32x4_blend<const IMM4: i32>(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_blend_epi32::<IMM4>(t(a), t(b))) };
+        }
+        if is_subtype!(Self, NEON | WASM128) {
+            unimplemented!()
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
 }
