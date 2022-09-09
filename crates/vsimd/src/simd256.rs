@@ -43,11 +43,11 @@ pub unsafe trait SIMD256: SIMD128 {
 
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_load_si256(addr.cast())) };
+            return t(_mm256_load_si256(addr.cast()));
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
-            return unsafe { t(vld1q_u8_x2(addr.cast())) };
+            return t(vld1q_u8_x2(addr.cast()));
         }
         {
             let x0 = self.v128_load(addr);
@@ -60,11 +60,11 @@ pub unsafe trait SIMD256: SIMD128 {
     unsafe fn v256_load_unaligned(self, addr: *const u8) -> V256 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_loadu_si256(addr.cast())) };
+            return t(_mm256_loadu_si256(addr.cast()));
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
-            return unsafe { t(vld1q_u8_x2(addr.cast())) };
+            return t(vld1q_u8_x2(addr.cast()));
         }
         {
             let x0 = self.v128_load_unaligned(addr);
@@ -79,11 +79,11 @@ pub unsafe trait SIMD256: SIMD128 {
 
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, AVX2) {
-            return unsafe { _mm256_store_si256(addr.cast(), t(a)) };
+            return _mm256_store_si256(addr.cast(), t(a));
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
-            return unsafe { vst1q_u8_x2(addr.cast(), t(a)) };
+            return vst1q_u8_x2(addr.cast(), t(a));
         }
         {
             let a = a.to_v128x2();
@@ -96,11 +96,11 @@ pub unsafe trait SIMD256: SIMD128 {
     unsafe fn v256_store_unaligned(self, addr: *mut u8, a: V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, AVX2) {
-            return unsafe { _mm256_storeu_si256(addr.cast(), t(a)) };
+            return _mm256_storeu_si256(addr.cast(), t(a));
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
-            return unsafe { vst1q_u8_x2(addr.cast(), t(a)) };
+            return vst1q_u8_x2(addr.cast(), t(a));
         }
         {
             let a = a.to_v128x2();

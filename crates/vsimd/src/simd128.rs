@@ -28,7 +28,7 @@ pub unsafe trait SIMD128: InstructionSet {
 
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE41) {
-            return unsafe { t(_mm_load_si128(addr.cast())) };
+            return t(_mm_load_si128(addr.cast()));
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
@@ -48,15 +48,15 @@ pub unsafe trait SIMD128: InstructionSet {
     unsafe fn v128_load_unaligned(self, addr: *const u8) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE41) {
-            return unsafe { t(_mm_loadu_si128(addr.cast())) };
+            return t(_mm_loadu_si128(addr.cast()));
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
-            return unsafe { t(vld1q_u8(addr.cast())) };
+            return t(vld1q_u8(addr.cast()));
         }
         #[cfg(target_arch = "wasm32")]
         if is_subtype!(Self, WASM128) {
-            return unsafe { t(v128_load(addr.cast())) };
+            return t(v128_load(addr.cast()));
         }
         {
             let _ = addr;
@@ -70,7 +70,7 @@ pub unsafe trait SIMD128: InstructionSet {
 
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE41) {
-            return unsafe { _mm_store_si128(addr.cast(), t(a)) };
+            return _mm_store_si128(addr.cast(), t(a));
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
@@ -90,15 +90,15 @@ pub unsafe trait SIMD128: InstructionSet {
     unsafe fn v128_store_unaligned(self, addr: *mut u8, a: V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE41) {
-            return unsafe { _mm_storeu_si128(addr.cast(), t(a)) };
+            return _mm_storeu_si128(addr.cast(), t(a));
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
-            return unsafe { vst1q_u8(addr.cast(), t(a)) };
+            return vst1q_u8(addr.cast(), t(a));
         }
         #[cfg(target_arch = "wasm32")]
         if is_subtype!(Self, WASM128) {
-            return unsafe { v128_store(addr.cast(), t(a)) };
+            return v128_store(addr.cast(), t(a));
         }
         {
             let _ = (addr, a);
