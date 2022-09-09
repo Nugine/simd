@@ -14,12 +14,14 @@ macro_rules! debug_assert_ptr_align {
     }};
 }
 
+#[macro_export]
 macro_rules! is_subtype {
     ($self:ident, $super:ident) => {{
         <$self as $crate::InstructionSet>::is_subtype_of::<$super>()
     }};
-    ($self:ident, $($super:ident)|+) => {{
-        false $(|| <$self as $crate::InstructionSet>::is_subtype_of::<$super>())+
+    ($self:ident, $super:ident | $($other:ident)|+) => {{
+        <$self as $crate::InstructionSet>::is_subtype_of::<$super>()
+         $(|| <$self as $crate::InstructionSet>::is_subtype_of::<$other>())+
     }};
 }
 
