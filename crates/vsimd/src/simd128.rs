@@ -1299,10 +1299,8 @@ pub unsafe trait SIMD128: InstructionSet {
         }
         #[cfg(all(feature = "unstable", target_arch = "arm"))]
         if is_subtype!(Self, NEON) {
-            return unsafe {
-                let a = t(a);
-                !self.v128_all_zero(t(vtstq_u8(a, a)))
-            };
+            let is_zero = self.u8x16_eq(a, self.v128_create_zero());
+            return !self.v128_all_zero(is_zero);
         }
         #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
