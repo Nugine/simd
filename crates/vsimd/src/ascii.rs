@@ -1,10 +1,9 @@
-use crate::mask::mask8x32_any;
+use crate::mask::{mask8x32_any, u8x32_highbit_any};
 use crate::scalar::align32;
-use crate::tools::{is_same_type, read, unroll};
-use crate::{AVX2, SIMD256, SSE41, V256, WASM128};
+use crate::tools::{read, unroll};
+use crate::{SIMD256, V256};
 
-#[cfg(feature = "unstable")]
-use crate::NEON;
+use core::ops::Not;
 
 pub mod multiversion {
     use super::*;
@@ -49,43 +48,10 @@ pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
 
     let mut mask = s.v256_create_zero();
     unroll(middle, 8, |&chunk| mask = s.v256_or(mask, chunk));
-    ans &= is_ascii_u8x32(s, mask);
+    ans &= u8x32_highbit_any(s, mask).not();
 
     ans &= is_ascii_ct_fallback(suffix);
     ans
-}
-
-#[inline(always)]
-fn is_ascii_u8x32<S: SIMD256>(s: S, x: V256) -> bool {
-    if is_same_type::<S, AVX2>() {
-        return s.u8x32_bitmask(x) == 0;
-    }
-
-    if is_same_type::<S, SSE41>() || is_same_type::<S, WASM128>() {
-        let x = x.to_v128x2();
-        return s.u8x16_bitmask(s.v128_or(x.0, x.1)) == 0;
-    }
-
-    #[cfg(feature = "unstable")]
-    if is_same_type::<S, NEON>() {
-        let x = x.to_v128x2();
-        let x = s.v128_or(x.0, x.1);
-
-        if cfg!(target_arch = "arm") {
-            return s.v128_all_zero(s.i32x4_lt(x, s.v128_create_zero()));
-        }
-
-        if cfg!(target_arch = "aarch64") {
-            return s.u8x16_reduce_max(x) < 0x80;
-        }
-
-        unreachable!()
-    }
-
-    {
-        // generic
-        unimplemented!()
-    }
 }
 
 #[inline(always)]
