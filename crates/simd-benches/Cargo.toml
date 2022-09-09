@@ -8,7 +8,6 @@ publish = false
 unstable = [
     "base64-simd/unstable",
     "hex-simd/unstable",
-    "simd-abstraction/unstable",
     "unicode-simd/unstable",
     "uuid-simd/unstable",
 ]
@@ -22,7 +21,6 @@ getrandom = { version = "0.2.7", features = ["js"] }
 hex-simd = { path = "../hex-simd", version = "0.8.0" }
 radix64 = "0.6.2"
 rand = "0.8.5"
-simd-abstraction = { path = "../simd-abstraction", version = "0.8.0" }
 unicode-simd = { path = "../unicode-simd", version = "0.0.1" }
 uuid = "1.1.2"
 uuid-simd = { path = "../uuid-simd", version = "0.8.0" }
