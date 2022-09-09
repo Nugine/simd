@@ -1703,4 +1703,20 @@ pub unsafe trait SIMD128: InstructionSet {
             unreachable!()
         }
     }
+
+    /// if highbit(c) { b } else { a }
+    #[inline(always)]
+    fn u8x16_blendv(self, a: V128, b: V128, c: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_blendv_epi8(t(a), t(b), t(c))) };
+        }
+        if is_subtype!(Self, NEON | WASM128) {
+            unimplemented!()
+        }
+        {
+            let _ = (a, b, c);
+            unreachable!()
+        }
+    }
 }

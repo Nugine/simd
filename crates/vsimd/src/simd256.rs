@@ -32,6 +32,21 @@ pub(crate) fn simd256_vop2<S: SIMD256>(s: S, a: V256, b: V256, f: impl Fn(S, V12
     V256::from_v128x2(c)
 }
 
+#[inline(always)]
+pub(crate) fn simd256_vop3<S: SIMD256>(
+    s: S,
+    a: V256,
+    b: V256,
+    c: V256,
+    f: impl Fn(S, V128, V128, V128) -> V128,
+) -> V256 {
+    let a = a.to_v128x2();
+    let b = b.to_v128x2();
+    let c = c.to_v128x2();
+    let d = (f(s, a.0, b.0, c.0), f(s, a.1, b.1, c.1));
+    V256::from_v128x2(d)
+}
+
 pub unsafe trait SIMD256: SIMD128 {
     #[inline(always)]
     unsafe fn v256_load(self, addr: *const u8) -> V256 {
@@ -1092,6 +1107,21 @@ pub unsafe trait SIMD256: SIMD128 {
         {
             let _ = (a, b);
             unreachable!()
+        }
+    }
+
+    /// if highbit(c) { b } else { a }
+    #[inline(always)]
+    fn u8x32_blendv(self, a: V256, b: V256, c: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_blendv_epi8(t(a), t(b), t(c))) };
+        }
+        if is_subtype!(Self, NEON | WASM128) {
+            unimplemented!()
+        }
+        {
+            simd256_vop3(self, a, b, c, Self::u8x16_blendv)
         }
     }
 }
