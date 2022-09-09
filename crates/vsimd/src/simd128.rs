@@ -1,4 +1,3 @@
-use crate::common::bswap;
 use crate::{InstructionSet, SSE41, V128, WASM128};
 
 #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
@@ -1244,7 +1243,7 @@ pub unsafe trait SIMD128: InstructionSet {
     #[inline(always)]
     fn u16x8_bswap(self, a: V128) -> V128 {
         if is_subtype!(Self, SSE41 | WASM128) {
-            return self.u8x16_swizzle(a, bswap::SHUFFLE_U16X8);
+            return self.u8x16_swizzle(a, crate::bswap::SHUFFLE_U16X8);
         }
 
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
@@ -1260,7 +1259,7 @@ pub unsafe trait SIMD128: InstructionSet {
     #[inline(always)]
     fn u32x4_bswap(self, a: V128) -> V128 {
         if is_subtype!(Self, SSE41 | WASM128) {
-            return self.u8x16_swizzle(a, bswap::SHUFFLE_U32X4);
+            return self.u8x16_swizzle(a, crate::bswap::SHUFFLE_U32X4);
         }
 
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
@@ -1277,7 +1276,7 @@ pub unsafe trait SIMD128: InstructionSet {
     #[inline(always)]
     fn u64x2_bswap(self, a: V128) -> V128 {
         if is_subtype!(Self, SSE41 | WASM128) {
-            return self.u8x16_swizzle(a, bswap::SHUFFLE_U64X2);
+            return self.u8x16_swizzle(a, crate::bswap::SHUFFLE_U64X2);
         }
 
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]

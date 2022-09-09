@@ -1,4 +1,4 @@
-use crate::common::mask::mask8x32_any;
+use crate::mask::mask8x32_any;
 use crate::scalar::align32;
 use crate::tools::{is_same_type, read, unroll};
 use crate::{AVX2, SIMD256, SSE41, V256, WASM128};

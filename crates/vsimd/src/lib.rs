@@ -41,8 +41,6 @@ pub use self::simd256::*;
 pub mod scalar;
 pub mod tools;
 
-pub mod common {
-    pub mod ascii;
-    pub mod bswap;
-    pub mod mask;
-}
+pub mod ascii;
+pub mod bswap;
+pub mod mask;

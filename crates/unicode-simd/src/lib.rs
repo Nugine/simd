@@ -37,7 +37,7 @@ use vsimd::tools::slice_mut;
 #[inline]
 #[must_use]
 pub fn is_ascii_ct(data: &[u8]) -> bool {
-    vsimd::common::ascii::multiversion::is_ascii_ct::auto_indirect(data)
+    vsimd::ascii::multiversion::is_ascii_ct::auto_indirect(data)
 }
 
 /// TODO: test, bench
