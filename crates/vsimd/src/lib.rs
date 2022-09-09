@@ -42,6 +42,7 @@ pub mod scalar;
 pub mod tools;
 
 pub mod ascii;
+pub mod base32;
 pub mod bswap;
 pub mod hex;
 pub mod mask;
