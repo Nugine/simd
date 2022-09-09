@@ -1,7 +1,7 @@
 use crate::error::Error;
-use crate::sa_ascii::AsciiCase;
 
-use simd_abstraction::simd_dispatch;
+use vsimd::ascii::AsciiCase;
+use vsimd::simd_dispatch;
 
 simd_dispatch!(
     name        = parse_simple_raw,

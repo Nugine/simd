@@ -15,6 +15,7 @@
 )]
 #![warn(clippy::todo)]
 
+#[macro_use]
 mod error;
 pub use self::error::Error;
 
@@ -29,22 +30,17 @@ mod multiversion;
 mod tests;
 
 #[cfg(feature = "uuid")]
-simd_abstraction::item_group! {
+vsimd::item_group! {
     mod ext;
     pub use self::ext::*;
 }
 
-pub(crate) use simd_abstraction::common::ascii as sa_ascii;
-pub(crate) use simd_abstraction::common::hex as sa_hex;
-
 pub use outref::OutRef;
-pub use sa_ascii::AsciiCase;
+pub use vsimd::ascii::AsciiCase;
 
 // -------------------------------------------------------------------------------------------------
 
-use crate::error::ERROR;
-
-use simd_abstraction::tools::read;
+use vsimd::tools::read;
 
 /// Parses an UUID from arbitrary bytes.
 ///
@@ -72,14 +68,12 @@ pub fn parse<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d
             // Microsoft GUID
             38 => {
                 let src = src.as_ptr();
-                if read(src, 0) != b'{' || read(src, 37) != b'}' {
-                    return Err(ERROR);
-                }
+                ensure!(read(src, 0) == b'{' && read(src, 37) == b'}');
                 src.add(1)
             }
             // URN prefixed UUID
-            45 => src.strip_prefix(b"urn:uuid:").ok_or(ERROR)?.as_ptr(),
-            _ => return Err(ERROR),
+            45 => src.strip_prefix(b"urn:uuid:").ok_or_else(Error::new)?.as_ptr(),
+            _ => return Err(Error::new()),
         };
         let dst = dst.as_mut_ptr().cast::<u8>();
         crate::multiversion::parse_hyphenated_raw::auto_indirect(src, dst)?;
@@ -96,9 +90,7 @@ pub fn parse<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d
 /// + The content of `src` is invalid.
 #[inline]
 pub fn parse_simple<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error> {
-    if src.len() != 32 {
-        return Err(ERROR);
-    }
+    ensure!(src.len() == 32);
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
@@ -116,9 +108,7 @@ pub fn parse_simple<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Res
 /// + The content of `src` is invalid.
 #[inline]
 pub fn parse_hyphenated<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error> {
-    if src.len() != 36 {
-        return Err(ERROR);
-    }
+    ensure!(src.len() == 36);
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();

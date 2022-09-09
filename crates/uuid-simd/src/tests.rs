@@ -1,6 +1,4 @@
-use crate::error::Error;
-use crate::sa_ascii::AsciiCase;
-use crate::OutRef;
+use crate::{AsciiCase, Error, OutRef};
 
 fn ok_cases() -> &'static [(&'static str, &'static str)] {
     const A1: &str = "67e5504410b1426f9247bb680e5fe0c8";

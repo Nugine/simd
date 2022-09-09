@@ -1,10 +1,8 @@
-use crate::sa_ascii::AsciiCase;
-use crate::sa_hex;
-use crate::spec::SIMDExt;
+use crate::spec::*;
 
-use simd_abstraction::isa::SimdLoad;
-use simd_abstraction::scalar::Bytes32;
-use simd_abstraction::tools::{read, write};
+use vsimd::ascii::AsciiCase;
+use vsimd::tools::{read, write};
+use vsimd::{SIMD256, V256};
 
 #[inline(always)]
 const fn char_lut_fallback(case: AsciiCase) -> &'static [u8; 16] {
@@ -18,10 +16,10 @@ const fn char_lut_fallback(case: AsciiCase) -> &'static [u8; 16] {
 }
 
 #[inline(always)]
-const fn char_lut_simd(case: AsciiCase) -> &'static Bytes32 {
+const fn char_lut_simd(case: AsciiCase) -> V256 {
     match case {
-        AsciiCase::Lower => sa_hex::ENCODE_LOWER_LUT,
-        AsciiCase::Upper => sa_hex::ENCODE_UPPER_LUT,
+        AsciiCase::Lower => vsimd::hex::ENCODE_LOWER_LUT,
+        AsciiCase::Upper => vsimd::hex::ENCODE_UPPER_LUT,
     }
 }
 
@@ -38,11 +36,11 @@ pub unsafe fn format_simple_fallback(src: *const u8, dst: *mut u8, case: AsciiCa
 }
 
 #[inline]
-pub unsafe fn format_simple_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
-    let lut = s.load(char_lut_simd(case));
-    let a = s.v128_load_unaligned(src);
-    let ans = sa_hex::encode_u8x16(s, a, lut);
-    s.v256_store_unaligned(dst, ans);
+pub unsafe fn format_simple_simd<S: SIMD256>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
+    let lut = char_lut_simd(case);
+    let x = s.v128_load_unaligned(src);
+    let y = vsimd::hex::encode_bytes16(s, x, lut);
+    s.v256_store_unaligned(dst, y);
 }
 
 #[inline]
@@ -67,30 +65,31 @@ pub unsafe fn format_hyphenated_fallback(src: *const u8, dst: *mut u8, case: Asc
 }
 
 #[inline]
-pub unsafe fn format_hyphenated_simd<S: SIMDExt>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
-    const SWIZZLE: &Bytes32 = &Bytes32([
+pub unsafe fn format_hyphenated_simd<S: SIMD256>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
+    const SWIZZLE: V256 = V256::from_bytes([
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, //
         0x80, 0x08, 0x09, 0x0a, 0x0b, 0x80, 0x0c, 0x0d, //
         0x80, 0x80, 0x80, 0x00, 0x01, 0x02, 0x03, 0x80, //
         0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, //
     ]);
 
-    const DASH: &Bytes32 = &Bytes32([
+    const DASH: V256 = V256::from_bytes([
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
         0x2d, 0x00, 0x00, 0x00, 0x00, 0x2d, 0x00, 0x00, //
         0x00, 0x00, 0x2d, 0x00, 0x00, 0x00, 0x00, 0x2d, //
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
     ]);
 
-    let lut = s.load(char_lut_simd(case));
-    let a = sa_hex::encode_u8x16(s, s.v128_load_unaligned(src), lut);
+    let lut = char_lut_simd(case);
+    let a = vsimd::hex::encode_bytes16(s, s.v128_load_unaligned(src), lut);
 
-    let a1 = s.u8x16x2_swizzle(a, s.load(SWIZZLE));
-    let a2 = s.v256_or(a1, s.load(DASH));
+    let a1 = s.u8x16x2_swizzle(a, SWIZZLE);
+    let a2 = s.v256_or(a1, DASH);
     s.v256_store_unaligned(dst, a2);
 
-    let bytes_14_15 = s.i16x8_get_lane7(s.v256_get_low(a)) as u16;
-    let bytes_28_31 = s.i32x4_get_lane3(s.v256_get_high(a)) as u32;
+    let a = a.to_v128x2();
+    let bytes_14_15 = i16x8_get_lane7(s, a.0) as u16;
+    let bytes_28_31 = i32x4_get_lane3(s, a.1) as u32;
     core::ptr::write_unaligned(dst.add(16).cast(), bytes_14_15);
     core::ptr::write_unaligned(dst.add(32).cast(), bytes_28_31);
 }
