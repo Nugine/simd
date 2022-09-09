@@ -1,6 +1,4 @@
-use crate::sa_ascii::AsciiCase;
-use crate::Error;
-use crate::OutRef;
+use crate::{AsciiCase, Error, OutRef};
 
 #[test]
 fn test_str() {

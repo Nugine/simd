@@ -32,6 +32,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+#[macro_use]
 mod error;
 pub use self::error::Error;
 
@@ -44,23 +45,18 @@ mod multiversion;
 #[cfg(test)]
 mod tests;
 
-pub(crate) use simd_abstraction::common::ascii as sa_ascii;
-pub(crate) use simd_abstraction::common::hex as sa_hex;
-
 pub use outref::OutRef;
-pub use sa_ascii::AsciiCase;
+pub use vsimd::ascii::AsciiCase;
 
 // -------------------------------------------------------------------------------------------------
 
-use self::error::ERROR;
-
-use simd_abstraction::item_group;
-use simd_abstraction::tools::slice_mut;
+use vsimd::item_group;
+use vsimd::tools::slice_mut;
 
 #[cfg(feature = "alloc")]
 item_group! {
     use alloc::boxed::Box;
-    use simd_abstraction::tools::{alloc_uninit_bytes, assume_init};
+    use vsimd::tools::{alloc_uninit_bytes, assume_init};
 }
 
 /// Checks whether `data` is a hex string.
@@ -94,9 +90,7 @@ pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>, case: AsciiCase)
 /// This function will panic if the length of `dst` is not enough.
 #[inline]
 pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error> {
-    if src.len() % 2 != 0 {
-        return Err(ERROR);
-    }
+    ensure!(src.len() % 2 == 0);
     assert!(dst.len() >= src.len() / 2);
 
     let len = src.len();
@@ -114,11 +108,9 @@ pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mu
 /// This function returns `Err` if the content of `data` is invalid.
 #[inline]
 pub fn decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
-    let len = data.len();
-    if len % 2 != 0 {
-        return Err(ERROR);
-    }
+    ensure!(data.len() % 2 == 0);
     unsafe {
+        let len = data.len();
         let dst: *mut u8 = data.as_mut_ptr();
         let src: *const u8 = dst;
         crate::multiversion::decode::auto_indirect(src, len, dst)?;
@@ -176,11 +168,9 @@ pub fn decode_to_boxed_bytes(data: &[u8]) -> Result<Box<[u8]>, Error> {
         return Ok(Box::from([]));
     }
 
-    unsafe {
-        if data.len() % 2 != 0 {
-            return Err(ERROR);
-        }
+    ensure!(data.len() % 2 == 0);
 
+    unsafe {
         let mut uninit_buf = alloc_uninit_bytes(data.len() / 2);
 
         let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();

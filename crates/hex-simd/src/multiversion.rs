@@ -1,9 +1,8 @@
 #![allow(missing_docs)]
 
-use crate::sa_ascii::AsciiCase;
-use crate::Error;
+use crate::{AsciiCase, Error};
 
-use simd_abstraction::simd_dispatch;
+use vsimd::simd_dispatch;
 
 simd_dispatch!(
     name        = check,

@@ -1,7 +1,8 @@
-use crate::sa_hex::{self, unhex};
+use vsimd::hex::unhex;
+use vsimd::scalar::align32;
+use vsimd::SIMD256;
 
-use simd_abstraction::isa::{SimdLoad, SIMD256};
-use simd_abstraction::scalar::align32;
+use core::ops::Not;
 
 #[inline]
 pub fn check_fallback(data: &[u8]) -> bool {
@@ -23,18 +24,15 @@ pub fn check_fallback(data: &[u8]) -> bool {
 pub fn check_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
     let (prefix, middle, suffix) = align32(data);
 
-    if !check_fallback(prefix) {
+    if check_fallback(prefix).not() {
         return false;
     }
 
-    for chunk in middle {
-        if !sa_hex::check_u8x32(s, s.load(chunk)) {
+    for &chunk in middle {
+        if vsimd::hex::check_ascii32(s, chunk).not() {
             return false;
         }
     }
 
-    if !check_fallback(suffix) {
-        return false;
-    }
-    true
+    check_fallback(suffix)
 }

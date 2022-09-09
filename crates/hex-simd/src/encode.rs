@@ -1,9 +1,7 @@
-use crate::sa_ascii::AsciiCase;
-use crate::sa_hex::{self, SIMDExt};
+use crate::AsciiCase;
 
-use simd_abstraction::isa::SimdLoad;
-use simd_abstraction::scalar::align16;
-use simd_abstraction::tools::read;
+use vsimd::tools::read;
+use vsimd::SIMD256;
 
 const fn full_table(table: &[u8; 16]) -> [u16; 256] {
     let mut buf = [0; 256];
@@ -25,41 +23,55 @@ const FULL_UPPER_TABLE: &[u16; 256] = &full_table(UPPER_TABLE);
 
 #[inline(always)]
 pub unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
-    let (n, src) = (src.len(), src.as_ptr());
     let table = match case {
         AsciiCase::Lower => FULL_LOWER_TABLE.as_ptr(),
         AsciiCase::Upper => FULL_UPPER_TABLE.as_ptr(),
     };
-    for i in 0..n {
-        let x = read(src, i);
+    let (mut src, len) = (src.as_ptr(), src.len());
+    let end = src.add(len);
+    while src < end {
+        let x = src.read();
         let y = read(table, x as usize);
         dst.cast::<u16>().write_unaligned(y);
+        src = src.add(1);
         dst = dst.add(2);
     }
 }
 
 #[inline(always)]
-pub unsafe fn encode_simd<S: SIMDExt>(s: S, src: &[u8], dst: *mut u8, case: AsciiCase) {
-    let simd_lut = match case {
-        AsciiCase::Lower => sa_hex::ENCODE_LOWER_LUT,
-        AsciiCase::Upper => sa_hex::ENCODE_UPPER_LUT,
+pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: AsciiCase) {
+    let lut = match case {
+        AsciiCase::Lower => vsimd::hex::ENCODE_LOWER_LUT,
+        AsciiCase::Upper => vsimd::hex::ENCODE_UPPER_LUT,
     };
-    let mut cur: *mut u8 = dst;
-    let (prefix, middle, suffix) = align16(src);
 
-    if !prefix.is_empty() {
-        encode_fallback(prefix, cur, case);
-        cur = cur.add(prefix.len() * 2);
+    let (mut src, mut len) = (src.as_ptr(), src.len());
+
+    while len >= 32 {
+        let x = s.v256_load_unaligned(src);
+        let (y1, y2) = vsimd::hex::encode_bytes32(s, x, lut);
+
+        s.v256_store_unaligned(dst, y1);
+        dst = dst.add(32);
+
+        s.v256_store_unaligned(dst, y2);
+        dst = dst.add(32);
+
+        src = src.add(32);
+        len -= 32;
     }
 
-    let lut = s.load(simd_lut);
-    for chunk in middle {
-        let ans = sa_hex::encode_u8x16(s, s.load(chunk), lut);
-        s.v256_store_unaligned(cur, ans);
-        cur = cur.add(32);
+    if len >= 16 {
+        let x = s.v128_load_unaligned(src);
+        let y = vsimd::hex::encode_bytes16(s, x, lut);
+        s.v256_store_unaligned(dst, y);
+        dst = dst.add(32);
+        src = src.add(16);
+        len -= 16;
     }
 
-    if !suffix.is_empty() {
-        encode_fallback(suffix, cur, case);
+    if len > 0 {
+        let suffix = core::slice::from_raw_parts(src, len);
+        encode_fallback(suffix, dst, case);
     }
 }
