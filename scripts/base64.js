@@ -1,8 +1,6 @@
 const now = (() => {
-    // https://github.com/evanwashere/mitata/blob/master/src/time.mjs
-
     if ("Deno" in globalThis) {
-        return () => (Deno.core.opSync("op_now") * 1e6);
+        return () => (performance.now() * 1e6);
     }
     if ("Bun" in globalThis) {
         return Bun.nanoseconds;
