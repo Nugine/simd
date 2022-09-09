@@ -42,7 +42,7 @@ macro_rules! simd_dispatch {
 
             use super::*;
 
-            use $crate::isa::InstructionSet;
+            use $crate::InstructionSet;
 
             const _: $(for<$($lifetime),+>)? $($unsafe)? fn($($arg_type),*) -> $ret = $($fallback_fn)+;
 
