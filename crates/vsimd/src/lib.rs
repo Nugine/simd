@@ -43,4 +43,5 @@ pub mod tools;
 
 pub mod ascii;
 pub mod bswap;
+pub mod hex;
 pub mod mask;
