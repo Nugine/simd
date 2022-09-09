@@ -46,3 +46,4 @@ pub mod base32;
 pub mod bswap;
 pub mod hex;
 pub mod mask;
+pub mod table;
