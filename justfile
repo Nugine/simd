@@ -7,9 +7,35 @@ doc:
 
 x86-bench *ARGS:
     #!/bin/bash -ex
-    cd {{invocation_directory()}}
+    cd {{justfile_directory()}}
+    cd crates/simd-benches
+
+    COMMIT_HASH=`git rev-parse --short HEAD`
+    
     export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1"
-    time cargo criterion {{ARGS}}
+    cargo build --benches --release
+    
+    declare -a benches
+    benches[0]="uuid"
+    benches[1]="hex"
+    benches[2]="base64"
+    
+    for bench in "${benches[@]}"
+    do
+        cargo bench --bench "$bench" -- --save-baseline "$bench-$COMMIT_HASH" {{ARGS}}
+    done
+
+critcmp:
+    #!/bin/bash -ex
+    COMMIT_HASH=`git rev-parse --short HEAD`
+    mkdir -p target/critcmp
+    critcmp -g '.+?/.+?/.+?/(.+)'  --color always "uuid-$COMMIT_HASH"   -f uuid-simd-parse      > "target/critcmp/uuid-$COMMIT_HASH-parse.ansi"  
+    critcmp -g '.+?/.+?/.+?/(.+)'  --color always "uuid-$COMMIT_HASH"   -f uuid-simd-format     > "target/critcmp/uuid-$COMMIT_HASH-format.ansi"  
+    critcmp -g '.+?/.+?/.+?/(.+)'  --color always "hex-$COMMIT_HASH"    -f hex-simd-check       > "target/critcmp/hex-$COMMIT_HASH-check.ansi"
+    critcmp -g '.+?/.+?/.+?/(.+)'  --color always "hex-$COMMIT_HASH"    -f hex-simd-encode      > "target/critcmp/hex-$COMMIT_HASH-encode.ansi"   
+    critcmp -g '.+?/.+?/.+?/(.+)'  --color always "hex-$COMMIT_HASH"    -f hex-simd-decode      > "target/critcmp/hex-$COMMIT_HASH-decode.ansi"
+    critcmp -g '.+?/.+?/.+?/(.+)'  --color always "base64-$COMMIT_HASH" -f base64-simd-encode   > "target/critcmp/base64-$COMMIT_HASH-encode.ansi"
+    critcmp -g '.+?/.+?/.+?/(.+)'  --color always "base64-$COMMIT_HASH" -f base64-simd-decode   > "target/critcmp/base64-$COMMIT_HASH-decode-ansi"
 
 js-bench:
     #!/bin/bash -e
