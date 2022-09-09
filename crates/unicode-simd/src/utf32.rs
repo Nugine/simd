@@ -1,6 +1,6 @@
-use simd_abstraction::isa::{SimdLoad, SIMD256};
-use simd_abstraction::scalar::align32;
-use simd_abstraction::tools::unroll;
+use vsimd::scalar::align32;
+use vsimd::tools::unroll;
+use vsimd::SIMD256;
 
 /// See [`char::from_u32`]
 #[inline]
@@ -21,8 +21,7 @@ pub fn is_utf32le_ct_simd<S: SIMD256>(s: S, data: &[u32]) -> bool {
     {
         let mut y = s.u32x8_splat(0);
 
-        unroll(middle, 8, |chunk| {
-            let x = s.load(chunk);
+        unroll(middle, 8, |&x| {
             let a1 = s.v256_xor(x, s.u32x8_splat(0xD800));
             let a2 = s.u32x8_sub(a1, s.u32x8_splat(0x800));
             y = s.u32x8_max(y, a2);
@@ -39,10 +38,10 @@ pub fn is_utf32le_ct_simd<S: SIMD256>(s: S, data: &[u32]) -> bool {
 
 #[inline]
 pub unsafe fn utf32_swap_endianness_fallback(src: *const u32, len: usize, dst: *mut u32) {
-    crate::sa_bswap::bswap_fallback(src, len, dst)
+    vsimd::common::bswap::bswap_fallback(src, len, dst)
 }
 
 #[inline]
 pub unsafe fn utf32_swap_endianness_simd<S: SIMD256>(s: S, src: *const u32, len: usize, dst: *mut u32) {
-    crate::sa_bswap::bswap_simd(s, src, len, dst)
+    vsimd::common::bswap::bswap_simd(s, src, len, dst)
 }

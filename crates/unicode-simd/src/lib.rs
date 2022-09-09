@@ -21,14 +21,11 @@ mod utf32;
 
 mod multiversion;
 
-pub(crate) use simd_abstraction::common::ascii as sa_ascii;
-pub(crate) use simd_abstraction::common::bswap as sa_bswap;
-
 pub use outref::OutRef;
 
 // ------------------------------------------------------------------------------------------------
 
-use simd_abstraction::tools::slice_mut;
+use vsimd::tools::slice_mut;
 
 /// Checks if `data` is a valid ASCII string, in constant-time.
 ///
@@ -40,7 +37,7 @@ use simd_abstraction::tools::slice_mut;
 #[inline]
 #[must_use]
 pub fn is_ascii_ct(data: &[u8]) -> bool {
-    sa_ascii::multiversion::is_ascii_ct::auto_indirect(data)
+    vsimd::common::ascii::multiversion::is_ascii_ct::auto_indirect(data)
 }
 
 /// TODO: test, bench

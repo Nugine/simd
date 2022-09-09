@@ -16,14 +16,14 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["std", "detect"]
-alloc = ["simd-abstraction/alloc"]
-std = ["alloc", "simd-abstraction/std"]
-detect = ["simd-abstraction/detect"]
-unstable = ["simd-abstraction/unstable"]
+alloc = ["vsimd/alloc"]
+std = ["alloc", "vsimd/std"]
+detect = ["vsimd/detect"]
+unstable = ["vsimd/unstable"]
 
 [dependencies]
 outref = "0.2.0"
-simd-abstraction = { path = "../simd-abstraction", version = "0.8.0" }
+vsimd = { path = "../vsimd", version = "0.0.1" }
 
 [dev-dependencies]
 rand = "0.8.5"

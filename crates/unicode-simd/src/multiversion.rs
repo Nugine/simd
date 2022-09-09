@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-use simd_abstraction::simd_dispatch;
+use vsimd::simd_dispatch;
 
 simd_dispatch!(
     name        = is_utf32le_ct,
