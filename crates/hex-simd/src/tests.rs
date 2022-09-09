@@ -1,5 +1,13 @@
 use crate::{AsciiCase, Error, OutRef};
 
+use rand::RngCore;
+
+fn rand_bytes(n: usize) -> Vec<u8> {
+    let mut bytes = vec![0u8; n];
+    rand::thread_rng().fill_bytes(&mut bytes);
+    bytes
+}
+
 #[test]
 fn test_str() {
     use core::mem::MaybeUninit;
@@ -122,7 +130,7 @@ fn safety_unit_test(
             test_decode_inplace_encode!(src, AsciiCase::Lower);
         } else {
             test_encode_decode!(src, AsciiCase::Upper);
-            test_encode_decode_inplace!(src, AsciiCase::Upper);
+            test_encode_decode_inplace!(src, AsciiCase::Lower);
         }
     }
 
@@ -132,6 +140,14 @@ fn safety_unit_test(
         let mut buf = vec![0; src.len() / 2];
         let buf = OutRef::new(&mut *buf);
         assert!(decode(src, buf).is_err(), "src = {src:?}");
+    }
+
+    for n in 0..256 {
+        dbgmsg!("rand case n = {}", n);
+        let bytes = rand_bytes(n);
+        let src = bytes.as_slice();
+        test_encode_decode!(src, AsciiCase::Lower);
+        test_encode_decode_inplace!(src, AsciiCase::Upper);
     }
 }
 
