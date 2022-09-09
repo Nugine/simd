@@ -1,26 +1,20 @@
-use crate::mask::{mask8x16_all, mask8x32_all};
+use crate::mask::{mask8x16_all, mask8x32_all, u8x32_highbit_any};
+use crate::table::u8x16x2_lookup;
 use crate::{AVX2, NEON, SIMD128, SIMD256, SSE41, V128, V256, WASM128};
 
-use core::ops::Not;
+const fn parse_hex(x: u8) -> u8 {
+    match x {
+        b'0'..=b'9' => x - b'0',
+        b'a'..=b'f' => x - b'a' + 10,
+        b'A'..=b'F' => x - b'A' + 10,
+        _ => 0xff,
+    }
+}
 
 #[inline(always)]
 #[must_use]
 pub const fn unhex(x: u8) -> u8 {
-    const UNHEX_TABLE: &[u8; 256] = &{
-        let mut buf = [0; 256];
-        let mut i: usize = 0;
-        while i < 256 {
-            let x = i as u8;
-            buf[i] = match x {
-                b'0'..=b'9' => x - b'0',
-                b'a'..=b'f' => x - b'a' + 10,
-                b'A'..=b'F' => x - b'A' + 10,
-                _ => 0xff,
-            };
-            i += 1
-        }
-        buf
-    };
+    const UNHEX_TABLE: &[u8; 256] = &u8x256!(parse_hex);
     UNHEX_TABLE[x as usize]
 }
 
@@ -76,60 +70,45 @@ pub fn encode_bytes32<S: SIMD256>(s: S, x: V256, lut: V256) -> (V256, V256) {
     (y1, y2)
 }
 
-#[inline(always)]
-fn split_hilo<S: SIMD256>(s: S, x: V256) -> (V256, V256) {
-    let m = s.u8x32_splat(0x0f);
-    let hi = s.v256_and(s.u16x16_shr::<4>(x), m);
-    let lo = s.v256_and(x, m);
-    (hi, lo)
+const fn gen_hash(i: u8) -> u8 {
+    assert!(i < 16);
+    let x: u8 = match i {
+        0 => 11,
+        1..=6 => 1,
+        7..=9 => 6,
+        0xA..=0xF => 12,
+        _ => unreachable!(),
+    };
+    (x << 1).wrapping_sub(1)
 }
 
-#[inline(always)]
-fn check_hilo<S: SIMD256>(s: S, (hi, lo): (V256, V256)) -> bool {
-    //  '0'~'9'     0x3     0~9     0x0f
-    //  'A'~'F'     0x4     1~6     0xf0
-    //  'a'~'f'     0x6     1~6     0xf0
-    //  ...                         0x00
-
-    const HI_LUT: V256 = V256::double_bytes([
-        0x00, 0x00, 0x00, 0x0f, 0xf0, 0x00, 0xf0, 0x00, // [3] = 0x0f, [4,6] = 0xf0
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // [others] = 0x00
-    ]);
-    const LI_LUT: V256 = V256::double_bytes([
-        0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, // [0~9] = 0x?f, [1~6] = 0xf?
-        0x0f, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // [others] = 0x00
-    ]);
-
-    let hi_flag = s.u8x16x2_swizzle(HI_LUT, hi);
-    let lo_flag = s.u8x16x2_swizzle(LI_LUT, lo);
-    let flag = s.v256_and(hi_flag, lo_flag);
-    !s.u8x32_any_zero(flag)
+const fn gen_check_offset(i: u8) -> u8 {
+    assert!(i < 16);
+    let x: i8 = match i {
+        0x0E => -0x30,
+        0x04 => -0x31,
+        0x09 => -0x37,
+        0x05 => -0x41,
+        0x07 => -0x61,
+        _ => -128,
+    };
+    x as u8
 }
 
-#[inline(always)]
-fn decode_hilo<S: SIMD256>(s: S, (hi, lo): (V256, V256)) -> V256 {
-    //  '0'     0x30    +0
-    //  'A'     0x41    +9
-    //  'a'     0x61    +9
-
-    const OFFSET_LUT: V256 = V256::double_bytes([
-        0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x09, 0x00, // [4,6] = 9
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // [others] = 0
-    ]);
-
-    let offset = s.u8x16x2_swizzle(OFFSET_LUT, hi);
-    let x = s.u8x32_add(lo, offset);
-    // x:   {0000hhhh|0000llll}x16
-
-    let x1 = s.u16x16_shl::<4>(x);
-    // x1:  {hhhh0000|llll0000}x16
-
-    let x2 = s.u16x16_shr::<12>(x1);
-    // x2:  {0000llll|00000000}x16
-
-    s.v256_or(x1, x2)
-    //      {hhhhllll|llll0000}x16
+const fn gen_decode_offset(i: u8) -> u8 {
+    assert!(i < 16);
+    let x: i8 = match i {
+        0x0E | 0x04 | 0x09 => -0x30,
+        0x05 => 10 - 0x41,
+        0x07 => 10 - 0x61,
+        _ => 0,
+    };
+    x as u8
 }
+
+const HASH: V256 = V256::double_bytes(u8x16!(gen_hash));
+const CHECK_OFFSET: V256 = V256::double_bytes(u8x16!(gen_check_offset));
+const DECODE_OFFSET: V256 = V256::double_bytes(u8x16!(gen_decode_offset));
 
 const DECODE_UZP1: V256 = V256::double_bytes([
     0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, //
@@ -141,75 +120,85 @@ const DECODE_UZP2: V256 = V256::double_bytes([
     0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, //
 ]);
 
+#[inline(always)]
+fn decode<S: SIMD256>(s: S, x: V256) -> (V256, V256) {
+    let h = s.u8x32_avgr(s.u32x8_shr::<3>(x), u8x16x2_lookup(s, HASH, x));
+
+    let o1 = u8x16x2_lookup(s, CHECK_OFFSET, h);
+    let o2 = u8x16x2_lookup(s, DECODE_OFFSET, h);
+
+    let c1 = s.i8x32_add_sat(x, o1);
+    let c2 = s.u8x32_add(x, o2);
+
+    let b1 = s.u16x16_shl::<4>(c2);
+    let b2 = s.u16x16_shr::<12>(b1);
+    (s.v256_or(b1, b2), c1)
+}
+
 #[allow(clippy::result_unit_err)]
 #[inline(always)]
 pub fn decode_ascii32<S: SIMD256>(s: S, x: V256) -> Result<V128, ()> {
-    let t = split_hilo(s, x);
+    let (y, is_invalid) = decode(s, x);
 
-    if check_hilo(s, t).not() {
-        return Err(());
-    }
-
-    let y = decode_hilo(s, t);
-
-    if is_subtype!(S, SSE41 | WASM128) {
+    let ans = if is_subtype!(S, SSE41 | WASM128) {
         let (a, b) = s.u8x16x2_swizzle(y, DECODE_UZP1).to_v128x2();
-        return Ok(s.u64x2_zip_lo(a, b));
-    }
-
-    if is_subtype!(S, NEON) {
+        s.u64x2_zip_lo(a, b)
+    } else if is_subtype!(S, NEON) {
         let (a, b) = y.to_v128x2();
-        return Ok(s.u8x16_unzip_even(a, b));
-    }
-
-    {
+        s.u8x16_unzip_even(a, b)
+    } else {
         unreachable!()
+    };
+
+    if u8x32_highbit_any(s, is_invalid) {
+        Err(())
+    } else {
+        Ok(ans)
     }
 }
 
 #[allow(clippy::result_unit_err)]
 #[inline(always)]
 pub fn decode_ascii32x2<S: SIMD256>(s: S, x: (V256, V256)) -> Result<V256, ()> {
-    let (t1, t2) = (split_hilo(s, x.0), split_hilo(s, x.1));
+    let (y1, is_invalid1) = decode(s, x.0);
+    let (y2, is_invalid2) = decode(s, x.1);
+    let is_invalid = s.v256_or(is_invalid1, is_invalid2);
 
-    if check_hilo(s, t1).not() || check_hilo(s, t2).not() {
-        return Err(());
-    }
-
-    let (y1, y2) = (decode_hilo(s, t1), decode_hilo(s, t2));
-
-    if is_subtype!(S, AVX2) {
+    let ans = if is_subtype!(S, AVX2) {
         let ab = s.u8x16x2_swizzle(y1, DECODE_UZP1);
         let cd = s.u8x16x2_swizzle(y2, DECODE_UZP2);
         let acbd = s.v256_or(ab, cd);
-        let abcd = s.u64x4_permute::<0b11011000>(acbd); // 0213
-        return Ok(abcd);
-    }
-
-    if is_subtype!(S, SSE41 | WASM128) {
+        s.u64x4_permute::<0b11011000>(acbd) // 0213
+    } else if is_subtype!(S, SSE41 | WASM128) {
         let ab = s.u8x16x2_swizzle(y1, DECODE_UZP1);
         let cd = s.u8x16x2_swizzle(y2, DECODE_UZP1);
-        return Ok(s.u64x4_unzip_even(ab, cd));
-    }
-
-    if is_subtype!(S, NEON) {
-        return Ok(s.u8x32_unzip_even(y1, y2));
-    }
-
-    {
+        s.u64x4_unzip_even(ab, cd)
+    } else if is_subtype!(S, NEON) {
+        s.u8x32_unzip_even(y1, y2)
+    } else {
         unreachable!()
+    };
+
+    if u8x32_highbit_any(s, is_invalid) {
+        Err(())
+    } else {
+        Ok(ans)
     }
 }
 
 #[cfg(test)]
-mod tests {
-    #[ignore] // algorithm checker
-    #[test]
-    fn hex_check() {
-        fn is_hex_v1(c: u8) -> bool {
-            matches!(c, b'0'..=b'9'|b'a'..=b'f'|b'A'..=b'F')
-        }
+mod algorithm {
+    use super::{gen_check_offset, gen_decode_offset, gen_hash, parse_hex};
 
+    use crate::algorithm::*;
+
+    fn is_hex(c: u8) -> bool {
+        matches!(c, b'0'..=b'9'|b'a'..=b'f'|b'A'..=b'F')
+    }
+
+    #[ignore]
+    #[test]
+    fn check() {
         fn is_hex_v2(c: u8) -> bool {
             let x1 = c.wrapping_sub(0x30);
             let x2 = (x1 & 0xdf).wrapping_sub(0x11);
@@ -222,24 +211,48 @@ mod tests {
             ((x1 as i8) < -118) || ((x2 as i8) < -122)
         }
 
-        fn is_hex_v4(c: u8) -> bool {
-            let hi_lut = &[
-                0x00, 0x00, 0x00, 0x0f, 0xf0, 0x00, 0xf0, 0x00, //
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
-            ];
-            let lo_lut = &[
-                0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f, //
-                0x0f, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
-            ];
-            let (hi, lo) = (c >> 4, c & 0x0f);
-            (hi_lut[hi as usize] & lo_lut[lo as usize]) != 0
-        }
-
         for c in 0..=255_u8 {
-            let (v1, v2, v3, v4) = (is_hex_v1(c), is_hex_v2(c), is_hex_v3(c), is_hex_v4(c));
+            let (v1, v2, v3) = (is_hex(c), is_hex_v2(c), is_hex_v3(c));
             assert_eq!(v1, v2);
             assert_eq!(v1, v3);
-            assert_eq!(v1, v4);
+        }
+    }
+
+    #[ignore]
+    #[test]
+    fn decode() {
+        let hash = &u8x16!(gen_hash);
+        let check_offset = &u8x16!(gen_check_offset);
+        let decode_offset = &u8x16!(gen_decode_offset);
+
+        let h = |c: u8| avgr(c >> 3, lookup(hash, c));
+
+        let check = |c: u8| {
+            let h = h(c);
+            let o = lookup(check_offset, h);
+            (c as i8).saturating_add(o as i8) as u8
+        };
+
+        let decode = |c: u8| {
+            let h = h(c);
+            let c1 = check(c);
+            let o2 = lookup(decode_offset, h);
+            let c2 = c.wrapping_add(o2);
+            if c1 < 0x80 {
+                c2
+            } else {
+                0xff
+            }
+        };
+
+        print_fn_table(is_hex, h);
+        print_fn_table(is_hex, check);
+        print_fn_table(is_hex, decode);
+
+        for c in 0..=255u8 {
+            let val = decode(c);
+            let idx = parse_hex(c);
+            assert_eq!(val, idx);
         }
     }
 }
