@@ -1,6 +1,6 @@
 use simd_benches::rand_bytes;
 
-use criterion::{black_box, criterion_group, criterion_main};
+use criterion::{black_box, criterion_group, criterion_main, AxisScale, PlotConfiguration};
 use criterion::{Bencher, BenchmarkId, Criterion, Throughput};
 
 use hex_simd::{AsciiCase, OutRef};
@@ -15,6 +15,7 @@ fn gen_hex_chars(len: usize) -> Vec<u8> {
 
 pub fn bench_check(c: &mut Criterion) {
     let mut group = c.benchmark_group("hex-simd-check");
+    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096]
         .iter()
@@ -47,6 +48,7 @@ pub fn bench_check(c: &mut Criterion) {
 
 pub fn bench_decode(c: &mut Criterion) {
     let mut group = c.benchmark_group("hex-simd-decode");
+    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096]
         .iter()
@@ -87,6 +89,7 @@ pub fn bench_decode(c: &mut Criterion) {
 
 pub fn bench_encode(c: &mut Criterion) {
     let mut group = c.benchmark_group("hex-simd-encode");
+    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096].iter().copied().map(rand_bytes).collect();
 

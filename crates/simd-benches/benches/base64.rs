@@ -1,12 +1,13 @@
 use simd_benches::rand_bytes;
 
-use criterion::{black_box, criterion_group, criterion_main};
+use criterion::{black_box, criterion_group, criterion_main, AxisScale, PlotConfiguration};
 use criterion::{Bencher, BenchmarkId, Criterion, Throughput};
 
 use base64_simd::OutRef;
 
 pub fn bench_encode(c: &mut Criterion) {
     let mut group = c.benchmark_group("base64-simd-encode");
+    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096, 65536]
         .iter()
@@ -48,6 +49,7 @@ pub fn bench_encode(c: &mut Criterion) {
 
 pub fn bench_decode(c: &mut Criterion) {
     let mut group = c.benchmark_group("base64-simd-decode");
+    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096, 65536]
         .iter()
