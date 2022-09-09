@@ -1442,4 +1442,158 @@ pub unsafe trait SIMD128: InstructionSet {
             unreachable!()
         }
     }
+
+    #[inline(always)]
+    fn u16x8_zip_lo(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_unpacklo_epi16(t(a), t(b))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "arm"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vzipq_u16(t(a), t(b)).0) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vzip1q_u16(t(a), t(b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(Self, WASM128) {
+            let (a, b) = unsafe { (t(a), t(b)) };
+            let ans = u16x8_shuffle::<0, 8, 1, 9, 2, 10, 3, 11>(a, b);
+            return unsafe { t(ans) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
+
+    #[inline(always)]
+    fn u16x8_zip_hi(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_unpackhi_epi16(t(a), t(b))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "arm"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vzipq_u16(t(a), t(b)).1) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vzip2q_u16(t(a), t(b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(Self, WASM128) {
+            let (a, b) = unsafe { (t(a), t(b)) };
+            let ans = u16x8_shuffle::<4, 12, 5, 13, 6, 14, 7, 15>(a, b);
+            return unsafe { t(ans) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4_zip_lo(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_unpacklo_epi32(t(a), t(b))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "arm"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vzipq_u32(t(a), t(b)).0) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vzip1q_u32(t(a), t(b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(Self, WASM128) {
+            let (a, b) = unsafe { (t(a), t(b)) };
+            let ans = u32x4_shuffle::<0, 4, 1, 5>(a, b);
+            return unsafe { t(ans) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4_zip_hi(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_unpackhi_epi32(t(a), t(b))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "arm"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vzipq_u32(t(a), t(b)).1) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vzip2q_u32(t(a), t(b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(Self, WASM128) {
+            let (a, b) = unsafe { (t(a), t(b)) };
+            let ans = u32x4_shuffle::<2, 6, 3, 7>(a, b);
+            return unsafe { t(ans) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
+
+    #[inline(always)]
+    fn u64x2_zip_lo(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_unpacklo_epi64(t(a), t(b))) };
+        }
+        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        if is_subtype!(Self, NEON) {
+            return unsafe {
+                let (a, b): ([u64; 2], [u64; 2]) = (t(a), t(b));
+                t([a[0], b[0]])
+            };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(Self, WASM128) {
+            let (a, b) = unsafe { (t(a), t(b)) };
+            let ans = u64x2_shuffle::<0, 2>(a, b);
+            return unsafe { t(ans) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
+
+    #[inline(always)]
+    fn u64x2_zip_hi(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_unpackhi_epi64(t(a), t(b))) };
+        }
+        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        if is_subtype!(Self, NEON) {
+            return unsafe {
+                let (a, b): ([u64; 2], [u64; 2]) = (t(a), t(b));
+                t([a[1], b[1]])
+            };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(Self, WASM128) {
+            let (a, b) = unsafe { (t(a), t(b)) };
+            let ans = u64x2_shuffle::<1, 3>(a, b);
+            return unsafe { t(ans) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
 }

@@ -1,7 +1,4 @@
-use crate::{AVX2, SIMD128, SSE41, V128, V256, WASM128};
-
-#[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
-use crate::NEON;
+use crate::{AVX2, NEON, SIMD128, SSE41, V128, V256, WASM128};
 
 use core::mem::transmute as t;
 
@@ -872,6 +869,102 @@ pub unsafe trait SIMD256: SIMD128 {
         }
         {
             simd256_vop2(self, a, b, Self::u8x16_zip_hi)
+        }
+    }
+
+    #[inline(always)]
+    fn u16x8x2_zip_lo(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_unpacklo_epi16(t(a), t(b))) };
+        }
+        {
+            simd256_vop2(self, a, b, Self::u16x8_zip_lo)
+        }
+    }
+
+    #[inline(always)]
+    fn u16x8x2_zip_hi(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_unpackhi_epi16(t(a), t(b))) };
+        }
+        {
+            simd256_vop2(self, a, b, Self::u16x8_zip_hi)
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4x2_zip_lo(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_unpacklo_epi32(t(a), t(b))) };
+        }
+        {
+            simd256_vop2(self, a, b, Self::u32x4_zip_lo)
+        }
+    }
+
+    #[inline(always)]
+    fn u32x4x2_zip_hi(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_unpackhi_epi32(t(a), t(b))) };
+        }
+        {
+            simd256_vop2(self, a, b, Self::u32x4_zip_hi)
+        }
+    }
+
+    #[inline(always)]
+    fn u64x2x2_zip_lo(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_unpacklo_epi64(t(a), t(b))) };
+        }
+        {
+            simd256_vop2(self, a, b, Self::u64x2_zip_lo)
+        }
+    }
+
+    #[inline(always)]
+    fn u64x2x2_zip_hi(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_unpackhi_epi64(t(a), t(b))) };
+        }
+        {
+            simd256_vop2(self, a, b, Self::u64x2_zip_hi)
+        }
+    }
+
+    #[inline(always)]
+    fn v128x2_zip_lo(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_permute2x128_si256::<0b0010_0000>(t(a), t(b))) };
+        }
+        if is_subtype!(Self, SSE41 | NEON | WASM128) {
+            let ((a, _), (c, _)) = (a.to_v128x2(), b.to_v128x2());
+            return V256::from_v128x2((a, c));
+        }
+        {
+            unreachable!()
+        }
+    }
+
+    #[inline(always)]
+    fn v128x2_zip_hi(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_permute2x128_si256::<0b0011_0001>(t(a), t(b))) };
+        }
+        if is_subtype!(Self, SSE41 | NEON | WASM128) {
+            let ((_, b), (_, d)) = (a.to_v128x2(), b.to_v128x2());
+            return V256::from_v128x2((b, d));
+        }
+        {
+            unreachable!()
         }
     }
 }
