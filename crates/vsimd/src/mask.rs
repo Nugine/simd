@@ -63,3 +63,61 @@ pub fn mask8x16_any<S: SIMD128>(s: S, x: V128) -> bool {
         unreachable!()
     }
 }
+
+#[inline(always)]
+pub fn u8x32_highbit_all<S: SIMD256>(s: S, x: V256) -> bool {
+    if is_subtype!(S, AVX2) {
+        return s.u8x32_bitmask(x) == u32::MAX;
+    }
+
+    if is_subtype!(S, SSE41 | WASM128) {
+        let x = x.to_v128x2();
+        return s.u8x16_bitmask(s.v128_and(x.0, x.1)) == u16::MAX;
+    }
+
+    if is_subtype!(S, NEON) {
+        let x = x.to_v128x2();
+        let x = s.v128_and(x.0, x.1);
+
+        if cfg!(target_arch = "arm") {
+            return mask8x16_all(s, s.i8x16_lt(x, s.v128_create_zero()));
+        }
+
+        if cfg!(target_arch = "aarch64") {
+            return s.u8x16_reduce_min(x) >= 0x80;
+        }
+    }
+
+    {
+        unreachable!()
+    }
+}
+
+#[inline(always)]
+pub fn u8x32_highbit_any<S: SIMD256>(s: S, x: V256) -> bool {
+    if is_subtype!(S, AVX2) {
+        return s.u8x32_bitmask(x) != 0;
+    }
+
+    if is_subtype!(S, SSE41 | WASM128) {
+        let x = x.to_v128x2();
+        return s.u8x16_bitmask(s.v128_or(x.0, x.1)) != 0;
+    }
+
+    if is_subtype!(S, NEON) {
+        let x = x.to_v128x2();
+        let x = s.v128_or(x.0, x.1);
+
+        if cfg!(target_arch = "arm") {
+            return mask8x16_any(s, s.i8x16_lt(x, s.v128_create_zero()));
+        }
+
+        if cfg!(target_arch = "aarch64") {
+            return s.u8x16_reduce_max(x) >= 0x80;
+        }
+    }
+
+    {
+        unreachable!()
+    }
+}
