@@ -1068,4 +1068,15 @@ pub unsafe trait SIMD256: SIMD128 {
             simd256_vop2(self, a, b, Self::i16x8_mul_hi)
         }
     }
+
+    #[inline(always)]
+    fn i16x16_madd_sat(self, a: V256, b: V256) -> V256 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, AVX2) {
+            return unsafe { t(_mm256_maddubs_epi16(t(a), t(b))) };
+        }
+        {
+            simd256_vop2(self, a, b, Self::i16x8_madd_sat)
+        }
+    }
 }
