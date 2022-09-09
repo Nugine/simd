@@ -826,6 +826,13 @@ pub unsafe trait SIMD256: SIMD128 {
         if is_subtype!(Self, AVX2) {
             return unsafe { t(_mm256_cvtepu8_epi16(t(a))) };
         }
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            let zero = self.v128_create_zero();
+            let lo = self.u8x16_zip_lo(a, zero);
+            let hi = self.u8x16_zip_hi(a, zero);
+            return V256::from_v128x2((lo, hi));
+        }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
             return unsafe {
