@@ -1,5 +1,4 @@
 use vsimd::hex::unhex;
-use vsimd::scalar::align32;
 use vsimd::SIMD256;
 
 use core::ops::Not;
@@ -22,17 +21,30 @@ pub fn check_fallback(data: &[u8]) -> bool {
 
 #[inline]
 pub fn check_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
-    let (prefix, middle, suffix) = align32(data);
+    unsafe {
+        let (mut src, mut len) = (data.as_ptr(), data.len());
 
-    if check_fallback(prefix).not() {
-        return false;
-    }
-
-    for &chunk in middle {
-        if vsimd::hex::check_ascii32(s, chunk).not() {
-            return false;
+        while len >= 32 {
+            let x = s.v256_load_unaligned(src);
+            let is_ascii = vsimd::hex::check_ascii32(s, x);
+            if is_ascii.not() {
+                return false;
+            }
+            len -= 32;
+            src = src.add(32);
         }
-    }
 
-    check_fallback(suffix)
+        if len >= 16 {
+            let x = s.v128_load_unaligned(src);
+            let is_ascii = vsimd::hex::check_ascii16(s, x);
+            if is_ascii.not() {
+                return false;
+            }
+            len -= 16;
+            src = src.add(16);
+        }
+
+        let suffix = core::slice::from_raw_parts(src, len);
+        check_fallback(suffix)
+    }
 }
