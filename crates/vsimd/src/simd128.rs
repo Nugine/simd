@@ -1774,4 +1774,24 @@ pub unsafe trait SIMD128: InstructionSet {
             unreachable!()
         }
     }
+
+    #[inline(always)]
+    fn u8x16_add_sat(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_adds_epu8(t(a), t(b))) };
+        }
+        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        if is_subtype!(Self, NEON) {
+            return unsafe { t(vqaddq_u8(t(a), t(b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(Self, WASM128) {
+            return unsafe { t(u8x16_add_sat(t(a), t(b))) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
 }
