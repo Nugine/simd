@@ -106,7 +106,7 @@ miri *ARGS:
     cd {{invocation_directory()}}
     time cargo miri test -- --nocapture --test-threads=1 {{ARGS}}
 
-test member:
+test member: fmt
     #!/bin/bash -ex
     cd {{justfile_directory()}}
     pushd crates/{{member}}
@@ -120,13 +120,12 @@ test-all:
     cd {{justfile_directory()}}
 
     declare -a members
-    members[0]="simd-abstraction"
+    members[0]="vsimd"
     members[1]="uuid-simd"
     members[2]="hex-simd"
     members[3]="base64-simd"
     members[4]="unicode-simd"
     members[5]="base32-simd"
-    members[6]="vsimd"
 
     for member in "${members[@]}"
     do
@@ -136,7 +135,6 @@ test-all:
 sync-version:
     #!/bin/bash -e
     cd {{justfile_directory()}}
-    cargo set-version -p simd-abstraction   '0.8.0'
     cargo set-version -p simd-benches       '0.8.0'
     cargo set-version -p uuid-simd          '0.8.0'
     cargo set-version -p hex-simd           '0.8.0'
