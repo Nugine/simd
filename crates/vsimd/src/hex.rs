@@ -73,10 +73,10 @@ pub fn encode_bytes32<S: SIMD256>(s: S, x: V256, lut: V256) -> (V256, V256) {
 const fn gen_hash(i: u8) -> u8 {
     assert!(i < 16);
     let x: u8 = match i {
-        0 => 11,
+        0 => 1,
         1..=6 => 1,
         7..=9 => 6,
-        0xA..=0xF => 12,
+        0xA..=0xF => 8,
         _ => unreachable!(),
     };
     (x << 1) - 1
@@ -89,7 +89,7 @@ const fn is_hex(c: u8) -> bool {
 const fn gen_decode_offset(i: u8) -> u8 {
     assert!(i < 16);
     let x: i8 = match i {
-        0x0E | 0x04 | 0x09 => -0x30,
+        0x04 | 0x09 => -0x30,
         0x05 => 10 - 0x41,
         0x07 => 10 - 0x61,
         _ => 0,
