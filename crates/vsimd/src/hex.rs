@@ -79,20 +79,11 @@ const fn gen_hash(i: u8) -> u8 {
         0xA..=0xF => 12,
         _ => unreachable!(),
     };
-    (x << 1).wrapping_sub(1)
+    (x << 1) - 1
 }
 
-const fn gen_check_offset(i: u8) -> u8 {
-    assert!(i < 16);
-    let x: i8 = match i {
-        0x0E => -0x30,
-        0x04 => -0x31,
-        0x09 => -0x37,
-        0x05 => -0x41,
-        0x07 => -0x61,
-        _ => -128,
-    };
-    x as u8
+const fn is_hex(c: u8) -> bool {
+    matches!(c, b'0'..=b'9'|b'a'..=b'f'|b'A'..=b'F')
 }
 
 const fn gen_decode_offset(i: u8) -> u8 {
@@ -107,7 +98,7 @@ const fn gen_decode_offset(i: u8) -> u8 {
 }
 
 const HASH: V256 = V256::double_bytes(u8x16!(gen_hash));
-const CHECK_OFFSET: V256 = V256::double_bytes(u8x16!(gen_check_offset));
+const CHECK_OFFSET: V256 = V256::double_bytes(alsw_gen_check_offset!(is_hex, gen_hash));
 const DECODE_OFFSET: V256 = V256::double_bytes(u8x16!(gen_decode_offset));
 
 const DECODE_UZP1: V256 = V256::double_bytes([
@@ -188,13 +179,9 @@ pub fn decode_ascii32x2<S: SIMD256>(s: S, x: (V256, V256)) -> Result<V256, ()> {
 
 #[cfg(test)]
 mod algorithm {
-    use super::{gen_check_offset, gen_decode_offset, gen_hash, parse_hex};
+    use super::*;
 
     use crate::algorithm::*;
-
-    fn is_hex(c: u8) -> bool {
-        matches!(c, b'0'..=b'9'|b'a'..=b'f'|b'A'..=b'F')
-    }
 
     #[ignore]
     #[test]
@@ -222,37 +209,23 @@ mod algorithm {
     #[test]
     fn decode() {
         let hash = &u8x16!(gen_hash);
-        let check_offset = &u8x16!(gen_check_offset);
+        let check_offset = &alsw_gen_check_offset!(is_hex, gen_hash);
         let decode_offset = &u8x16!(gen_decode_offset);
 
-        let h = |c: u8| avgr(c >> 3, lookup(hash, c));
-
-        let check = |c: u8| {
-            let h = h(c);
-            let o = lookup(check_offset, h);
-            (c as i8).saturating_add(o as i8) as u8
-        };
-
-        let decode = |c: u8| {
-            let h = h(c);
-            let c1 = check(c);
-            let o2 = lookup(decode_offset, h);
-            let c2 = c.wrapping_add(o2);
-            if c1 < 0x80 {
-                c2
-            } else {
-                0xff
-            }
-        };
+        let h = |c: u8| alsw_hash(hash, c);
+        let check = |c: u8| alsw_check(hash, check_offset, c);
+        let decode = |c: u8| alsw_decode(hash, decode_offset, c);
 
         print_fn_table(is_hex, h);
         print_fn_table(is_hex, check);
         print_fn_table(is_hex, decode);
 
         for c in 0..=255u8 {
-            let val = decode(c);
-            let idx = parse_hex(c);
-            assert_eq!(val, idx);
+            assert_eq!(check(c) < 0x80, is_hex(c));
+
+            if is_hex(c) {
+                assert_eq!(decode(c), parse_hex(c));
+            }
         }
     }
 }

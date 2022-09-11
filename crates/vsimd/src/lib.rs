@@ -38,7 +38,7 @@ pub use self::simd128::SIMD128;
 mod simd256;
 pub use self::simd256::SIMD256;
 
-#[cfg(test)]
+#[macro_use]
 mod algorithm;
 
 pub mod scalar;
