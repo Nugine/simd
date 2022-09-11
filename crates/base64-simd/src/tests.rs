@@ -86,7 +86,7 @@ fn safety_unit_test(
 
             {
                 let mut buf = vec![0u8; base64.encoded_length(n)];
-                let buf = OutRef::new(&mut *buf);
+                let buf = OutRef::from_slice(&mut buf);
                 let ans = encode(&base64, &bytes, buf);
                 assert_eq!(ans, encoded);
                 dbgmsg!("encoding ... ok");
@@ -101,7 +101,7 @@ fn safety_unit_test(
 
             {
                 let mut buf = vec![0u8; n];
-                let buf = OutRef::new(&mut *buf);
+                let buf = OutRef::from_slice(&mut buf);
                 let ans = decode(&base64, encoded, buf).unwrap();
                 assert_eq!(ans, bytes);
                 dbgmsg!("decoding ... ok");

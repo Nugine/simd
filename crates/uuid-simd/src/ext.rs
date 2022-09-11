@@ -104,7 +104,7 @@ unsafe fn format_uuid<R, const N: usize>(
 ) -> R {
     let mut buf = MaybeUninit::<[u8; N]>::uninit();
     let src = uuid.as_bytes();
-    let dst = OutRef::uninit(&mut buf);
+    let dst = OutRef::from_uninit(&mut buf);
     let ans = f(src, dst, case);
     g(core::str::from_utf8_unchecked(ans))
 }

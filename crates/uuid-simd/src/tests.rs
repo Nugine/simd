@@ -82,33 +82,33 @@ fn safety_unit_test(
 ) {
     for &(expected, input) in ok_cases() {
         let mut expected_buf = [0u8; 16];
-        let expected_bytes = hex_simd::decode(expected.as_bytes(), OutRef::new(&mut expected_buf)).unwrap();
+        let expected_bytes = hex_simd::decode(expected.as_bytes(), OutRef::from_slice(&mut expected_buf)).unwrap();
 
         let mut output_buf = [0; 16];
-        let output_bytes = parse(input.as_bytes(), OutRef::new(&mut output_buf)).unwrap();
+        let output_bytes = parse(input.as_bytes(), OutRef::from_mut(&mut output_buf)).unwrap();
 
         assert_eq!(output_bytes, expected_bytes);
     }
 
     for &input in err_cases() {
         let mut output_buf = [0; 16];
-        parse(input.as_bytes(), OutRef::new(&mut output_buf)).unwrap_err();
+        parse(input.as_bytes(), OutRef::from_mut(&mut output_buf)).unwrap_err();
     }
 
     for &(input, expected) in format_cases() {
         let mut src = [0; 16];
-        hex_simd::decode(input.as_bytes(), OutRef::new(&mut src)).unwrap();
+        hex_simd::decode(input.as_bytes(), OutRef::from_slice(&mut src)).unwrap();
 
         let mut output_buf = [0; 32];
-        let output = format_simple(&src, OutRef::new(&mut output_buf), AsciiCase::Upper);
+        let output = format_simple(&src, OutRef::from_mut(&mut output_buf), AsciiCase::Upper);
         assert_eq!(output.as_slice(), input.to_ascii_uppercase().as_bytes());
-        let output = format_simple(&src, OutRef::new(&mut output_buf), AsciiCase::Lower);
+        let output = format_simple(&src, OutRef::from_mut(&mut output_buf), AsciiCase::Lower);
         assert_eq!(output.as_slice(), input.to_ascii_lowercase().as_bytes());
 
         let mut output_buf = [0; 36];
-        let output = format_hyphenated(&src, OutRef::new(&mut output_buf), AsciiCase::Upper);
+        let output = format_hyphenated(&src, OutRef::from_mut(&mut output_buf), AsciiCase::Upper);
         assert_eq!(output.as_slice(), expected.to_ascii_uppercase().as_bytes());
-        let output = format_hyphenated(&src, OutRef::new(&mut output_buf), AsciiCase::Lower);
+        let output = format_hyphenated(&src, OutRef::from_mut(&mut output_buf), AsciiCase::Lower);
         assert_eq!(output.as_slice(), expected.to_ascii_lowercase().as_bytes());
     }
 }

@@ -60,7 +60,7 @@ pub fn bench_decode(c: &mut Criterion) {
     let functions: &[(&str, fn(&mut Bencher, &[u8], &mut [u8]))] = &[
         ("hex-simd/auto-indirect", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutRef::new(dst)));
+                let (src, dst) = (black_box(src), black_box(OutRef::from_slice(dst)));
                 hex_simd::decode(src, dst).unwrap();
             })
         }),
@@ -97,7 +97,7 @@ pub fn bench_encode(c: &mut Criterion) {
     let functions: &[(&str, fn(&mut Bencher, &[u8], &mut [u8]))] = &[
         ("hex-simd/auto-indirect", |b, src, dst| {
             b.iter(|| {
-                let (src, dst) = (black_box(src), black_box(OutRef::new(dst)));
+                let (src, dst) = (black_box(src), black_box(OutRef::from_slice(dst)));
                 let _ = hex_simd::encode(src, dst, AsciiCase::Lower);
             })
         }),
