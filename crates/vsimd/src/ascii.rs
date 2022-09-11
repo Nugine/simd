@@ -179,3 +179,48 @@ pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
 
     pos
 }
+
+#[inline(always)]
+fn convert_ascii_case<S: SIMD256, const C: u8>(s: S, x: V256) -> V256 {
+    assert!(matches!(C, b'A' | b'a'));
+    let x1 = s.u8x32_sub(x, s.u8x32_splat(C + 0x80));
+    let x2 = s.i8x32_lt(x1, s.i8x32_splat(-0x80 + 26));
+    let x3 = s.v256_and(x2, s.u8x32_splat(0x20));
+    s.v256_xor(x, x3)
+}
+
+#[inline(always)]
+pub fn to_ascii_lowercase_x32<S: SIMD256>(s: S, x: V256) -> V256 {
+    convert_ascii_case::<S, b'A'>(s, x)
+}
+
+#[inline(always)]
+pub fn to_ascii_uppercase_x32<S: SIMD256>(s: S, x: V256) -> V256 {
+    convert_ascii_case::<S, b'a'>(s, x)
+}
+
+#[cfg(test)]
+mod algorithm {
+    use crate::algorithm::*;
+
+    #[ignore]
+    #[test]
+    fn convert_case() {
+        let convert = |c: u8, shift: u8| {
+            let x1 = c.wrapping_sub(shift + 0x80);
+            let x2 = i8_lt(x1 as i8, -0x80 + 26);
+            let x3 = x2 & 0x20;
+            c ^ x3
+        };
+        let to_upper = |c: u8| convert(c, b'a');
+        let to_lower = |c: u8| convert(c, b'A');
+
+        print_fn_table(|c| c.is_ascii_lowercase(), to_upper);
+        print_fn_table(|c| c.is_ascii_uppercase(), to_lower);
+
+        for c in 0..=255u8 {
+            assert_eq!(to_upper(c), c.to_ascii_uppercase());
+            assert_eq!(to_lower(c), c.to_ascii_lowercase());
+        }
+    }
+}
