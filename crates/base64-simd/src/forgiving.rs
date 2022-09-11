@@ -1,8 +1,6 @@
-use crate::sa_ascii;
-
 #[inline(always)]
 fn find_non_ascii_whitespace(data: &[u8]) -> usize {
-    sa_ascii::multiversion::find_non_ascii_whitespace::auto_indirect(data)
+    vsimd::ascii::multiversion::find_non_ascii_whitespace::auto_indirect(data)
 }
 
 #[inline(always)]
@@ -16,38 +14,14 @@ fn remove_ascii_whitespace(data: &mut [u8]) -> &mut [u8] {
         let dirty_len = data.len() - non_aw_pos;
         let dirty_data = data.as_mut_ptr().add(non_aw_pos);
 
-        let clean_len = sa_ascii::remove_ascii_whitespace_fallback(dirty_data, dirty_len);
+        let clean_len = vsimd::ascii::remove_ascii_whitespace_fallback(dirty_data, dirty_len);
 
         data.get_unchecked_mut(..(non_aw_pos + clean_len))
     }
 }
 
-#[test]
-fn test_remove_ascii_whitespace() {
-    let cases = [
-        "abcd",
-        "ab\tcd",
-        "ab\ncd",
-        "ab\x0Ccd",
-        "ab\rcd",
-        "ab cd",
-        "ab\t\n\x0C\r cd",
-        "ab\t\n\x0C\r =\t\n\x0C\r =\t\n\x0C\r ",
-    ];
-    for case in cases {
-        let mut buf = case.to_owned().into_bytes();
-        let expected = {
-            let mut v = buf.clone();
-            v.retain(|c| !c.is_ascii_whitespace());
-            v
-        };
-        let ans = remove_ascii_whitespace(&mut buf);
-        assert_eq!(ans, &*expected, "case = {:?}", case);
-    }
-}
-
 const fn discard_table(mask: u8) -> [u8; 256] {
-    let charset = crate::STANDARD_CHARSET;
+    let charset = vsimd::base64::STANDARD_CHARSET;
     let mut table = [0; 256];
 
     let mut i = 0;
@@ -118,6 +92,36 @@ pub fn normalize(buf: &mut [u8]) -> &mut [u8] {
                 buf
             }
             _ => core::hint::unreachable_unchecked(),
+        }
+    }
+}
+
+#[cfg(test)]
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_remove_ascii_whitespace() {
+        let cases = [
+            "abcd",
+            "ab\tcd",
+            "ab\ncd",
+            "ab\x0Ccd",
+            "ab\rcd",
+            "ab cd",
+            "ab\t\n\x0C\r cd",
+            "ab\t\n\x0C\r =\t\n\x0C\r =\t\n\x0C\r ",
+        ];
+        for case in cases {
+            let mut buf = case.to_owned().into_bytes();
+            let expected = {
+                let mut v = buf.clone();
+                v.retain(|c| !c.is_ascii_whitespace());
+                v
+            };
+            let ans = remove_ascii_whitespace(&mut buf);
+            assert_eq!(ans, &*expected, "case = {:?}", case);
         }
     }
 }

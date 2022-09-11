@@ -3,7 +3,12 @@ use core::fmt;
 /// Base64 Error
 pub struct Error(());
 
-pub(crate) const ERROR: Error = Error(());
+impl Error {
+    #[inline(always)]
+    pub(crate) const fn new() -> Self {
+        Error(())
+    }
+}
 
 impl fmt::Debug for Error {
     #[inline]
@@ -21,3 +26,11 @@ impl fmt::Display for Error {
 
 #[cfg(feature = "std")]
 impl std::error::Error for Error {}
+
+macro_rules! ensure {
+    ($cond:expr) => {
+        if !$cond {
+            return Err($crate::error::Error::new());
+        }
+    };
+}

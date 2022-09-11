@@ -20,7 +20,7 @@ pub fn bench_encode(c: &mut Criterion) {
         ("base64-simd/auto-indirect", |b, src, dst| {
             b.iter(|| {
                 let (src, dst) = (black_box(src), black_box(OutRef::new(dst)));
-                let base64 = base64_simd::Base64::STANDARD;
+                let base64 = base64_simd::STANDARD;
                 let _ = base64.encode(src, dst);
             })
         }),
@@ -63,7 +63,7 @@ pub fn bench_decode(c: &mut Criterion) {
         ("base64-simd/auto-indirect", |b, src, dst| {
             b.iter(|| {
                 let (src, dst) = (black_box(src), black_box(OutRef::new(dst)));
-                let base64 = base64_simd::Base64::STANDARD;
+                let base64 = base64_simd::STANDARD;
                 base64.decode(src, dst).unwrap();
             })
         }),

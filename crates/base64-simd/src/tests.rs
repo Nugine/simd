@@ -1,4 +1,4 @@
-use crate::{Base64, Error, OutRef};
+use crate::{Error, OutRef, Rfc4648Base64, STANDARD, URL_SAFE};
 
 use rand::RngCore;
 
@@ -16,7 +16,7 @@ fn test_forgiving() {
     for i in 0..inputs.len() {
         let (src, expected) = (inputs[i], outputs[i]);
         let mut buf = src.to_owned().into_bytes();
-        let ans = Base64::forgiving_decode_inplace(&mut buf).unwrap();
+        let ans = Rfc4648Base64::forgiving_decode_inplace(&mut buf).unwrap();
         assert_eq!(ans, expected, "src = {:?}, expected = {:?}", src, expected);
     }
 }
@@ -34,9 +34,9 @@ macro_rules! dbgmsg {
 
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
-    encode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutRef<'d, [u8]>) -> &'d mut [u8],
-    decode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error>,
-    decode_inplace: for<'b> fn(&'_ Base64, &'b mut [u8]) -> Result<&'b mut [u8], Error>,
+    encode: for<'s, 'd> fn(&'_ Rfc4648Base64, &'s [u8], OutRef<'d, [u8]>) -> &'d mut [u8],
+    decode: for<'s, 'd> fn(&'_ Rfc4648Base64, &'s [u8], OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error>,
+    decode_inplace: for<'b> fn(&'_ Rfc4648Base64, &'b mut [u8]) -> Result<&'b mut [u8], Error>,
 ) {
     // canonicity tests
     // <https://eprint.iacr.org/2022/361>
@@ -52,7 +52,7 @@ fn safety_unit_test(
         ];
 
         for (encoded, expected) in test_vectors {
-            let result: _ = Base64::STANDARD.decode_to_boxed_bytes(encoded.as_bytes());
+            let result: _ = STANDARD.decode_to_boxed_bytes(encoded.as_bytes());
             match expected {
                 Some(expected) => assert_eq!(&*result.unwrap(), expected.as_bytes()),
                 None => assert!(result.is_err(), "expected = {expected:?}"),
@@ -66,10 +66,10 @@ fn safety_unit_test(
         let bytes = rand_bytes(n);
 
         let test_config = [
-            Base64::STANDARD,
-            Base64::URL_SAFE,
-            Base64::STANDARD_NO_PAD,
-            Base64::URL_SAFE_NO_PAD,
+            STANDARD,                //
+            URL_SAFE,                //
+            STANDARD.padding(false), //
+            URL_SAFE.padding(false), //
         ];
         let base_config = [
             base64::STANDARD,
@@ -112,7 +112,11 @@ fn safety_unit_test(
 
 #[test]
 fn test_safety() {
-    safety_unit_test(Base64::encode, Base64::decode, Base64::decode_inplace);
+    safety_unit_test(
+        Rfc4648Base64::encode,
+        Rfc4648Base64::decode,
+        Rfc4648Base64::decode_inplace,
+    );
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -121,5 +125,9 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 #[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
 #[wasm_bindgen_test::wasm_bindgen_test]
 fn wasm() {
-    safety_unit_test(Base64::encode, Base64::decode, Base64::decode_inplace);
+    safety_unit_test(
+        Rfc4648Base64::encode,
+        Rfc4648Base64::decode,
+        Rfc4648Base64::decode_inplace,
+    );
 }
