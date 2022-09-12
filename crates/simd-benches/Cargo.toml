@@ -15,7 +15,7 @@ unstable = [
 [dependencies]
 base64 = "0.13.0"
 base64-simd = { path = "../base64-simd", version = "0.8.0" }
-criterion = "0.3.6"
+criterion = "0.4.0"
 faster-hex = "0.6.1"
 getrandom = { version = "0.2.7", features = ["js"] }
 hex-simd = { path = "../hex-simd", version = "0.8.0" }
