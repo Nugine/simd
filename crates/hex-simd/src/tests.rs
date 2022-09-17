@@ -47,7 +47,7 @@ macro_rules! dbgmsg {
 
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
-    check: fn(&[u8]) -> bool,
+    check: fn(&[u8]) -> Result<(), Error>,
     decode: for<'s, 'd> fn(&'s [u8], OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error>,
     encode: for<'s, 'd> fn(&'s [u8], OutRef<'d, [u8]>, AsciiCase) -> &'d mut [u8],
     decode_inplace: fn(&mut [u8]) -> Result<&mut [u8], Error>,
@@ -124,7 +124,7 @@ fn safety_unit_test(
 
     for (i, src) in ok_cases.iter().enumerate() {
         dbgmsg!("ok case {}", i + 1);
-        assert!(check(src));
+        assert!(check(src).is_ok());
         if src.len() % 2 == 0 {
             test_decode_encode!(src, AsciiCase::Lower);
             test_decode_inplace_encode!(src, AsciiCase::Lower);
@@ -136,7 +136,7 @@ fn safety_unit_test(
 
     for (i, src) in err_cases.iter().enumerate() {
         dbgmsg!("err case {}", i + 1);
-        assert!(!check(src));
+        assert!(check(src).is_err());
         let mut buf = vec![0; src.len() / 2];
         let buf = OutRef::from_slice(&mut buf);
         assert!(decode(src, buf).is_err(), "src = {src:?}");

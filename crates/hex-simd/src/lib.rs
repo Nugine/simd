@@ -55,10 +55,30 @@ pub use vsimd::ascii::AsciiCase;
 
 use vsimd::tools::slice_mut;
 
-/// Checks whether `data` is a hex string.
+/// Calculates the encoded length.
+///
+/// # Panics
+/// This function will panic if `n > isize::MAX`.
 #[inline]
 #[must_use]
-pub fn check(data: &[u8]) -> bool {
+pub const fn encoded_length(n: usize) -> usize {
+    assert!(n <= usize::MAX / 2);
+    n * 2
+}
+
+/// Calculates the decoded length.
+#[inline]
+pub fn decoded_length(n: usize) -> Result<usize, Error> {
+    ensure!(n % 2 == 0);
+    Ok(n / 2)
+}
+
+/// Checks whether `data` is a hex string.
+///
+/// # Errors
+/// This function returns `Err` if the content of `data` is invalid.
+#[inline]
+pub fn check(data: &[u8]) -> Result<(), Error> {
     crate::multiversion::check::auto_indirect(data)
 }
 

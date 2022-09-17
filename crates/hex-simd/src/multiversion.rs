@@ -6,7 +6,7 @@ use vsimd::simd_dispatch;
 
 simd_dispatch!(
     name        = check,
-    signature   = fn(data: &[u8]) -> bool,
+    signature   = fn(data: &[u8]) -> Result<(), Error>,
     fallback    = {crate::check::check_fallback},
     simd        = {crate::check::check_simd},
     safety      = {},

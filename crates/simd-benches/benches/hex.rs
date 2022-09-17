@@ -26,7 +26,7 @@ pub fn bench_check(c: &mut Criterion) {
     #[allow(clippy::type_complexity)]
     let functions: &[(&str, fn(&mut Bencher, &[u8]))] = &[
         ("hex-simd/auto-indirect", |b, src| {
-            b.iter(|| assert!(hex_simd::check(black_box(src))))
+            b.iter(|| assert!(hex_simd::check(black_box(src)).is_ok()))
         }),
         #[cfg(target_feature = "sse4.1")]
         ("faster-hex/sse4.1", |b, src| {
