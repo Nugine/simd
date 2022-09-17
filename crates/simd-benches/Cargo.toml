@@ -15,7 +15,6 @@ unstable = [
 [dependencies]
 base64 = "0.13.0"
 base64-simd = { path = "../base64-simd", version = "0.8.0" }
-criterion = "0.3.6"
 faster-hex = "0.6.1"
 getrandom = { version = "0.2.7", features = ["js"] }
 hex-simd = { path = "../hex-simd", version = "0.8.0" }
@@ -24,6 +23,12 @@ rand = "0.8.5"
 unicode-simd = { path = "../unicode-simd", version = "0.0.1" }
 uuid = "1.1.2"
 uuid-simd = { path = "../uuid-simd", version = "0.8.0" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+criterion = "0.4.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+criterion = { version = "0.4.0", default-features = false }
 
 [[bench]]
 name = "uuid"
