@@ -16,8 +16,8 @@ const fn decode_table(charset: &'static [u8; 64]) -> [u8; 256] {
     table
 }
 
-const STANDARD_DECODE_TABLE: &[u8; 256] = &decode_table(STANDARD_CHARSET);
-const URL_SAFE_DECODE_TABLE: &[u8; 256] = &decode_table(URL_SAFE_CHARSET);
+pub const STANDARD_DECODE_TABLE: &[u8; 256] = &decode_table(STANDARD_CHARSET);
+pub const URL_SAFE_DECODE_TABLE: &[u8; 256] = &decode_table(URL_SAFE_CHARSET);
 
 #[inline(always)]
 pub fn decoded_length(src: &[u8], padding: bool) -> Result<(usize, usize), Error> {

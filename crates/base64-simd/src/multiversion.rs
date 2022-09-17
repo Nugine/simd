@@ -17,3 +17,11 @@ simd_dispatch!(
     simd        = {crate::decode::decode_simd},
     safety      = {unsafe},
 );
+
+simd_dispatch!(
+    name        = check,
+    signature   = fn(src: &[u8], kind: Kind) -> Result<(), Error>,
+    fallback    = {crate::check::check_fallback},
+    simd        = {crate::check::check_simd},
+    safety      = {},
+);

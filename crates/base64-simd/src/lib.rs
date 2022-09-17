@@ -35,6 +35,7 @@ extern crate alloc;
 mod error;
 pub use self::error::Error;
 
+mod check;
 mod decode;
 mod encode;
 mod forgiving;
@@ -103,7 +104,7 @@ impl Base64 {
     /// Calculates the encoded length.
     ///
     /// # Panics
-    /// This function will panics if `n > isize::MAX`.
+    /// This function will panic if `n > isize::MAX`.
     #[inline]
     #[must_use]
     pub const fn encoded_length(&self, n: usize) -> usize {
@@ -131,6 +132,17 @@ impl Base64 {
     pub fn decoded_length(&self, data: &[u8]) -> Result<usize, Error> {
         let (_, m) = decoded_length(data, self.padding)?;
         Ok(m)
+    }
+
+    /// Checks whether `data` is a base64 string.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is invalid.
+    #[inline]
+    pub fn check(&self, data: &[u8]) -> Result<(), Error> {
+        let (n, _) = decoded_length(data, self.padding)?;
+        let src = unsafe { data.get_unchecked(..n) };
+        crate::multiversion::check::auto_indirect(src, self.kind)
     }
 
     /// Encodes bytes to a base64 string.

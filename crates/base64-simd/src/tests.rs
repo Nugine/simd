@@ -34,6 +34,7 @@ macro_rules! dbgmsg {
 
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
+    check: for<'s> fn(&'_ Base64, &'s [u8]) -> Result<(), Error>,
     encode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutRef<'d, [u8]>) -> &'d mut [u8],
     decode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error>,
     decode_inplace: for<'b> fn(&'_ Base64, &'b mut [u8]) -> Result<&'b mut [u8], Error>,
@@ -52,7 +53,12 @@ fn safety_unit_test(
         ];
 
         for (encoded, expected) in test_vectors {
-            let result: _ = STANDARD.decode_type::<Vec<u8>>(encoded.as_bytes());
+            let base64 = STANDARD;
+
+            let is_valid = check(&base64, encoded.as_bytes()).is_ok();
+            let result: _ = base64.decode_type::<Vec<u8>>(encoded.as_bytes());
+
+            assert_eq!(is_valid, result.is_ok());
             match expected {
                 Some(expected) => assert_eq!(&*result.unwrap(), expected.as_bytes()),
                 None => assert!(result.is_err(), "expected = {expected:?}"),
@@ -83,12 +89,14 @@ fn safety_unit_test(
 
             let encoded = base64::encode_config(&bytes, config);
             let encoded = encoded.as_bytes();
+            assert!(check(&base64, encoded).is_ok());
 
             {
                 let mut buf = vec![0u8; base64.encoded_length(n)];
                 let buf = OutRef::from_slice(&mut buf);
                 let ans = encode(&base64, &bytes, buf);
                 assert_eq!(ans, encoded);
+                assert!(check(&base64, ans).is_ok());
                 dbgmsg!("encoding ... ok");
             }
 
@@ -112,7 +120,7 @@ fn safety_unit_test(
 
 #[test]
 fn test_safety() {
-    safety_unit_test(Base64::encode, Base64::decode, Base64::decode_inplace);
+    safety_unit_test(Base64::check, Base64::encode, Base64::decode, Base64::decode_inplace);
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -121,5 +129,5 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 #[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
 #[wasm_bindgen_test::wasm_bindgen_test]
 fn wasm() {
-    safety_unit_test(Base64::encode, Base64::decode, Base64::decode_inplace);
+    safety_unit_test(Base64::check, Base64::encode, Base64::decode, Base64::decode_inplace);
 }
