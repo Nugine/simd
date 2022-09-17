@@ -2,8 +2,11 @@ dev:
     just fmt
     time just test-all
 
-doc:
-    RUSTDOCFLAGS="--cfg docsrs" cargo doc --open --no-deps --all-features
+doc pkg="vsimd":
+    #!/bin/bash -e
+    export RUSTDOCFLAGS="--cfg docsrs"
+    cargo doc --no-deps --all-features
+    cargo doc --open -p {{pkg}}
 
 x86-bench *ARGS:
     #!/bin/bash -ex
