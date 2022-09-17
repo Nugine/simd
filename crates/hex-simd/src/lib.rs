@@ -7,10 +7,10 @@
 //!
 //! let bytes = b"Hello world!";
 //!
-//! let encoded = hex_simd::encode_to_boxed_str(bytes, AsciiCase::Lower);
+//! let encoded = hex_simd::encode_type::<String>(bytes, AsciiCase::Lower);
 //! assert_eq!(&*encoded, "48656c6c6f20776f726c6421");
 //!
-//! let decoded = hex_simd::decode_to_boxed_bytes(encoded.as_bytes()).unwrap();
+//! let decoded = hex_simd::decode_type::<Vec<u8>>(encoded.as_bytes()).unwrap();
 //! assert_eq!(&*decoded, bytes);
 //! ```
 //!
@@ -42,6 +42,9 @@ mod encode;
 
 mod multiversion;
 
+#[cfg(feature = "alloc")]
+mod heap;
+
 #[cfg(test)]
 mod tests;
 
@@ -50,14 +53,7 @@ pub use vsimd::ascii::AsciiCase;
 
 // -------------------------------------------------------------------------------------------------
 
-use vsimd::item_group;
 use vsimd::tools::slice_mut;
-
-#[cfg(feature = "alloc")]
-item_group! {
-    use alloc::boxed::Box;
-    use vsimd::tools::{alloc_uninit_bytes, assume_init};
-}
 
 /// Checks whether `data` is a hex string.
 #[inline]
@@ -66,7 +62,9 @@ pub fn check(data: &[u8]) -> bool {
     crate::multiversion::check::auto_indirect(data)
 }
 
-/// Encodes `src` with a given ascii case and writes to `dst`.
+/// Encodes bytes to a hex string.
+///
+/// `case` specifies the ascii case of output.
 ///
 /// # Panics
 /// This function will panic if the length of `dst` is not enough.
@@ -81,7 +79,7 @@ pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>, case: AsciiCase)
     }
 }
 
-/// Decodes `src` case-insensitively and writes to `dst`.
+/// Decodes a hex string to bytes case-insensitively.
 ///
 /// # Errors
 /// This function returns `Err` if the content of `src` is invalid.
@@ -102,7 +100,7 @@ pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mu
     }
 }
 
-/// Decodes `data` case-insensitively and writes inplace.
+/// Decodes a hex string to bytes case-insensitively and writes inplace.
 ///
 /// # Errors
 /// This function returns `Err` if the content of `data` is invalid.
@@ -118,7 +116,9 @@ pub fn decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
     }
 }
 
-/// Encodes `src` to `dst` and returns [`&mut str`](str).
+/// Encodes bytes to a hex string and returns [`&mut str`](str).
+///
+/// `case` specifies the ascii case of output.
 ///
 /// # Panics
 /// This function will panic if the length of `dst` is not enough.
@@ -129,55 +129,27 @@ pub fn encode_as_str<'s, 'd>(src: &'s [u8], dst: OutRef<'d, [u8]>, case: AsciiCa
     unsafe { core::str::from_utf8_unchecked_mut(ans) }
 }
 
-/// Encodes `data` and returns [`Box<str>`].
-///
-/// # Panics
-/// This function will panic if the encoded length of `data` is greater than `isize::MAX`.
-#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
-#[cfg(feature = "alloc")]
-#[inline]
-#[must_use]
-pub fn encode_to_boxed_str(data: &[u8], case: AsciiCase) -> Box<str> {
-    if data.is_empty() {
-        return Box::from("");
-    }
-
-    unsafe {
-        assert!(data.len() <= usize::MAX / 4);
-
-        let mut uninit_buf = alloc_uninit_bytes(data.len() * 2);
-
-        let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-        crate::multiversion::encode::auto_indirect(data, dst, case);
-
-        let len = uninit_buf.len();
-        let ptr = Box::into_raw(uninit_buf).cast::<u8>();
-        Box::from_raw(core::str::from_utf8_unchecked_mut(slice_mut(ptr, len)))
-    }
+/// Types that can be decoded from a hex string.
+pub trait FromHexDecode: Sized {
+    /// Decodes a hex string to bytes case-insensitively and returns the self type.
+    fn from_hex_decode(data: &[u8]) -> Result<Self, Error>;
 }
 
-/// Decodes `data` and returns [`Box<[u8]>`](Box).
-///
-/// # Errors
-/// This function returns `Err` if the content of `data` is invalid.
-#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
-#[cfg(feature = "alloc")]
+/// Types that can represent a hex string.
+pub trait FromHexEncode: Sized {
+    /// Encodes bytes to a hex string and returns the self type.
+    fn from_hex_encode(data: &[u8], case: AsciiCase) -> Self;
+}
+
+/// Encodes bytes to a hex string and returns a specified type.
 #[inline]
-pub fn decode_to_boxed_bytes(data: &[u8]) -> Result<Box<[u8]>, Error> {
-    if data.is_empty() {
-        return Ok(Box::from([]));
-    }
+#[must_use]
+pub fn encode_type<T: FromHexEncode>(data: &[u8], case: AsciiCase) -> T {
+    T::from_hex_encode(data, case)
+}
 
-    ensure!(data.len() % 2 == 0);
-
-    unsafe {
-        let mut uninit_buf = alloc_uninit_bytes(data.len() / 2);
-
-        let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-        let src = data.as_ptr();
-        let len = data.len();
-        crate::multiversion::decode::auto_indirect(src, len, dst)?;
-
-        Ok(assume_init(uninit_buf))
-    }
+/// Decodes a hex string to bytes case-insensitively and returns a specified type.
+#[inline]
+pub fn decode_type<T: FromHexDecode>(data: &[u8]) -> Result<T, Error> {
+    T::from_hex_decode(data)
 }

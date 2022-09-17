@@ -27,10 +27,10 @@ fn test_str() {
 fn test_alloc() {
     let src = "hello".as_bytes();
 
-    let ans = crate::encode_to_boxed_str(src, AsciiCase::Lower);
+    let ans: String = crate::encode_type(src, AsciiCase::Lower);
     assert_eq!(&*ans, "68656c6c6f");
 
-    let ans = crate::decode_to_boxed_bytes(ans.as_bytes()).unwrap();
+    let ans: Vec<u8> = crate::decode_type(ans.as_bytes()).unwrap();
     assert_eq!(&*ans, src);
 }
 
