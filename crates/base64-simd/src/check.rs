@@ -1,6 +1,7 @@
 use crate::decode::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
 use crate::{Error, Kind};
-use vsimd::base64::{STANDARD_ALSW_LUT, URL_SAFE_ALSW_LUT};
+
+use vsimd::base64::{STANDARD_ALSW_CHECK, URL_SAFE_ALSW_CHECK};
 use vsimd::tools::read;
 use vsimd::SIMD256;
 
@@ -82,16 +83,16 @@ pub(crate) fn check_fallback(src: &[u8], kind: Kind) -> Result<(), Error> {
 pub(crate) fn check_simd<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error> {
     let (mut src, mut n) = (src.as_ptr(), src.len());
 
-    let lut = match kind {
-        Kind::Standard => STANDARD_ALSW_LUT,
-        Kind::UrlSafe => URL_SAFE_ALSW_LUT,
+    let check_lut = match kind {
+        Kind::Standard => STANDARD_ALSW_CHECK,
+        Kind::UrlSafe => URL_SAFE_ALSW_CHECK,
     };
 
     unsafe {
         // n*3/4 >= 24+4
         while n >= 38 {
             let x = s.v256_load_unaligned(src);
-            let is_valid = vsimd::base64::check_ascii32(s, x, lut);
+            let is_valid = vsimd::base64::check_ascii32(s, x, check_lut);
             ensure!(is_valid);
             src = src.add(32);
             n -= 32;

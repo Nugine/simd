@@ -1,8 +1,6 @@
+use crate::alsw::{self, AlswLutX2};
 use crate::mask::u8x32_highbit_any;
-use crate::table::u8x16x2_lookup;
 use crate::{NEON, SIMD256, SSE41, V256, WASM128};
-
-use core::ops::Not;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Kind {
@@ -167,128 +165,96 @@ pub fn encode_bytes24<S: SIMD256>(s: S, x: V256, shift_lut: V256) -> V256 {
     // {{ascii}} x32
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct AlswLut {
-    check_hash: V256,
-    check_offset: V256,
-    decode_hash: V256,
-    decode_offset: V256,
+struct StandardAlsw;
+
+impl StandardAlsw {
+    const fn decode(c: u8) -> u8 {
+        match c {
+            b'A'..=b'Z' => c - b'A',
+            b'a'..=b'z' => c - b'a' + 26,
+            b'0'..=b'9' => c - b'0' + 52,
+            b'+' => 62,
+            b'/' => 63,
+            _ => 0xff,
+        }
+    }
+
+    const fn check_hash(i: u8) -> u8 {
+        match i {
+            0 => 5,
+            1..=9 => 2,
+            0xA => 4,
+            0xB => 6,
+            0xC..=0xE => 8,
+            0xF => 6,
+            _ => unreachable!(),
+        }
+    }
+
+    const fn decode_hash(i: u8) -> u8 {
+        match i {
+            0xB => 0x07,
+            0xF => 0x08,
+            _ => 0x01,
+        }
+    }
 }
 
-const fn is_base64_standard(c: u8) -> bool {
-    matches!(c, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'+' | b'/')
+impl_alsw!(StandardAlsw);
+
+struct UrlSafeAlsw;
+
+impl UrlSafeAlsw {
+    const fn decode(c: u8) -> u8 {
+        match c {
+            b'A'..=b'Z' => c - b'A',
+            b'a'..=b'z' => c - b'a' + 26,
+            b'0'..=b'9' => c - b'0' + 52,
+            b'-' => 62,
+            b'_' => 63,
+            _ => 0xff,
+        }
+    }
+
+    const fn check_hash(i: u8) -> u8 {
+        match i {
+            0 => 7,
+            1..=9 => 2,
+            0xA => 4,
+            0xB | 0xC => 6,
+            0xD => 8,
+            0xE => 6,
+            0xF => 6,
+            _ => unreachable!(),
+        }
+    }
+
+    const fn decode_hash(i: u8) -> u8 {
+        match i {
+            0xD => 0x01,
+            0xF => 0x05,
+            _ => 0x01,
+        }
+    }
 }
 
-const fn gen_check_hash_standard(i: u8) -> u8 {
-    assert!(i < 16);
-    let x: u8 = match i {
-        0 => 5,
-        1..=9 => 2,
-        0xA => 4,
-        0xB => 6,
-        0xC..=0xE => 8,
-        0xF => 6,
-        _ => unreachable!(),
-    };
-    (x << 1) - 1
+impl_alsw!(UrlSafeAlsw);
+
+pub const STANDARD_ALSW_CHECK: AlswLutX2 = StandardAlsw::check_lut_x2();
+pub const STANDARD_ALSW_DECODE: AlswLutX2 = StandardAlsw::decode_lut_x2();
+
+pub const URL_SAFE_ALSW_CHECK: AlswLutX2 = UrlSafeAlsw::check_lut_x2();
+pub const URL_SAFE_ALSW_DECODE: AlswLutX2 = UrlSafeAlsw::decode_lut_x2();
+
+#[inline(always)]
+pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2) -> bool {
+    alsw::check_ascii32(s, x, check)
 }
-
-const fn gen_decode_hash_standard(i: u8) -> u8 {
-    let x: u8 = match i {
-        0xB => 0x07,
-        0xF => 0x08,
-        _ => 0x01,
-    };
-    (x << 1) - 1
-}
-
-const fn gen_decode_offset_standard(i: u8) -> u8 {
-    let x: i8 = match i {
-        0x04 => 52 - 0x30,
-        0x05 => 0 - 0x41,
-        0x06 => 15 - 0x50,
-        0x07 => 26 - 0x61,
-        0x08 => 41 - 0x70,
-        0x09 => 62 - 0x2B,
-        0x0A => 63 - 0x2F,
-        0x0B => 10 - 0x4B,
-        0x0C => 14 - 0x4F,
-        0x0D => 36 - 0x6B,
-        0x0E => 40 - 0x6F,
-        _ => 0x00,
-    };
-    x as u8
-}
-
-pub const STANDARD_ALSW_LUT: AlswLut = AlswLut {
-    check_hash: V256::double_bytes(u8x16!(gen_check_hash_standard)),
-    check_offset: V256::double_bytes(alsw_gen_check_offset!(is_base64_standard, gen_check_hash_standard)),
-    decode_hash: V256::double_bytes(u8x16!(gen_decode_hash_standard)),
-    decode_offset: V256::double_bytes(u8x16!(gen_decode_offset_standard)),
-};
-
-const fn is_base64_urlsafe(c: u8) -> bool {
-    matches!(c, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_')
-}
-
-const fn gen_check_hash_urlsafe(i: u8) -> u8 {
-    assert!(i < 16);
-    let x: u8 = match i {
-        0 => 7,
-        1..=9 => 2,
-        0xA => 4,
-        0xB | 0xC => 6,
-        0xD => 8,
-        0xE => 6,
-        0xF => 6,
-        _ => unreachable!(),
-    };
-    (x << 1) - 1
-}
-
-const fn gen_decode_hash_urlsafe(i: u8) -> u8 {
-    let x: u8 = match i {
-        0xD => 0x01,
-        0xF => 0x05,
-        _ => 0x01,
-    };
-    (x << 1) - 1
-}
-
-const fn gen_decode_offset_urlsafe(i: u8) -> u8 {
-    let x: i8 = match i {
-        0x03 => 62 - 0x2D,
-        0x04 => 52 - 0x30,
-        0x05 | 0x09 => 0 - 0x41,
-        0x06 => 15 - 0x50,
-        0x07 | 0x0B => 26 - 0x61,
-        0x08 => 41 - 0x70,
-        0x0A => 63 - 0x5F,
-        _ => 0x00,
-    };
-    x as u8
-}
-
-pub const URL_SAFE_ALSW_LUT: AlswLut = AlswLut {
-    check_hash: V256::double_bytes(u8x16!(gen_check_hash_urlsafe)),
-    check_offset: V256::double_bytes(alsw_gen_check_offset!(is_base64_urlsafe, gen_check_hash_urlsafe)),
-    decode_hash: V256::double_bytes(u8x16!(gen_decode_hash_urlsafe)),
-    decode_offset: V256::double_bytes(u8x16!(gen_decode_offset_urlsafe)),
-};
 
 #[allow(clippy::result_unit_err)]
 #[inline(always)]
-pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, lut: AlswLut) -> Result<V256, ()> {
-    let shr3 = s.u32x8_shr::<3>(x);
-
-    let h1 = s.u8x32_avgr(shr3, u8x16x2_lookup(s, lut.check_hash, x));
-    let h2 = s.u8x32_avgr(shr3, u8x16x2_lookup(s, lut.decode_hash, x));
-
-    let o1 = u8x16x2_lookup(s, lut.check_offset, h1);
-    let o2 = u8x16x2_lookup(s, lut.decode_offset, h2);
-
-    let c1 = s.i8x32_add_sat(x, o1);
-    let c2 = s.u8x32_add(x, o2);
+pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2, decode: AlswLutX2) -> Result<V256, ()> {
+    let (c1, c2) = alsw::decode_ascii32(s, x, check, decode);
 
     let y = merge_bits(s, c2);
 
@@ -299,94 +265,21 @@ pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, lut: AlswLut) -> Result<V256, (
     }
 }
 
-#[inline(always)]
-pub fn check_ascii32<S: SIMD256>(s: S, x: V256, lut: AlswLut) -> bool {
-    let shr3 = s.u32x8_shr::<3>(x);
-    let h1 = s.u8x32_avgr(shr3, u8x16x2_lookup(s, lut.check_hash, x));
-    let o1 = u8x16x2_lookup(s, lut.check_offset, h1);
-    let c1 = s.i8x32_add_sat(x, o1);
-    u8x32_highbit_any(s, c1).not()
-}
-
 #[cfg(test)]
 mod algorithm {
     use super::*;
 
-    use crate::algorithm::*;
-
-    #[ignore]
     #[test]
-    fn check_standard() {
-        let hash = &u8x16!(gen_check_hash_standard);
-        let offset = &alsw_gen_check_offset!(is_base64_standard, gen_check_hash_standard);
-
-        let h = |c: u8| alsw_hash(hash, c);
-        let check = |c: u8| alsw_check(hash, offset, c);
-
-        print_fn_table(is_base64_standard, h);
-        print_fn_table(is_base64_standard, check);
-
-        for c in 0..=255u8 {
-            assert_eq!(check(c) < 0x80, is_base64_standard(c));
-        }
+    #[ignore]
+    fn standard_alsw() {
+        StandardAlsw::test_check();
+        StandardAlsw::test_decode();
     }
 
-    #[ignore]
     #[test]
-    fn decode_standard() {
-        let hash = &u8x16!(gen_decode_hash_standard);
-        let offset = &u8x16!(gen_decode_offset_standard);
-
-        let h = |c: u8| alsw_hash(hash, c);
-        let decode = |c: u8| alsw_decode(hash, offset, c);
-
-        print_fn_table(is_base64_standard, h);
-        print_fn_table(is_base64_standard, decode);
-
-        for c in 0..=255u8 {
-            if is_base64_standard(c) {
-                let idx = STANDARD_CHARSET.iter().position(|&x| x == c).unwrap() as u8;
-                let val = decode(c);
-                assert_eq!(val, idx);
-            }
-        }
-    }
-
     #[ignore]
-    #[test]
-    fn check_urlsafe() {
-        let hash = &u8x16!(gen_check_hash_urlsafe);
-        let offset = &alsw_gen_check_offset!(is_base64_urlsafe, gen_check_hash_urlsafe);
-
-        let h = |c: u8| alsw_hash(hash, c);
-        let check = |c: u8| alsw_check(hash, offset, c);
-
-        print_fn_table(is_base64_urlsafe, h);
-        print_fn_table(is_base64_urlsafe, check);
-
-        for c in 0..=255u8 {
-            assert_eq!(check(c) < 0x80, is_base64_urlsafe(c));
-        }
-    }
-
-    #[ignore]
-    #[test]
-    fn decode_urlsafe() {
-        let hash = &u8x16!(gen_decode_hash_urlsafe);
-        let offset = &u8x16!(gen_decode_offset_urlsafe);
-
-        let h = |c: u8| alsw_hash(hash, c);
-        let decode = |c: u8| alsw_decode(hash, offset, c);
-
-        print_fn_table(is_base64_urlsafe, h);
-        print_fn_table(is_base64_urlsafe, decode);
-
-        for c in 0..=255u8 {
-            if is_base64_urlsafe(c) {
-                let idx = URL_SAFE_CHARSET.iter().position(|&x| x == c).unwrap() as u8;
-                let val = decode(c);
-                assert_eq!(val, idx);
-            }
-        }
+    fn url_safe_alsw() {
+        UrlSafeAlsw::test_check();
+        UrlSafeAlsw::test_decode();
     }
 }

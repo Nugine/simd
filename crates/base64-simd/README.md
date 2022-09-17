@@ -14,7 +14,6 @@ Inspired by [base64](https://github.com/marshallpierce/rust-base64) and [radix64
 References:
 
 + <http://0x80.pl/articles/index.html#base64-algorithm-new>
-+ <https://gist.github.com/aqrit/a2ccea48d7cac7e9d4d99f19d4759666>
 
 Documentation: <https://docs.rs/base64-simd>
 

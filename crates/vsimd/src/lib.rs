@@ -44,6 +44,9 @@ mod algorithm;
 pub mod scalar;
 pub mod tools;
 
+#[macro_use]
+pub mod alsw;
+
 pub mod ascii;
 pub mod base32;
 pub mod base64;

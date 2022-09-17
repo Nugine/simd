@@ -182,35 +182,3 @@ macro_rules! simd_dispatch {
         }
     }
 }
-
-#[macro_export]
-macro_rules! u8x16 {
-    ($f:ident) => {{
-        const ARRAY: [u8; 16] = {
-            let mut arr = [0; 16];
-            let mut i = 0;
-            while i < 16 {
-                arr[i] = $f(i as u8);
-                i += 1;
-            }
-            arr
-        };
-        ARRAY
-    }};
-}
-
-#[macro_export]
-macro_rules! u8x256 {
-    ($f:ident) => {{
-        const ARRAY: [u8; 256] = {
-            let mut arr = [0; 256];
-            let mut i = 0;
-            while i < 256 {
-                arr[i] = $f(i as u8);
-                i += 1;
-            }
-            arr
-        };
-        ARRAY
-    }};
-}
