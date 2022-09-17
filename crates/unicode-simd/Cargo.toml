@@ -1,6 +1,6 @@
 [package]
 name = "unicode-simd"
-version = "0.0.1"
+version = "0.1.0-dev"
 edition = "2021"
 description = "SIMD-accelerated Unicode validation and transcoding"
 license = "MIT"
@@ -23,7 +23,7 @@ unstable = ["vsimd/unstable"]
 
 [dependencies]
 outref = "0.3.0"
-vsimd = { path = "../vsimd", version = "0.0.1" }
+vsimd = { path = "../vsimd", version = "0.1.0-dev" }
 
 [dev-dependencies]
 rand = "0.8.5"

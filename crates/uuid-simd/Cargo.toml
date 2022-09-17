@@ -1,6 +1,6 @@
 [package]
 name = "uuid-simd"
-version = "0.8.0"
+version = "0.8.0-dev"
 edition = "2021"
 description = "SIMD-accelerated UUID operations"
 license = "MIT"
@@ -22,11 +22,11 @@ unstable = ["vsimd/unstable", "hex-simd/unstable"]
 
 [dependencies]
 outref = "0.3.0"
-vsimd = { path = "../vsimd", version = "0.0.1" }
+vsimd = { path = "../vsimd", version = "0.1.0-dev" }
 uuid = { version = "1.1.2", optional = true }
 
 [dev-dependencies]
-hex-simd = { path = "../hex-simd", version = "0.8.0" }
+hex-simd = { path = "../hex-simd", version = "0.8.0-dev" }
 
 [target.'cfg(target_arch="wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3.32"

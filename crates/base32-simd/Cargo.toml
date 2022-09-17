@@ -1,6 +1,6 @@
 [package]
 name = "base32-simd"
-version = "0.0.1"
+version = "0.1.0-dev"
 edition = "2021"
 description = "SIMD-accelerated base32 encoding and decoding"
 license = "MIT"
@@ -23,7 +23,7 @@ unstable = ["vsimd/unstable"]
 
 [dependencies]
 outref = "0.3.0"
-vsimd = { path = "../vsimd", version = "0.0.1" }
+vsimd = { path = "../vsimd", version = "0.1.0-dev" }
 
 [dev-dependencies]
 base32 = "0.4.0"

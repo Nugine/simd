@@ -1,6 +1,6 @@
 [package]
 name = "vsimd"
-version = "0.0.1"
+version = "0.1.0-dev"
 edition = "2021"
 description = "SIMD utilities"
 license = "MIT"
