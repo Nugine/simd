@@ -7,51 +7,8 @@
 
 SIMD-accelerated operations
 
-## uuid-simd
-
-[![Crates.io](https://img.shields.io/crates/v/uuid-simd.svg)](https://crates.io/crates/uuid-simd)
-[![Docs](https://docs.rs/uuid-simd/badge.svg)](https://docs.rs/uuid-simd/)
-
-SIMD-accelerated UUID operations
-
-## hex-simd
-
-[![Crates.io](https://img.shields.io/crates/v/hex-simd.svg)](https://crates.io/crates/hex-simd)
-[![Docs](https://docs.rs/hex-simd/badge.svg)](https://docs.rs/hex-simd/)
-
-SIMD-accelerated hex encoding and decoding.
-
-Inspired by [faster-hex](https://github.com/nervosnetwork/faster-hex)
-
-## base64-simd
-
-[![Crates.io](https://img.shields.io/crates/v/base64-simd.svg)](https://crates.io/crates/base64-simd)
-[![Docs](https://docs.rs/base64-simd/badge.svg)](https://docs.rs/base64-simd/)
-
-SIMD-accelerated base64 encoding and decoding.
-
-Inspired by [base64](https://github.com/marshallpierce/rust-base64) and [radix64](https://github.com/ggriffiniii/radix64)
-
-References:
-
-+ <http://0x80.pl/articles/index.html#base64-algorithm-new>
-+ <https://gist.github.com/aqrit/a2ccea48d7cac7e9d4d99f19d4759666>
-
-## unicode-simd
-
-[![Crates.io](https://img.shields.io/crates/v/unicode-simd.svg)](https://crates.io/crates/unicode-simd)
-[![Docs](https://docs.rs/unicode-simd/badge.svg)](https://docs.rs/unicode-simd/)
-
-SIMD-accelerated Unicode validation and transcoding.
-
-References:
-
-+ Daniel Lemire, Wojciech Muła,  [Transcoding Billions of Unicode Characters per Second with SIMD Instructions](https://arxiv.org/abs/2109.10433), Software: Practice and Experience (to appear)
-+ <https://github.com/simdutf/simdutf>
-
-## base32-simd
-
-[![Crates.io](https://img.shields.io/crates/v/base32-simd.svg)](https://crates.io/crates/base32-simd)
-[![Docs](https://docs.rs/base32-simd/badge.svg)](https://docs.rs/base32-simd/)
-
-SIMD-accelerated base32 encoding and decoding.
+|                crate                 |                                                version                                                |                                      docs                                      |
+| :----------------------------------: | :---------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------: |
+| [base64-simd](./crates/base64-simd/) | [![Crates.io](https://img.shields.io/crates/v/base64-simd.svg)](https://crates.io/crates/base64-simd) | [![Docs](https://docs.rs/base64-simd/badge.svg)](https://docs.rs/base64-simd/) |
+|    [hex-simd](./crates/hex-simd/)    |    [![Crates.io](https://img.shields.io/crates/v/hex-simd.svg)](https://crates.io/crates/hex-simd)    |    [![Docs](https://docs.rs/hex-simd/badge.svg)](https://docs.rs/hex-simd/)    |
+|   [uuid-simd](./crates/uuid-simd/)   |   [![Crates.io](https://img.shields.io/crates/v/uuid-simd.svg)](https://crates.io/crates/uuid-simd)   |   [![Docs](https://docs.rs/uuid-simd/badge.svg)](https://docs.rs/uuid-simd/)   |
