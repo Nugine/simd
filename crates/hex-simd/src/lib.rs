@@ -79,7 +79,7 @@ pub fn decoded_length(n: usize) -> Result<usize, Error> {
 /// This function returns `Err` if the content of `data` is invalid.
 #[inline]
 pub fn check(data: &[u8]) -> Result<(), Error> {
-    crate::multiversion::check::auto_indirect(data)
+    crate::multiversion::check::auto(data)
 }
 
 /// Encodes bytes to a hex string.
@@ -94,7 +94,7 @@ pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>, case: AsciiCase)
     assert!(dst.len() / 2 >= src.len());
     let dst = dst.as_mut_ptr();
     unsafe {
-        crate::multiversion::encode::auto_indirect(src, dst, case);
+        crate::multiversion::encode::auto(src, dst, case);
         slice_mut(dst, src.len() * 2)
     }
 }
@@ -115,7 +115,7 @@ pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mu
     let dst = dst.as_mut_ptr();
     let src = src.as_ptr();
     unsafe {
-        crate::multiversion::decode::auto_indirect(src, len, dst)?;
+        crate::multiversion::decode::auto(src, len, dst)?;
         Ok(slice_mut(dst, len / 2))
     }
 }
@@ -131,7 +131,7 @@ pub fn decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
         let len = data.len();
         let dst: *mut u8 = data.as_mut_ptr();
         let src: *const u8 = dst;
-        crate::multiversion::decode::auto_indirect(src, len, dst)?;
+        crate::multiversion::decode::auto(src, len, dst)?;
         Ok(slice_mut(dst, len / 2))
     }
 }

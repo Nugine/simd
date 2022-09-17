@@ -57,7 +57,7 @@ pub fn parse<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d
         unsafe {
             let src = src.as_ptr();
             let dst = dst.as_mut_ptr().cast::<u8>();
-            crate::multiversion::parse_simple_raw::auto_indirect(src, dst)?;
+            crate::multiversion::parse_simple_raw::auto(src, dst)?;
             return Ok(&mut *dst.cast());
         }
     }
@@ -76,7 +76,7 @@ pub fn parse<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d
             _ => return Err(Error::new()),
         };
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::parse_hyphenated_raw::auto_indirect(src, dst)?;
+        crate::multiversion::parse_hyphenated_raw::auto(src, dst)?;
         Ok(&mut *dst.cast())
     }
 }
@@ -94,7 +94,7 @@ pub fn parse_simple<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Res
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::parse_simple_raw::auto_indirect(src, dst)?;
+        crate::multiversion::parse_simple_raw::auto(src, dst)?;
         Ok(&mut *dst.cast())
     }
 }
@@ -112,7 +112,7 @@ pub fn parse_hyphenated<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) ->
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::parse_hyphenated_raw::auto_indirect(src, dst)?;
+        crate::multiversion::parse_hyphenated_raw::auto(src, dst)?;
         Ok(&mut *dst.cast())
     }
 }
@@ -124,7 +124,7 @@ pub fn format_simple<'s, 'd>(src: &'s [u8; 16], mut dst: OutRef<'d, [u8; 32]>, c
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::format_simple_raw::auto_indirect(src, dst, case);
+        crate::multiversion::format_simple_raw::auto(src, dst, case);
         &mut *dst.cast()
     }
 }
@@ -140,7 +140,7 @@ pub fn format_hyphenated<'s, 'd>(
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::format_hyphenated_raw::auto_indirect(src, dst, case);
+        crate::multiversion::format_hyphenated_raw::auto(src, dst, case);
         &mut *dst.cast()
     }
 }

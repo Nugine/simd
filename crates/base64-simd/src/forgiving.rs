@@ -1,6 +1,6 @@
 #[inline(always)]
 fn find_non_ascii_whitespace(data: &[u8]) -> usize {
-    vsimd::ascii::multiversion::find_non_ascii_whitespace::auto_indirect(data)
+    vsimd::ascii::multiversion::find_non_ascii_whitespace::auto(data)
 }
 
 #[inline(always)]

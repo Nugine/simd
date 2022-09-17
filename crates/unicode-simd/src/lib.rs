@@ -37,14 +37,14 @@ use vsimd::tools::slice_mut;
 #[inline]
 #[must_use]
 pub fn is_ascii_ct(data: &[u8]) -> bool {
-    vsimd::ascii::multiversion::is_ascii_ct::auto_indirect(data)
+    vsimd::ascii::multiversion::is_ascii_ct::auto(data)
 }
 
 /// TODO: test, bench
 #[inline]
 #[must_use]
 pub fn is_utf32le_ct(data: &[u32]) -> bool {
-    crate::multiversion::is_utf32le_ct::auto_indirect(data)
+    crate::multiversion::is_utf32le_ct::auto(data)
 }
 
 /// TODO: test, bench
@@ -53,7 +53,7 @@ pub fn utf32_swap_endianness_inplace(data: &mut [u32]) {
     let len = data.len();
     let dst = data.as_mut_ptr();
     let src = dst;
-    unsafe { crate::multiversion::utf32_swap_endianness::auto_indirect(src, len, dst) }
+    unsafe { crate::multiversion::utf32_swap_endianness::auto(src, len, dst) }
 }
 
 /// TODO: test, bench
@@ -64,7 +64,7 @@ pub fn utf32_swap_endianness<'s, 'd>(src: &'s [u32], mut dst: OutRef<'d, [u32]>)
     let len = src.len();
     let src = src.as_ptr();
     let dst = dst.as_mut_ptr();
-    unsafe { crate::multiversion::utf32_swap_endianness::auto_indirect(src, len, dst) };
+    unsafe { crate::multiversion::utf32_swap_endianness::auto(src, len, dst) };
     unsafe { slice_mut(dst, len) }
 }
 
@@ -74,7 +74,7 @@ pub fn utf16_swap_endianness_inplace(data: &mut [u16]) {
     let len = data.len();
     let dst = data.as_mut_ptr();
     let src = dst;
-    unsafe { crate::multiversion::utf16_swap_endianness::auto_indirect(src, len, dst) }
+    unsafe { crate::multiversion::utf16_swap_endianness::auto(src, len, dst) }
 }
 
 /// TODO: test, bench
@@ -85,6 +85,6 @@ pub fn utf16_swap_endianness<'s, 'd>(src: &'s [u16], mut dst: OutRef<'d, [u16]>)
     let len = src.len();
     let src = src.as_ptr();
     let dst = dst.as_mut_ptr();
-    unsafe { crate::multiversion::utf16_swap_endianness::auto_indirect(src, len, dst) };
+    unsafe { crate::multiversion::utf16_swap_endianness::auto(src, len, dst) };
     unsafe { slice_mut(dst, len) }
 }

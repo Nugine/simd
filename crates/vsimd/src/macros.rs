@@ -117,7 +117,7 @@ macro_rules! simd_dispatch {
                 if $crate::WASM128::is_enabled() {
                     return simd128;
                 }
-                $($fallback_fn)+
+                fallback
             }
 
             use core::sync::atomic::{AtomicPtr, Ordering::Relaxed};
@@ -135,6 +135,48 @@ macro_rules! simd_dispatch {
                 unsafe {
                     let f: unsafe fn($($arg_type),*) -> $ret = core::mem::transmute(IFUNC.load(Relaxed));
                     f($($arg_name),*)
+                }
+            }
+
+            #[inline(always)]
+            pub $($unsafe)? fn auto_direct$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+                let f = resolve();
+                unsafe { f($($arg_name),*) }
+            }
+
+            #[inline(always)]
+            fn resolve_fastest() -> Option<$(for<$($lifetime),+>)? unsafe fn($($arg_type),*) -> $ret> {
+                #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+                if cfg!(target_feature = "avx2") {
+                    return Some(avx2)
+                }
+
+                #[cfg(all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")))]
+                if cfg!(target_feature = "neon") {
+                    return Some(neon)
+                }
+
+                #[cfg(target_arch = "wasm32")]
+                if cfg!(target_feature = "simd128") {
+                    return Some(simd128)
+                }
+
+                None
+            }
+
+            #[inline(always)]
+            pub $($unsafe)? fn auto$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+                if let Some(f) = resolve_fastest() {
+                    return unsafe{ f($($arg_name),*) }
+                }
+
+                #[cfg(feature = "detect")]
+                {
+                    auto_indirect($($arg_name),*)
+                }
+                #[cfg(not(feature = "detect"))]
+                {
+                    auto_direct($($arg_name),*)
                 }
             }
         }

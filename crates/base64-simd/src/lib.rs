@@ -142,7 +142,7 @@ impl Base64 {
     pub fn check(&self, data: &[u8]) -> Result<(), Error> {
         let (n, _) = decoded_length(data, self.padding)?;
         let src = unsafe { data.get_unchecked(..n) };
-        crate::multiversion::check::auto_indirect(src, self.kind)
+        crate::multiversion::check::auto(src, self.kind)
     }
 
     /// Encodes bytes to a base64 string.
@@ -157,7 +157,7 @@ impl Base64 {
             assert!(dst.len() >= m);
 
             let dst = dst.as_mut_ptr();
-            self::multiversion::encode::auto_indirect(src, dst, self.kind, self.padding);
+            self::multiversion::encode::auto(src, dst, self.kind, self.padding);
 
             slice_mut(dst, m)
         }
@@ -189,7 +189,7 @@ impl Base64 {
 
             let src = src.as_ptr();
             let dst = dst.as_mut_ptr();
-            self::multiversion::decode::auto_indirect(src, dst, n, self.kind)?;
+            self::multiversion::decode::auto(src, dst, n, self.kind)?;
 
             Ok(slice_mut(dst, m))
         }
@@ -206,7 +206,7 @@ impl Base64 {
 
             let dst: *mut u8 = data.as_mut_ptr();
             let src: *const u8 = dst;
-            self::multiversion::decode::auto_indirect(src, dst, n, self.kind)?;
+            self::multiversion::decode::auto(src, dst, n, self.kind)?;
 
             Ok(slice_mut(dst, m))
         }

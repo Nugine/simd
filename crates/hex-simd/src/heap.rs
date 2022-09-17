@@ -19,7 +19,7 @@ impl FromHexDecode for Box<[u8]> {
             let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
             let src = data.as_ptr();
             let len = data.len();
-            crate::multiversion::decode::auto_indirect(src, len, dst)?;
+            crate::multiversion::decode::auto(src, len, dst)?;
 
             Ok(assume_init(uninit_buf))
         }
@@ -48,7 +48,7 @@ impl FromHexEncode for Box<[u8]> {
             let mut uninit_buf = alloc_uninit_bytes(data.len() * 2);
 
             let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-            crate::multiversion::encode::auto_indirect(data, dst, case);
+            crate::multiversion::encode::auto(data, dst, case);
 
             let len = uninit_buf.len();
             let ptr = Box::into_raw(uninit_buf).cast::<u8>();
