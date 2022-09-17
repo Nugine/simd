@@ -117,7 +117,7 @@ pub fn parse_hyphenated<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) ->
     }
 }
 
-/// Formats `src` to a simple UUID string.
+/// Formats an UUID to a simple UUID string.
 #[inline]
 #[must_use]
 pub fn format_simple<'s, 'd>(src: &'s [u8; 16], mut dst: OutRef<'d, [u8; 32]>, case: AsciiCase) -> &'d mut [u8; 32] {
@@ -129,7 +129,7 @@ pub fn format_simple<'s, 'd>(src: &'s [u8; 16], mut dst: OutRef<'d, [u8; 32]>, c
     }
 }
 
-/// Formats `src` to a hyphenated UUID string.
+/// Formats an UUID to a hyphenated UUID string.
 #[inline]
 #[must_use]
 pub fn format_hyphenated<'s, 'd>(
