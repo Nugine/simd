@@ -41,7 +41,7 @@ pub use self::simd256::SIMD256;
 #[macro_use]
 mod algorithm;
 
-pub mod scalar;
+pub mod pod;
 pub mod tools;
 
 #[macro_use]

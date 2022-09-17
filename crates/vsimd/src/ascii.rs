@@ -1,5 +1,5 @@
 use crate::mask::{mask8x32_any, u8x32_highbit_any};
-use crate::scalar::align32;
+use crate::pod::align;
 use crate::tools::{read, unroll};
 use crate::{SIMD256, V256};
 
@@ -44,7 +44,7 @@ pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
 
 #[inline]
 pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
-    let (prefix, middle, suffix) = align32(data);
+    let (prefix, middle, suffix) = align::<_, V256>(data);
 
     let mut ans = is_ascii_ct_fallback(prefix);
 
@@ -153,7 +153,7 @@ pub fn find_non_ascii_whitespace_fallback(data: &[u8]) -> usize {
 
 #[inline]
 pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
-    let (prefix, middle, suffix) = align32(data);
+    let (prefix, middle, suffix) = align::<_, V256>(data);
 
     let mut pos: usize = 0;
 

@@ -1,4 +1,4 @@
-use crate::scalar::{align32, Scalar};
+use crate::pod::{align, POD};
 use crate::{SIMD256, V128, V256};
 
 pub(crate) const SHUFFLE_U16X8: V128 = V128::from_bytes([
@@ -22,7 +22,7 @@ pub(crate) const SHUFFLE_U32X8: V256 = V256::double_v128(SHUFFLE_U32X4);
 
 pub(crate) const SHUFFLE_U64X4: V256 = V256::double_v128(SHUFFLE_U64X2);
 
-pub unsafe trait BSwapExt: Scalar {
+pub unsafe trait BSwapExt: POD {
     fn swap_single(x: Self) -> Self;
     fn swap_simd<S: SIMD256>(s: S, a: V256) -> V256;
 }
@@ -82,8 +82,8 @@ unsafe fn unroll_ptr<T>(mut src: *const T, len: usize, chunk_size: usize, mut f:
 
 type SliceRawParts<T> = (*const T, usize);
 
-fn raw_align32<T: Scalar>(slice: &[T]) -> (SliceRawParts<T>, SliceRawParts<V256>, SliceRawParts<T>) {
-    let (p, m, s) = align32(slice);
+fn raw_align32<T: POD>(slice: &[T]) -> (SliceRawParts<T>, SliceRawParts<V256>, SliceRawParts<T>) {
+    let (p, m, s) = align::<_, V256>(slice);
     let p = (p.as_ptr(), p.len());
     let m = (m.as_ptr(), m.len());
     let s = (s.as_ptr(), s.len());

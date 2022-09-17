@@ -1,6 +1,6 @@
-use vsimd::scalar::align32;
+use vsimd::pod::align;
 use vsimd::tools::unroll;
-use vsimd::SIMD256;
+use vsimd::{SIMD256, V256};
 
 /// See [`char::from_u32`]
 #[inline]
@@ -14,7 +14,7 @@ pub fn is_utf32le_ct_fallback(data: &[u32]) -> bool {
 
 #[inline]
 pub fn is_utf32le_ct_simd<S: SIMD256>(s: S, data: &[u32]) -> bool {
-    let (prefix, middle, suffix) = align32(data);
+    let (prefix, middle, suffix) = align::<_, V256>(data);
 
     let mut ans = is_utf32le_ct_fallback(prefix);
 
