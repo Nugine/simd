@@ -25,11 +25,13 @@ pub mod multiversion {
     );
 }
 
+/// An enum type which represents the case of ascii letters.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
 pub enum AsciiCase {
-    Lower = 0,
-    Upper = 1,
+    /// a-z are lower case letters.
+    Lower,
+    /// A-Z are upper case letters.
+    Upper,
 }
 
 #[inline]
