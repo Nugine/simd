@@ -3,7 +3,7 @@ use uuid::Uuid;
 use uuid_simd::{AsciiCase, OutRef, UuidExt};
 
 pub fn bench_parse(c: &mut Criterion) {
-    let mut group = c.benchmark_group("uuid-simd-parse");
+    let mut group = c.benchmark_group("uuid-parse");
 
     let inputs = [
         ("simple", "67e5504410b1426f9247bb680e5fe0c8"),
@@ -14,7 +14,7 @@ pub fn bench_parse(c: &mut Criterion) {
 
     #[allow(clippy::type_complexity)]
     let functions: &[(&str, fn(&str))] = &[
-        ("uuid-simd/auto-indirect", |s: &str| {
+        ("uuid-simd/auto", |s: &str| {
             <Uuid as UuidExt>::parse(s).unwrap();
         }),
         ("uuid/fallback", |s: &str| {
@@ -30,7 +30,7 @@ pub fn bench_parse(c: &mut Criterion) {
 }
 
 pub fn bench_format(c: &mut Criterion) {
-    let mut group = c.benchmark_group("uuid-simd-format");
+    let mut group = c.benchmark_group("uuid-format");
 
     let x = Uuid::from_bytes(0x67e5504410b1426f9247bb680e5fe0c8_u128.to_be_bytes());
 
@@ -50,7 +50,7 @@ pub fn bench_format(c: &mut Criterion) {
     {
         #[allow(clippy::type_complexity)]
         let functions: &[(&str, fn(&mut Bencher, &Uuid))] = &[
-            ("uuid-simd/auto-indirect", |b: &mut Bencher, u: &Uuid| {
+            ("uuid-simd/auto", |b: &mut Bencher, u: &Uuid| {
                 wrap!(b, u, |u: &Uuid| {
                     let mut buf = [0; 32];
                     let src = u.as_bytes();
@@ -76,7 +76,7 @@ pub fn bench_format(c: &mut Criterion) {
     {
         #[allow(clippy::type_complexity)]
         let functions: &[(&str, fn(&mut Bencher, &Uuid))] = &[
-            ("uuid-simd/auto-indirect", |b: &mut Bencher, u: &Uuid| {
+            ("uuid-simd/auto", |b: &mut Bencher, u: &Uuid| {
                 wrap!(b, u, |u: &Uuid| {
                     let mut buf = [0; 36];
                     let src = u.as_bytes();

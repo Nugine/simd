@@ -6,7 +6,7 @@ use criterion::{Bencher, BenchmarkId, Criterion, Throughput};
 use base64_simd::OutRef;
 
 pub fn bench_encode(c: &mut Criterion) {
-    let mut group = c.benchmark_group("base64-simd-encode");
+    let mut group = c.benchmark_group("base64-encode");
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096, 65536]
@@ -17,7 +17,7 @@ pub fn bench_encode(c: &mut Criterion) {
 
     #[allow(clippy::type_complexity)]
     let functions: &[(&str, fn(&mut Bencher, &[u8], &mut [u8]))] = &[
-        ("base64-simd/auto-indirect", |b, src, dst| {
+        ("base64-simd/auto", |b, src, dst| {
             b.iter(|| {
                 let (src, dst) = (black_box(src), black_box(OutRef::from_slice(dst)));
                 let base64 = base64_simd::STANDARD;
@@ -48,7 +48,7 @@ pub fn bench_encode(c: &mut Criterion) {
 }
 
 pub fn bench_decode(c: &mut Criterion) {
-    let mut group = c.benchmark_group("base64-simd-decode");
+    let mut group = c.benchmark_group("base64-decode");
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096, 65536]
@@ -60,7 +60,7 @@ pub fn bench_decode(c: &mut Criterion) {
 
     #[allow(clippy::type_complexity)]
     let functions: &[(&str, fn(&mut Bencher, &[u8], &mut [u8]))] = &[
-        ("base64-simd/auto-indirect", |b, src, dst| {
+        ("base64-simd/auto", |b, src, dst| {
             b.iter(|| {
                 let (src, dst) = (black_box(src), black_box(OutRef::from_slice(dst)));
                 let base64 = base64_simd::STANDARD;

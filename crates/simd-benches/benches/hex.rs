@@ -14,7 +14,7 @@ fn gen_hex_chars(len: usize) -> Vec<u8> {
 }
 
 pub fn bench_check(c: &mut Criterion) {
-    let mut group = c.benchmark_group("hex-simd-check");
+    let mut group = c.benchmark_group("hex-check");
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096]
@@ -25,7 +25,7 @@ pub fn bench_check(c: &mut Criterion) {
 
     #[allow(clippy::type_complexity)]
     let functions: &[(&str, fn(&mut Bencher, &[u8]))] = &[
-        ("hex-simd/auto-indirect", |b, src| {
+        ("hex-simd/auto", |b, src| {
             b.iter(|| assert!(hex_simd::check(black_box(src)).is_ok()))
         }),
         #[cfg(target_feature = "sse4.1")]
@@ -47,7 +47,7 @@ pub fn bench_check(c: &mut Criterion) {
 }
 
 pub fn bench_decode(c: &mut Criterion) {
-    let mut group = c.benchmark_group("hex-simd-decode");
+    let mut group = c.benchmark_group("hex-decode");
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096]
@@ -58,7 +58,7 @@ pub fn bench_decode(c: &mut Criterion) {
 
     #[allow(clippy::type_complexity)]
     let functions: &[(&str, fn(&mut Bencher, &[u8], &mut [u8]))] = &[
-        ("hex-simd/auto-indirect", |b, src, dst| {
+        ("hex-simd/auto", |b, src, dst| {
             b.iter(|| {
                 let (src, dst) = (black_box(src), black_box(OutRef::from_slice(dst)));
                 hex_simd::decode(src, dst).unwrap();
@@ -88,14 +88,14 @@ pub fn bench_decode(c: &mut Criterion) {
 }
 
 pub fn bench_encode(c: &mut Criterion) {
-    let mut group = c.benchmark_group("hex-simd-encode");
+    let mut group = c.benchmark_group("hex-encode");
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let inputs: Vec<Vec<u8>> = [16, 32, 64, 256, 1024, 4096].iter().copied().map(rand_bytes).collect();
 
     #[allow(clippy::type_complexity)]
     let functions: &[(&str, fn(&mut Bencher, &[u8], &mut [u8]))] = &[
-        ("hex-simd/auto-indirect", |b, src, dst| {
+        ("hex-simd/auto", |b, src, dst| {
             b.iter(|| {
                 let (src, dst) = (black_box(src), black_box(OutRef::from_slice(dst)));
                 let _ = hex_simd::encode(src, dst, AsciiCase::Lower);
