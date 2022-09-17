@@ -2,6 +2,8 @@ use crate::mask::u8x32_highbit_any;
 use crate::table::u8x16x2_lookup;
 use crate::{NEON, SIMD256, SSE41, V256, WASM128};
 
+use core::ops::Not;
+
 #[derive(Debug, Clone, Copy)]
 pub enum Kind {
     Standard,
@@ -295,6 +297,15 @@ pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, lut: AlswLut) -> Result<V256, (
     } else {
         Ok(y)
     }
+}
+
+#[inline(always)]
+pub fn check_ascii32<S: SIMD256>(s: S, x: V256, lut: AlswLut) -> bool {
+    let shr3 = s.u32x8_shr::<3>(x);
+    let h1 = s.u8x32_avgr(shr3, u8x16x2_lookup(s, lut.check_hash, x));
+    let o1 = u8x16x2_lookup(s, lut.check_offset, h1);
+    let c1 = s.i8x32_add_sat(x, o1);
+    u8x32_highbit_any(s, c1).not()
 }
 
 #[cfg(test)]
