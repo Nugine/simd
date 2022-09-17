@@ -8,15 +8,13 @@ fn time(f: impl FnOnce()) -> u128 {
 }
 
 fn bench_base64(n: usize, src: &str) -> u128 {
-    let encoded = base64_simd::STANDARD
-        .encode_to_boxed_str(src.as_bytes())
-        .into_boxed_bytes();
+    let encoded = base64_simd::STANDARD.encode_type::<Box<[u8]>>(src.as_bytes());
 
     let mut bufs = vec![encoded; n];
 
     time(|| {
         for buf in &mut bufs {
-            let _ = base64_simd::Rfc4648Base64::forgiving_decode_inplace(buf).unwrap();
+            let _ = base64_simd::forgiving_decode_inplace(buf).unwrap();
         }
     })
 }

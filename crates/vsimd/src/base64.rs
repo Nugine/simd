@@ -2,6 +2,12 @@ use crate::mask::u8x32_highbit_any;
 use crate::table::u8x16x2_lookup;
 use crate::{NEON, SIMD256, SSE41, V256, WASM128};
 
+#[derive(Debug, Clone, Copy)]
+pub enum Kind {
+    Standard,
+    UrlSafe,
+}
+
 pub const STANDARD_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 pub const URL_SAFE_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
