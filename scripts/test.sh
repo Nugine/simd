@@ -11,5 +11,5 @@ function arm_test() {
 }
 
 function wasm_test() {
-    wasm-pack test --firefox --chrome --headless $@
+    wasm-pack test --node $@
 }

@@ -137,9 +137,6 @@ fn test_safety() {
 }
 
 #[cfg(target_arch = "wasm32")]
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-
-#[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
 #[wasm_bindgen_test::wasm_bindgen_test]
 fn wasm() {
     safety_unit_test(Base32::check, Base32::encode, Base32::decode, Base32::decode_inplace);
