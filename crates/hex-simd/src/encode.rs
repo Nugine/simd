@@ -47,7 +47,8 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: 
 
     let (mut src, mut len) = (src.as_ptr(), src.len());
 
-    while len >= 32 {
+    let end = src.add(len / 32 * 32);
+    while src < end {
         let x = s.v256_load_unaligned(src);
         let (y1, y2) = vsimd::hex::encode_bytes32(s, x, lut);
 
@@ -58,8 +59,8 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: 
         dst = dst.add(32);
 
         src = src.add(32);
-        len -= 32;
     }
+    len %= 32;
 
     if len >= 16 {
         let x = s.v128_load_unaligned(src);

@@ -23,7 +23,8 @@ pub unsafe fn decode_fallback(src: *const u8, len: usize, dst: *mut u8) -> Resul
 
 #[inline]
 pub unsafe fn decode_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, mut dst: *mut u8) -> Result<(), Error> {
-    while len >= 64 {
+    let end = src.add(len / 64 * 64);
+    while src < end {
         let x0 = s.v256_load_unaligned(src);
         src = src.add(32);
 
@@ -34,9 +35,8 @@ pub unsafe fn decode_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, 
         let y = vsimd::hex::decode_ascii32x2(s, x).map_err(|()| Error::new())?;
         s.v256_store_unaligned(dst, y);
         dst = dst.add(32);
-
-        len -= 64;
     }
+    len %= 64;
 
     if len >= 32 {
         let x = s.v256_load_unaligned(src);
