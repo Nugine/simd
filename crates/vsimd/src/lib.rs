@@ -48,6 +48,7 @@ pub mod tools;
 pub mod alsw;
 
 pub mod ascii;
+pub mod base32;
 pub mod base64;
 pub mod bswap;
 pub mod hex;
