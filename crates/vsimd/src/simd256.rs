@@ -832,7 +832,12 @@ pub unsafe trait SIMD256: SIMD128 {
     /// ans = ((b ^ c) & a) ^ c
     #[inline(always)]
     fn v256_bsl(self, a: V256, b: V256, c: V256) -> V256 {
-        self.v256_xor(self.v256_and(self.v256_xor(b, c), a), c)
+        if is_subtype!(Self, NEON) {
+            return simd256_vop3(self, a, b, c, Self::v128_bsl);
+        }
+        {
+            self.v256_xor(self.v256_and(self.v256_xor(b, c), a), c)
+        }
     }
 
     #[inline(always)]
