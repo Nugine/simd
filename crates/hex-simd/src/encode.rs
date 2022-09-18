@@ -1,6 +1,6 @@
 use crate::AsciiCase;
 
-use vsimd::tools::read;
+use vsimd::tools::{read, slice};
 use vsimd::SIMD256;
 
 const fn full_table(table: &[u8; 16]) -> [u16; 256] {
@@ -71,7 +71,6 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: 
     }
 
     if len > 0 {
-        let suffix = core::slice::from_raw_parts(src, len);
-        encode_fallback(suffix, dst, case);
+        encode_fallback(slice(src, len), dst, case);
     }
 }

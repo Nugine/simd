@@ -27,7 +27,7 @@ pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
         handle_alloc_error(layout)
     }
     let ptr = p.cast();
-    Box::from_raw(core::slice::from_raw_parts_mut(ptr, len))
+    Box::from_raw(core::ptr::slice_from_raw_parts_mut(ptr, len))
 }
 
 #[cfg(feature = "alloc")]
@@ -47,6 +47,11 @@ pub unsafe fn read<T>(base: *const T, offset: usize) -> T {
 #[inline(always)]
 pub unsafe fn write<T>(base: *mut T, offset: usize, value: T) {
     base.add(offset).write(value)
+}
+
+#[inline(always)]
+pub unsafe fn slice<'a, T>(data: *const T, len: usize) -> &'a [T] {
+    core::slice::from_raw_parts(data, len)
 }
 
 #[inline(always)]

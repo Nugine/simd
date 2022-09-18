@@ -2,7 +2,7 @@ use crate::decode::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
 use crate::{Error, Kind};
 
 use vsimd::base64::{STANDARD_ALSW_CHECK, URL_SAFE_ALSW_CHECK};
-use vsimd::tools::read;
+use vsimd::tools::{read, slice};
 use vsimd::SIMD256;
 
 #[inline(always)]
@@ -98,7 +98,6 @@ pub(crate) fn check_simd<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(),
             n -= 32;
         }
 
-        let src = core::slice::from_raw_parts(src, n);
-        check_fallback(src, kind)
+        check_fallback(slice(src, n), kind)
     }
 }

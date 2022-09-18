@@ -1,6 +1,7 @@
 use crate::Error;
 
 use vsimd::hex::unhex;
+use vsimd::tools::slice;
 use vsimd::SIMD256;
 
 #[inline]
@@ -39,7 +40,6 @@ pub fn check_simd<S: SIMD256>(s: S, data: &[u8]) -> Result<(), Error> {
             src = src.add(16);
         }
 
-        let suffix = core::slice::from_raw_parts(src, len);
-        check_fallback(suffix)
+        check_fallback(slice(src, len))
     }
 }

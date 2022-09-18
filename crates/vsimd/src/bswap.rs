@@ -1,4 +1,5 @@
 use crate::pod::{align, POD};
+use crate::tools::slice;
 use crate::{SIMD256, V128, V256};
 
 pub(crate) const SHUFFLE_U16X8: V128 = V128::from_bytes([
@@ -108,7 +109,7 @@ pub unsafe fn bswap_simd<S: SIMD256, T>(s: S, src: *const T, len: usize, mut dst
 where
     T: BSwapExt,
 {
-    let (prefix, middle, suffix) = raw_align32(core::slice::from_raw_parts(src, len));
+    let (prefix, middle, suffix) = raw_align32(slice(src, len));
 
     {
         let (src, len) = prefix;

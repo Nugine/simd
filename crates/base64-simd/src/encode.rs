@@ -3,7 +3,7 @@ use crate::Kind;
 use vsimd::base64::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 use vsimd::base64::{STANDARD_ENCODING_SHIFT, URL_SAFE_ENCODING_SHIFT};
 
-use vsimd::tools::{read, write};
+use vsimd::tools::{read, slice, write};
 use vsimd::SIMD256;
 
 #[inline(always)]
@@ -119,6 +119,5 @@ pub(crate) unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8,
         }
     }
 
-    let src = core::slice::from_raw_parts(src, len);
-    encode_fallback(src, dst, kind, padding)
+    encode_fallback(slice(src, len), dst, kind, padding)
 }
