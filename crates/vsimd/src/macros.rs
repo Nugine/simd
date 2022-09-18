@@ -117,7 +117,7 @@ macro_rules! simd_dispatch {
                 if $crate::WASM128::is_enabled() {
                     return simd128;
                 }
-                fallback
+                $($fallback_fn)+
             }
 
             use core::sync::atomic::{AtomicPtr, Ordering::Relaxed};
