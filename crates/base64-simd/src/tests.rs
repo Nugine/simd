@@ -9,6 +9,36 @@ fn rand_bytes(n: usize) -> Vec<u8> {
 }
 
 #[test]
+fn basic() {
+    let cases: &[(Base64, &str, &str)] = &[
+        (STANDARD, "", ""),
+        (STANDARD, "f", "Zg=="),
+        (STANDARD, "fo", "Zm8="),
+        (STANDARD, "foo", "Zm9v"),
+        (STANDARD, "foob", "Zm9vYg=="),
+        (STANDARD, "fooba", "Zm9vYmE="),
+        (STANDARD, "foobar", "Zm9vYmFy"),
+    ];
+
+    let mut buf: Vec<u8> = Vec::new();
+    for &(ref base64, input, output) in cases {
+        buf.clear();
+        buf.resize(base64.encoded_length(input.len()), 0);
+
+        let out = OutRef::from_slice(&mut buf);
+        let ans = base64.encode_as_str(input.as_bytes(), out);
+        assert_eq!(ans, output);
+
+        buf.clear();
+        buf.resize(base64.decoded_length(output.as_bytes()).unwrap(), 0);
+
+        let out = OutRef::from_slice(&mut buf);
+        let ans = base64.decode(output.as_bytes(), out).unwrap();
+        assert_eq!(ans, input.as_bytes());
+    }
+}
+
+#[test]
 fn test_forgiving() {
     let inputs = ["ab", "abc", "abcd"];
     let outputs: &[&[u8]] = &[&[105], &[105, 183], &[105, 183, 29]];
