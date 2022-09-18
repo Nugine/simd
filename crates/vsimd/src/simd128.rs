@@ -1675,7 +1675,7 @@ pub unsafe trait SIMD128: InstructionSet {
     }
 
     #[inline(always)]
-    fn i16x8_madd_sat(self, a: V128, b: V128) -> V128 {
+    fn i16x8_maddubs(self, a: V128, b: V128) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE41) {
             return unsafe { t(_mm_maddubs_epi16(t(a), t(b))) };

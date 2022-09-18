@@ -78,7 +78,7 @@ fn merge_bits<S: SIMD256>(s: S, x: V256) -> V256 {
 
     let y = if is_subtype!(S, SSE41) {
         let m1 = s.u16x16_splat(u16::from_le_bytes([0x40, 0x01]));
-        let x1 = s.i16x16_madd_sat(x, m1);
+        let x1 = s.i16x16_maddubs(x, m1);
         // x1: {aabbbbbb|0000aaaa|ccdddddd|0000cccc} x8
 
         let m2 = s.u32x8_splat(u32::from_le_bytes([0x00, 0x10, 0x01, 0x00]));
