@@ -24,9 +24,9 @@ jobs:
       - run: |
           cargo clippy -- -D warnings
       - run: |
-          cargo test --release --all-features
+          cargo install just wasm-pack cross
       - run: |
-          cargo miri test --all-features -- --nocapture --test-threads=1
+          DISABLE_PARALLEL=1 just test-all
 
   test:
     runs-on: ubuntu-latest
