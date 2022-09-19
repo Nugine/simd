@@ -3,7 +3,7 @@ use crate::Error;
 
 use vsimd::base32::Kind;
 use vsimd::base32::{BASE32HEX_ALSW_CHECK, BASE32_ALSW_CHECK};
-use vsimd::tools::slice;
+use vsimd::tools::{slice, slice_parts};
 use vsimd::SIMD256;
 
 #[inline]
@@ -39,7 +39,7 @@ pub fn check_fallback(src: &[u8], kind: Kind) -> Result<(), Error> {
     };
 
     unsafe {
-        let (mut src, mut len) = (src.as_ptr(), src.len());
+        let (mut src, mut len) = slice_parts(src);
 
         let end = src.add(len / 8 * 8);
         while src < end {
@@ -61,7 +61,7 @@ pub fn check_simd<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error>
     };
 
     unsafe {
-        let (mut src, mut len) = (src.as_ptr(), src.len());
+        let (mut src, mut len) = slice_parts(src);
 
         let end = src.add(len / 32 * 32);
         while src < end {

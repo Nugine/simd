@@ -1,6 +1,6 @@
 use crate::AsciiCase;
 
-use vsimd::tools::{read, slice};
+use vsimd::tools::{read, slice, slice_parts};
 use vsimd::SIMD256;
 
 const fn full_table(table: &[u8; 16]) -> [u16; 256] {
@@ -45,7 +45,7 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: 
         AsciiCase::Upper => vsimd::hex::ENCODE_UPPER_LUT,
     };
 
-    let (mut src, mut len) = (src.as_ptr(), src.len());
+    let (mut src, mut len) = slice_parts(src);
 
     let end = src.add(len / 32 * 32);
     while src < end {

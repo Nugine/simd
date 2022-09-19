@@ -1,7 +1,7 @@
 use vsimd::base32::Kind;
 use vsimd::base32::{BASE32HEX_CHARSET, BASE32_CHARSET};
 use vsimd::base32::{BASE32HEX_ENCODING_LUT, BASE32_ENCODING_LUT};
-use vsimd::tools::{read, slice, write};
+use vsimd::tools::{read, slice, slice_parts, write};
 use vsimd::SIMD256;
 
 pub const fn encoded_length_unchecked(len: usize, padding: bool) -> usize {
@@ -97,7 +97,7 @@ pub unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, kind: Kind, padding:
         Kind::Base32Hex => BASE32HEX_CHARSET.as_ptr(),
     };
 
-    let (mut src, mut len) = (src.as_ptr(), src.len());
+    let (mut src, mut len) = slice_parts(src);
 
     let end = src.add(len / 5 * 5);
     while src < end {
@@ -117,7 +117,7 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: 
         Kind::Base32Hex => (BASE32HEX_CHARSET.as_ptr(), BASE32HEX_ENCODING_LUT),
     };
 
-    let (mut src, mut len) = (src.as_ptr(), src.len());
+    let (mut src, mut len) = slice_parts(src);
 
     if len >= (10 + 20 + 6) {
         for _ in 0..2 {

@@ -3,7 +3,7 @@ use crate::Kind;
 use vsimd::base64::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 use vsimd::base64::{STANDARD_ENCODING_SHIFT, URL_SAFE_ENCODING_SHIFT};
 
-use vsimd::tools::{read, slice, write};
+use vsimd::tools::{read, slice, slice_parts, write};
 use vsimd::SIMD256;
 
 #[inline(always)]
@@ -74,7 +74,7 @@ pub(crate) unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, kind: Kind, p
         Kind::UrlSafe => URL_SAFE_CHARSET.as_ptr(),
     };
 
-    let (mut src, mut len) = (src.as_ptr(), src.len());
+    let (mut src, mut len) = slice_parts(src);
 
     while len >= (6 + 2) {
         encode_bits48(src, dst, charset);
@@ -99,7 +99,7 @@ pub(crate) unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8,
         Kind::UrlSafe => (URL_SAFE_CHARSET.as_ptr(), URL_SAFE_ENCODING_SHIFT),
     };
 
-    let (mut src, mut len) = (src.as_ptr(), src.len());
+    let (mut src, mut len) = slice_parts(src);
 
     if len >= (6 + 24 + 4) {
         for _ in 0..2 {

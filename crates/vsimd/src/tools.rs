@@ -78,3 +78,10 @@ where
     use core::any::TypeId;
     TypeId::of::<A>() == TypeId::of::<B>()
 }
+
+#[inline(always)]
+pub fn slice_parts<T>(slice: &[T]) -> (*const T, usize) {
+    let len = slice.len();
+    let ptr = slice.as_ptr();
+    (ptr, len)
+}
