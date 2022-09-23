@@ -1303,8 +1303,12 @@ pub unsafe trait SIMD128: SIMD64 {
         }
         #[cfg(all(feature = "unstable", target_arch = "arm"))]
         if is_subtype!(Self, NEON) {
-            let is_zero = self.u8x16_eq(a, self.v128_create_zero());
-            return !self.v128_all_zero(is_zero);
+            return unsafe {
+                let a: uint8x8x2_t = t(a);
+                let a = vpmin_u8(a.0, a.1);
+                let m: u64 = t(vtst_u8(a, a));
+                m != u64::MAX
+            };
         }
         #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
@@ -1800,5 +1804,35 @@ pub unsafe trait SIMD128: SIMD64 {
             let _ = (a, b);
             unreachable!()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::isa::InstructionSet;
+
+    use const_str::hex_bytes as hex;
+
+    #[test]
+    fn u8x16_any_zero() {
+        fn test(a: [u8; 16], expected: bool) {
+            let a = V128::from_bytes(a);
+            if let Some(s) = SSE41::detect() {
+                assert_eq!(s.u8x16_any_zero(a), expected);
+            }
+            if let Some(s) = NEON::detect() {
+                assert_eq!(s.u8x16_any_zero(a), expected);
+            }
+            if let Some(s) = WASM128::detect() {
+                assert_eq!(s.u8x16_any_zero(a), expected);
+            }
+        }
+
+        test([0x00; 16], true);
+        test([0xff; 16], false);
+        test(hex!("00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F"), true);
+        test(hex!("10 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F"), false);
     }
 }
