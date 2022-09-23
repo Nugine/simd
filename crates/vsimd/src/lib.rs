@@ -41,6 +41,9 @@ pub use self::simd128::SIMD128;
 mod simd256;
 pub use self::simd256::SIMD256;
 
+mod scalable;
+pub use self::scalable::Scalable;
+
 #[macro_use]
 mod algorithm;
 

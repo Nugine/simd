@@ -4,7 +4,7 @@
 
 use crate::algorithm::{avgr, lookup};
 use crate::mask::u8x32_highbit_any;
-use crate::table::{u8x16_lookup, u8x16x2_lookup};
+use crate::table::u8x16xn_lookup;
 use crate::{SIMD128, SIMD256, V128, V256};
 
 use core::ops::Not;
@@ -57,8 +57,8 @@ pub struct AlswLutX2 {
 #[inline(always)]
 pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2) -> bool {
     let shr3 = s.u32x8_shr::<3>(x);
-    let h1 = s.u8x32_avgr(shr3, u8x16x2_lookup(s, check.hash, x));
-    let o1 = u8x16x2_lookup(s, check.offset, h1);
+    let h1 = s.u8x32_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
+    let o1 = u8x16xn_lookup(s, check.offset, h1);
     let c1 = s.i8x32_add_sat(x, o1);
     u8x32_highbit_any(s, c1).not()
 }
@@ -67,11 +67,11 @@ pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2) -> bool {
 pub fn decode_ascii16<S: SIMD128>(s: S, x: V128, check: AlswLut, decode: AlswLut) -> (V128, V128) {
     let shr3 = s.u32x4_shr::<3>(x);
 
-    let h1 = s.u8x16_avgr(shr3, u8x16_lookup(s, check.hash, x));
-    let h2 = s.u8x16_avgr(shr3, u8x16_lookup(s, decode.hash, x));
+    let h1 = s.u8x16_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
+    let h2 = s.u8x16_avgr(shr3, u8x16xn_lookup(s, decode.hash, x));
 
-    let o1 = u8x16_lookup(s, check.offset, h1);
-    let o2 = u8x16_lookup(s, decode.offset, h2);
+    let o1 = u8x16xn_lookup(s, check.offset, h1);
+    let o2 = u8x16xn_lookup(s, decode.offset, h2);
 
     let c1 = s.i8x16_add_sat(x, o1);
     let c2 = s.u8x16_add(x, o2);
@@ -83,11 +83,11 @@ pub fn decode_ascii16<S: SIMD128>(s: S, x: V128, check: AlswLut, decode: AlswLut
 pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2, decode: AlswLutX2) -> (V256, V256) {
     let shr3 = s.u32x8_shr::<3>(x);
 
-    let h1 = s.u8x32_avgr(shr3, u8x16x2_lookup(s, check.hash, x));
-    let h2 = s.u8x32_avgr(shr3, u8x16x2_lookup(s, decode.hash, x));
+    let h1 = s.u8x32_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
+    let h2 = s.u8x32_avgr(shr3, u8x16xn_lookup(s, decode.hash, x));
 
-    let o1 = u8x16x2_lookup(s, check.offset, h1);
-    let o2 = u8x16x2_lookup(s, decode.offset, h2);
+    let o1 = u8x16xn_lookup(s, check.offset, h1);
+    let o2 = u8x16xn_lookup(s, decode.offset, h2);
 
     let c1 = s.i8x32_add_sat(x, o1);
     let c2 = s.u8x32_add(x, o2);
