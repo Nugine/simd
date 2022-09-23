@@ -26,6 +26,11 @@ name = "base64"
 path = "base64.rs"
 harness = false
 
+[[bench]]
+name = "base32"
+path = "base32.rs"
+harness = false
+
 [features]
 default = ["detect", "std"]
 detect = [
