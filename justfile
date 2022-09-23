@@ -42,8 +42,8 @@ wasi-bench:
     cd {{justfile_directory()}}
 
     export RUSTFLAGS="-C target-feature=+simd128"
-    cargo build --release --bins -p simd-benches --target wasm32-wasi
-    F=./target/wasm32-wasi/release/simd-benches.wasm
+    cargo build --release --bin sb-quick -p simd-benches --target wasm32-wasi
+    F=./target/wasm32-wasi/release/sb-quick.wasm
 
     wasmer -V
     wasmer run --enable-all $F
