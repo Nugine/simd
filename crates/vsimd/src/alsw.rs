@@ -3,9 +3,8 @@
 //
 
 use crate::algorithm::{avgr, lookup};
-use crate::mask::u8x32_highbit_any;
 use crate::table::u8x16xn_lookup;
-use crate::{SIMD128, SIMD256, V128, V256};
+use crate::{Scalable, V128, V256};
 
 use core::ops::Not;
 
@@ -32,65 +31,43 @@ pub const fn decode(hash_lut: &[u8; 16], offset: &[u8; 16], c: u8) -> u8 {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct AlswLut {
-    pub hash: V128,
-    pub offset: V128,
+pub struct AlswLut<V> {
+    pub hash: V,
+    pub offset: V,
 }
 
-impl AlswLut {
+impl AlswLut<V128> {
     #[inline]
     #[must_use]
-    pub const fn x2(self) -> AlswLutX2 {
-        AlswLutX2 {
-            hash: V256::from_v128x2((self.hash, self.hash)),
-            offset: V256::from_v128x2((self.offset, self.offset)),
+    pub const fn x2(self) -> AlswLut<V256> {
+        AlswLut {
+            hash: self.hash.x2(),
+            offset: self.offset.x2(),
         }
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct AlswLutX2 {
-    pub hash: V256,
-    pub offset: V256,
-}
-
 #[inline(always)]
-pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2) -> bool {
-    let shr3 = s.u32x8_shr::<3>(x);
-    let h1 = s.u8x32_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
+pub fn check_ascii_xn<S: Scalable<V>, V: Copy>(s: S, x: V, check: AlswLut<V>) -> bool {
+    let shr3 = s.u32xn_shr::<3>(x);
+    let h1 = s.u8xn_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
     let o1 = u8x16xn_lookup(s, check.offset, h1);
-    let c1 = s.i8x32_add_sat(x, o1);
-    u8x32_highbit_any(s, c1).not()
+    let c1 = s.i8xn_add_sat(x, o1);
+    s.u8xn_highbit_any(c1).not()
 }
 
 #[inline(always)]
-pub fn decode_ascii16<S: SIMD128>(s: S, x: V128, check: AlswLut, decode: AlswLut) -> (V128, V128) {
-    let shr3 = s.u32x4_shr::<3>(x);
+pub fn decode_ascii_xn<S: Scalable<V>, V: Copy>(s: S, x: V, check: AlswLut<V>, decode: AlswLut<V>) -> (V, V) {
+    let shr3 = s.u32xn_shr::<3>(x);
 
-    let h1 = s.u8x16_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
-    let h2 = s.u8x16_avgr(shr3, u8x16xn_lookup(s, decode.hash, x));
+    let h1 = s.u8xn_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
+    let h2 = s.u8xn_avgr(shr3, u8x16xn_lookup(s, decode.hash, x));
 
     let o1 = u8x16xn_lookup(s, check.offset, h1);
     let o2 = u8x16xn_lookup(s, decode.offset, h2);
 
-    let c1 = s.i8x16_add_sat(x, o1);
-    let c2 = s.u8x16_add(x, o2);
-
-    (c1, c2)
-}
-
-#[inline(always)]
-pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2, decode: AlswLutX2) -> (V256, V256) {
-    let shr3 = s.u32x8_shr::<3>(x);
-
-    let h1 = s.u8x32_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
-    let h2 = s.u8x32_avgr(shr3, u8x16xn_lookup(s, decode.hash, x));
-
-    let o1 = u8x16xn_lookup(s, check.offset, h1);
-    let o2 = u8x16xn_lookup(s, decode.offset, h2);
-
-    let c1 = s.i8x32_add_sat(x, o1);
-    let c2 = s.u8x32_add(x, o2);
+    let c1 = s.i8xn_add_sat(x, o1);
+    let c2 = s.u8xn_add(x, o2);
 
     (c1, c2)
 }
@@ -153,16 +130,14 @@ macro_rules! impl_alsw {
                 arr
             };
 
-            const fn check_lut() -> AlswLut {
-                use $crate::V128;
+            const fn check_lut() -> AlswLut<V128> {
                 AlswLut {
                     hash: V128::from_bytes(Self::CHECK_HASH),
                     offset: V128::from_bytes(Self::CHECK_OFFSET),
                 }
             }
 
-            const fn decode_lut() -> AlswLut {
-                use $crate::V128;
+            const fn decode_lut() -> AlswLut<V128> {
                 AlswLut {
                     hash: V128::from_bytes(Self::DECODE_HASH),
                     offset: V128::from_bytes(Self::DECODE_OFFSET),

@@ -1,7 +1,7 @@
-use crate::alsw::{self, AlswLut, AlswLutX2};
+use crate::alsw::{self, AlswLut};
 use crate::mask::u8x32_highbit_any;
 use crate::simd256::simd256_vop2;
-use crate::{AVX2, NEON, SIMD256, SSE41, V256, WASM128};
+use crate::{AVX2, NEON, SIMD256, SSE41, V128, V256, WASM128};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Kind {
@@ -240,21 +240,21 @@ impl Base32HexAlsw {
 
 impl_alsw!(Base32HexAlsw);
 
-pub const BASE32_ALSW_CHECK_X2: AlswLutX2 = Base32Alsw::check_lut().x2();
-pub const BASE32_ALSW_DECODE_X2: AlswLutX2 = Base32Alsw::decode_lut().x2();
+pub const BASE32_ALSW_CHECK_X2: AlswLut<V256> = Base32Alsw::check_lut().x2();
+pub const BASE32_ALSW_DECODE_X2: AlswLut<V256> = Base32Alsw::decode_lut().x2();
 
-pub const BASE32HEX_ALSW_CHECK_X2: AlswLutX2 = Base32HexAlsw::check_lut().x2();
-pub const BASE32HEX_ALSW_DECODE_X2: AlswLutX2 = Base32HexAlsw::decode_lut().x2();
+pub const BASE32HEX_ALSW_CHECK_X2: AlswLut<V256> = Base32HexAlsw::check_lut().x2();
+pub const BASE32HEX_ALSW_DECODE_X2: AlswLut<V256> = Base32HexAlsw::decode_lut().x2();
 
 #[inline(always)]
-pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2) -> bool {
-    crate::alsw::check_ascii32(s, x, check)
+pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>) -> bool {
+    crate::alsw::check_ascii_xn(s, x, check)
 }
 
 #[allow(clippy::result_unit_err)]
 #[inline(always)]
-pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2, decode: AlswLutX2) -> Result<V256, ()> {
-    let (c1, c2) = alsw::decode_ascii32(s, x, check, decode);
+pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>, decode: AlswLut<V256>) -> Result<V256, ()> {
+    let (c1, c2) = alsw::decode_ascii_xn(s, x, check, decode);
 
     let y = merge_bits(s, c2);
 

@@ -95,11 +95,11 @@ impl HexAlsw {
 
 impl_alsw!(HexAlsw);
 
-const HEX_ALSW_CHECK: AlswLut = HexAlsw::check_lut();
-const HEX_ALSW_DECODE: AlswLut = HexAlsw::decode_lut();
+const HEX_ALSW_CHECK: AlswLut<V128> = HexAlsw::check_lut();
+const HEX_ALSW_DECODE: AlswLut<V128> = HexAlsw::decode_lut();
 
-const HEX_ALSW_CHECK_X2: AlswLutX2 = HexAlsw::check_lut().x2();
-const HEX_ALSW_DECODE_X2: AlswLutX2 = HexAlsw::decode_lut().x2();
+const HEX_ALSW_CHECK_X2: AlswLut<V256> = HexAlsw::check_lut().x2();
+const HEX_ALSW_DECODE_X2: AlswLut<V256> = HexAlsw::decode_lut().x2();
 
 const DECODE_UZP1: V256 = V256::double_bytes([
     0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, //

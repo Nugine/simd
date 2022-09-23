@@ -1,4 +1,4 @@
-use crate::alsw::{self, AlswLut, AlswLutX2};
+use crate::alsw::{self, AlswLut};
 use crate::mask::u8x32_highbit_any;
 use crate::{NEON, SIMD128, SIMD256, SSE41, V128, V256, WASM128};
 
@@ -313,21 +313,21 @@ impl UrlSafeAlsw {
 
 impl_alsw!(UrlSafeAlsw);
 
-pub const STANDARD_ALSW_CHECK_X2: AlswLutX2 = StandardAlsw::check_lut().x2();
-pub const STANDARD_ALSW_DECODE_X2: AlswLutX2 = StandardAlsw::decode_lut().x2();
+pub const STANDARD_ALSW_CHECK_X2: AlswLut<V256> = StandardAlsw::check_lut().x2();
+pub const STANDARD_ALSW_DECODE_X2: AlswLut<V256> = StandardAlsw::decode_lut().x2();
 
-pub const URL_SAFE_ALSW_CHECK_X2: AlswLutX2 = UrlSafeAlsw::check_lut().x2();
-pub const URL_SAFE_ALSW_DECODE_X2: AlswLutX2 = UrlSafeAlsw::decode_lut().x2();
+pub const URL_SAFE_ALSW_CHECK_X2: AlswLut<V256> = UrlSafeAlsw::check_lut().x2();
+pub const URL_SAFE_ALSW_DECODE_X2: AlswLut<V256> = UrlSafeAlsw::decode_lut().x2();
 
 #[inline(always)]
-pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2) -> bool {
-    alsw::check_ascii32(s, x, check)
+pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>) -> bool {
+    alsw::check_ascii_xn(s, x, check)
 }
 
 #[allow(clippy::result_unit_err)]
 #[inline(always)]
-pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2, decode: AlswLutX2) -> Result<V256, ()> {
-    let (c1, c2) = alsw::decode_ascii32(s, x, check, decode);
+pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>, decode: AlswLut<V256>) -> Result<V256, ()> {
+    let (c1, c2) = alsw::decode_ascii_xn(s, x, check, decode);
 
     let y = merge_bits_x2(s, c2);
 
