@@ -1,0 +1,76 @@
+[package]
+name = "simd-benches"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "lib.rs"
+
+[[bin]]
+name = "simd-benches"
+path = "main.rs"
+
+[[bench]]
+name = "uuid"
+path = "uuid.rs"
+harness = false
+
+[[bench]]
+name = "hex"
+path = "hex.rs"
+harness = false
+
+[[bench]]
+name = "base64"
+path = "base64.rs"
+harness = false
+
+[features]
+default = ["detect", "std"]
+detect = [
+    "base32-simd/detect",
+    "base64-simd/detect",
+    "hex-simd/detect",
+    "unicode-simd/detect",
+    "uuid-simd/detect",
+]
+std = [
+    "base32-simd/std",
+    "base64-simd/std",
+    "hex-simd/std",
+    "unicode-simd/std",
+    "uuid-simd/std",
+]
+
+[dependencies.base32-simd]
+path = "../crates/base32-simd"
+default-features = false
+
+[dependencies.base64-simd]
+path = "../crates/base64-simd"
+default-features = false
+
+[dependencies.hex-simd]
+path = "../crates/hex-simd"
+default-features = false
+
+[dependencies.unicode-simd]
+path = "../crates/unicode-simd"
+default-features = false
+
+[dependencies.uuid-simd]
+path = "../crates/uuid-simd"
+default-features = false
+features = ["uuid"]
+
+[dependencies]
+rand = "0.8.5"
+uuid = "1.1.2"
+const-str = "0.4.3"
+faster-hex = "0.6.1"
+radix64 = "0.6.2"
+base64 = "0.13.0"
+
+[dev-dependencies]
+criterion = { version = "0.4.0", features = ["real_blackbox"] }

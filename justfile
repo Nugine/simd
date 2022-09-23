@@ -59,7 +59,6 @@ wasi-bench:
 sync-version:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    cargo set-version -p simd-benches       '0.8.0-dev'
     cargo set-version -p uuid-simd          '0.8.0-dev'
     cargo set-version -p hex-simd           '0.8.0-dev'
     cargo set-version -p base64-simd        '0.8.0-dev'
