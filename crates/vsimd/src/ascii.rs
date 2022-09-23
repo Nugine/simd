@@ -1,7 +1,7 @@
 use crate::mask::{mask8x32_any, u8x32_highbit_any};
 use crate::pod::align;
 use crate::tools::{read, unroll};
-use crate::{SIMD256, V256};
+use crate::{Scalable, SIMD256, V256};
 
 use core::ops::Not;
 
@@ -183,22 +183,22 @@ pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
 }
 
 #[inline(always)]
-fn convert_ascii_case<S: SIMD256, const C: u8>(s: S, x: V256) -> V256 {
+fn convert_ascii_case<S: Scalable<V>, V: Copy, const C: u8>(s: S, x: V) -> V {
     assert!(matches!(C, b'A' | b'a'));
-    let x1 = s.u8x32_sub(x, s.u8x32_splat(C + 0x80));
-    let x2 = s.i8x32_lt(x1, s.i8x32_splat(-0x80 + 26));
-    let x3 = s.v256_and(x2, s.u8x32_splat(0x20));
-    s.v256_xor(x, x3)
+    let x1 = s.u8xn_sub(x, s.u8xn_splat(C + 0x80));
+    let x2 = s.i8xn_lt(x1, s.i8xn_splat(-0x80 + 26));
+    let x3 = s.and(x2, s.u8xn_splat(0x20));
+    s.xor(x, x3)
 }
 
 #[inline(always)]
-pub fn to_ascii_lowercase_x32<S: SIMD256>(s: S, x: V256) -> V256 {
-    convert_ascii_case::<S, b'A'>(s, x)
+pub fn to_ascii_lowercase<S: Scalable<V>, V: Copy>(s: S, x: V) -> V {
+    convert_ascii_case::<S, V, b'A'>(s, x)
 }
 
 #[inline(always)]
-pub fn to_ascii_uppercase_x32<S: SIMD256>(s: S, x: V256) -> V256 {
-    convert_ascii_case::<S, b'a'>(s, x)
+pub fn to_ascii_uppercase<S: Scalable<V>, V: Copy>(s: S, x: V) -> V {
+    convert_ascii_case::<S, V, b'a'>(s, x)
 }
 
 #[cfg(test)]
