@@ -1,7 +1,12 @@
 use core::mem::transmute;
 
 #[cfg(feature = "unstable")]
-use core::simd::{u8x16, u8x32, u8x64};
+use core::simd::{u8x16, u8x32, u8x64, u8x8};
+
+#[cfg(not(feature = "unstable"))]
+#[derive(Debug, Clone, Copy)]
+#[repr(C, align(16))]
+pub struct V64([u8; 8]);
 
 #[cfg(not(feature = "unstable"))]
 #[derive(Debug, Clone, Copy)]
@@ -21,6 +26,11 @@ pub struct V512([u8; 64]);
 #[cfg(feature = "unstable")]
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
+pub struct V64(u8x8);
+
+#[cfg(feature = "unstable")]
+#[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
 pub struct V128(u8x16);
 
 #[cfg(feature = "unstable")]
@@ -33,6 +43,26 @@ pub struct V256(u8x32);
 #[repr(transparent)]
 pub struct V512(u8x64);
 
+impl V64 {
+    #[inline(always)]
+    #[must_use]
+    pub const fn from_bytes(bytes: [u8; 8]) -> Self {
+        unsafe { transmute(bytes) }
+    }
+
+    #[inline(always)]
+    #[must_use]
+    pub const fn as_bytes(&self) -> &[u8; 8] {
+        unsafe { transmute(self) }
+    }
+
+    #[inline(always)]
+    #[must_use]
+    pub fn to_u64(self) -> u64 {
+        unsafe { transmute(self) }
+    }
+}
+
 impl V128 {
     #[inline(always)]
     #[must_use]
@@ -44,6 +74,13 @@ impl V128 {
     #[must_use]
     pub const fn as_bytes(&self) -> &[u8; 16] {
         unsafe { transmute(self) }
+    }
+
+    #[inline(always)]
+    #[must_use]
+    pub const fn to_v64x2(self) -> (V64, V64) {
+        let x: [V64; 2] = unsafe { transmute(self) };
+        (x[0], x[1])
     }
 }
 
