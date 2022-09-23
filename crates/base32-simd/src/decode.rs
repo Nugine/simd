@@ -1,9 +1,9 @@
 use crate::Error;
 
 use vsimd::base32::Kind;
-use vsimd::base32::{BASE32HEX_ALSW_CHECK, BASE32HEX_ALSW_DECODE};
+use vsimd::base32::{BASE32HEX_ALSW_CHECK_X2, BASE32HEX_ALSW_DECODE_X2};
 use vsimd::base32::{BASE32HEX_CHARSET, BASE32_CHARSET};
-use vsimd::base32::{BASE32_ALSW_CHECK, BASE32_ALSW_DECODE};
+use vsimd::base32::{BASE32_ALSW_CHECK_X2, BASE32_ALSW_DECODE_X2};
 
 use vsimd::tools::{read, write};
 use vsimd::SIMD256;
@@ -142,8 +142,8 @@ pub unsafe fn decode_simd<S: SIMD256>(
     kind: Kind,
 ) -> Result<(), Error> {
     let (check_lut, decode_lut) = match kind {
-        Kind::Base32 => (BASE32_ALSW_CHECK, BASE32_ALSW_DECODE),
-        Kind::Base32Hex => (BASE32HEX_ALSW_CHECK, BASE32HEX_ALSW_DECODE),
+        Kind::Base32 => (BASE32_ALSW_CHECK_X2, BASE32_ALSW_DECODE_X2),
+        Kind::Base32Hex => (BASE32HEX_ALSW_CHECK_X2, BASE32HEX_ALSW_DECODE_X2),
     };
 
     // n*5/8 >= 10+10+6

@@ -1,7 +1,7 @@
 use crate::decode::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
 use crate::{Error, Kind};
 
-use vsimd::base64::{STANDARD_ALSW_CHECK, URL_SAFE_ALSW_CHECK};
+use vsimd::base64::{STANDARD_ALSW_CHECK_X2, URL_SAFE_ALSW_CHECK_X2};
 use vsimd::tools::{read, slice};
 use vsimd::SIMD256;
 
@@ -84,8 +84,8 @@ pub(crate) fn check_simd<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(),
     let (mut src, mut n) = (src.as_ptr(), src.len());
 
     let check_lut = match kind {
-        Kind::Standard => STANDARD_ALSW_CHECK,
-        Kind::UrlSafe => URL_SAFE_ALSW_CHECK,
+        Kind::Standard => STANDARD_ALSW_CHECK_X2,
+        Kind::UrlSafe => URL_SAFE_ALSW_CHECK_X2,
     };
 
     unsafe {

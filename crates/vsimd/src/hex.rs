@@ -1,4 +1,4 @@
-use crate::alsw::{self, AlswLutX2};
+use crate::alsw::{self, AlswLut, AlswLutX2};
 use crate::mask::{mask8x16_all, mask8x32_all, u8x32_highbit_any};
 use crate::{AVX2, NEON, SIMD128, SIMD256, SSE41, V128, V256, WASM128};
 
@@ -102,8 +102,8 @@ impl HexAlsw {
 
 impl_alsw!(HexAlsw);
 
-const HEX_ALSW_CHECK: AlswLutX2 = HexAlsw::check_lut_x2();
-const HEX_ALSW_DECODE: AlswLutX2 = HexAlsw::decode_lut_x2();
+const HEX_ALSW_CHECK_X2: AlswLutX2 = HexAlsw::check_lut().x2();
+const HEX_ALSW_DECODE_X2: AlswLutX2 = HexAlsw::decode_lut().x2();
 
 const DECODE_UZP1: V256 = V256::double_bytes([
     0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, //
@@ -117,7 +117,7 @@ const DECODE_UZP2: V256 = V256::double_bytes([
 
 #[inline(always)]
 fn decode<S: SIMD256>(s: S, x: V256) -> (V256, V256) {
-    let (c1, c2) = alsw::decode_ascii32(s, x, HEX_ALSW_CHECK, HEX_ALSW_DECODE);
+    let (c1, c2) = alsw::decode_ascii32(s, x, HEX_ALSW_CHECK_X2, HEX_ALSW_DECODE_X2);
 
     let b1 = s.u16x16_shl::<4>(c2);
     let b2 = s.u16x16_shr::<12>(b1);

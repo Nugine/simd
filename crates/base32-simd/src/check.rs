@@ -2,7 +2,7 @@ use crate::decode::{decode_bits, BASE32HEX_TABLE, BASE32_TABLE};
 use crate::Error;
 
 use vsimd::base32::Kind;
-use vsimd::base32::{BASE32HEX_ALSW_CHECK, BASE32_ALSW_CHECK};
+use vsimd::base32::{BASE32HEX_ALSW_CHECK_X2, BASE32_ALSW_CHECK_X2};
 use vsimd::tools::{slice, slice_parts};
 use vsimd::SIMD256;
 
@@ -56,8 +56,8 @@ pub fn check_fallback(src: &[u8], kind: Kind) -> Result<(), Error> {
 #[inline]
 pub fn check_simd<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error> {
     let check_lut = match kind {
-        Kind::Base32 => BASE32_ALSW_CHECK,
-        Kind::Base32Hex => BASE32HEX_ALSW_CHECK,
+        Kind::Base32 => BASE32_ALSW_CHECK_X2,
+        Kind::Base32Hex => BASE32HEX_ALSW_CHECK_X2,
     };
 
     unsafe {

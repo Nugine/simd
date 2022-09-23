@@ -5,7 +5,7 @@
 use crate::algorithm::{avgr, lookup};
 use crate::mask::u8x32_highbit_any;
 use crate::table::u8x16x2_lookup;
-use crate::{SIMD256, V256};
+use crate::{SIMD256, V128, V256};
 
 use core::ops::Not;
 
@@ -29,6 +29,23 @@ pub const fn decode(hash_lut: &[u8; 16], offset: &[u8; 16], c: u8) -> u8 {
     let h = hash(hash_lut, c);
     let o = lookup(offset, h);
     c.wrapping_add(o)
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct AlswLut {
+    pub hash: V128,
+    pub offset: V128,
+}
+
+impl AlswLut {
+    #[inline]
+    #[must_use]
+    pub const fn x2(self) -> AlswLutX2 {
+        AlswLutX2 {
+            hash: V256::from_v128x2((self.hash, self.hash)),
+            offset: V256::from_v128x2((self.offset, self.offset)),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -120,17 +137,19 @@ macro_rules! impl_alsw {
                 arr
             };
 
-            const fn check_lut_x2() -> AlswLutX2 {
-                AlswLutX2 {
-                    hash: V256::double_bytes(Self::CHECK_HASH),
-                    offset: V256::double_bytes(Self::CHECK_OFFSET),
+            const fn check_lut() -> AlswLut {
+                use $crate::V128;
+                AlswLut {
+                    hash: V128::from_bytes(Self::CHECK_HASH),
+                    offset: V128::from_bytes(Self::CHECK_OFFSET),
                 }
             }
 
-            const fn decode_lut_x2() -> AlswLutX2 {
-                AlswLutX2 {
-                    hash: V256::double_bytes(Self::DECODE_HASH),
-                    offset: V256::double_bytes(Self::DECODE_OFFSET),
+            const fn decode_lut() -> AlswLut {
+                use $crate::V128;
+                AlswLut {
+                    hash: V128::from_bytes(Self::DECODE_HASH),
+                    offset: V128::from_bytes(Self::DECODE_OFFSET),
                 }
             }
 

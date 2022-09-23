@@ -1,7 +1,7 @@
 use crate::{Error, Kind};
 
-use vsimd::base64::{STANDARD_ALSW_CHECK, URL_SAFE_ALSW_CHECK};
-use vsimd::base64::{STANDARD_ALSW_DECODE, URL_SAFE_ALSW_DECODE};
+use vsimd::base64::{STANDARD_ALSW_CHECK_X2, URL_SAFE_ALSW_CHECK_X2};
+use vsimd::base64::{STANDARD_ALSW_DECODE_X2, URL_SAFE_ALSW_DECODE_X2};
 use vsimd::base64::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 
 use vsimd::tools::{read, write};
@@ -148,8 +148,8 @@ pub(crate) unsafe fn decode_simd<S: SIMD256>(
     kind: Kind,
 ) -> Result<(), Error> {
     let (check_lut, decode_lut) = match kind {
-        Kind::Standard => (STANDARD_ALSW_CHECK, STANDARD_ALSW_DECODE),
-        Kind::UrlSafe => (URL_SAFE_ALSW_CHECK, URL_SAFE_ALSW_DECODE),
+        Kind::Standard => (STANDARD_ALSW_CHECK_X2, STANDARD_ALSW_DECODE_X2),
+        Kind::UrlSafe => (URL_SAFE_ALSW_CHECK_X2, URL_SAFE_ALSW_DECODE_X2),
     };
 
     // n*3/4 >= 24+4

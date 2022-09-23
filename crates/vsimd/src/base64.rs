@@ -1,4 +1,4 @@
-use crate::alsw::{self, AlswLutX2};
+use crate::alsw::{self, AlswLut, AlswLutX2};
 use crate::mask::u8x32_highbit_any;
 use crate::{NEON, SIMD256, SSE41, V256, WASM128};
 
@@ -240,11 +240,11 @@ impl UrlSafeAlsw {
 
 impl_alsw!(UrlSafeAlsw);
 
-pub const STANDARD_ALSW_CHECK: AlswLutX2 = StandardAlsw::check_lut_x2();
-pub const STANDARD_ALSW_DECODE: AlswLutX2 = StandardAlsw::decode_lut_x2();
+pub const STANDARD_ALSW_CHECK_X2: AlswLutX2 = StandardAlsw::check_lut().x2();
+pub const STANDARD_ALSW_DECODE_X2: AlswLutX2 = StandardAlsw::decode_lut().x2();
 
-pub const URL_SAFE_ALSW_CHECK: AlswLutX2 = UrlSafeAlsw::check_lut_x2();
-pub const URL_SAFE_ALSW_DECODE: AlswLutX2 = UrlSafeAlsw::decode_lut_x2();
+pub const URL_SAFE_ALSW_CHECK_X2: AlswLutX2 = UrlSafeAlsw::check_lut().x2();
+pub const URL_SAFE_ALSW_DECODE_X2: AlswLutX2 = UrlSafeAlsw::decode_lut().x2();
 
 #[inline(always)]
 pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2) -> bool {
