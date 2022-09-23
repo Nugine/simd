@@ -3,6 +3,8 @@
 //! # Examples
 //!
 //! ```
+//! # #[cfg(feature = "alloc")]
+//! # {
 //! let bytes = b"hello world";
 //! let base64 = base64_simd::STANDARD;
 //!
@@ -11,6 +13,7 @@
 //!
 //! let decoded = base64.decode_type::<Vec<u8>>(encoded.as_bytes()).unwrap();
 //! assert_eq!(&*decoded, bytes);
+//! # }
 //! ```
 //!
 

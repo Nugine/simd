@@ -121,11 +121,18 @@ unsafe impl InstructionSet for NEON {
 
     #[inline(always)]
     fn is_enabled() -> bool {
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(feature = "unstable")]
         {
-            is_feature_detected!("neon")
+            #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+            {
+                is_feature_detected!("neon")
+            }
+            #[cfg(not(any(target_arch = "arm", target_arch = "aarch64")))]
+            {
+                false
+            }
         }
-        #[cfg(not(any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(not(feature = "unstable"))]
         {
             false
         }

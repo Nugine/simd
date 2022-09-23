@@ -2,6 +2,11 @@ use crate::isa::{AVX2, NEON, SSE41, WASM128};
 use crate::vector::{V128, V256};
 use crate::SIMD128;
 
+#[cfg(any(
+    any(target_arch = "x86", target_arch = "x86_64"),
+    all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")),
+    target_arch = "wasm32"
+))]
 use core::mem::transmute as t;
 
 #[cfg(target_arch = "x86")]

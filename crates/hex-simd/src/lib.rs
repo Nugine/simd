@@ -3,6 +3,8 @@
 //! # Examples
 //!
 //! ```
+//! # #[cfg(feature = "alloc")]
+//! # {
 //! use hex_simd::AsciiCase;
 //!
 //! let bytes = b"Hello world!";
@@ -12,6 +14,7 @@
 //!
 //! let decoded = hex_simd::decode_type::<Vec<u8>>(encoded.as_bytes()).unwrap();
 //! assert_eq!(&*decoded, bytes);
+//! # }
 //! ```
 //!
 

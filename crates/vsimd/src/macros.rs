@@ -44,6 +44,11 @@ macro_rules! simd_dispatch {
 
             use super::*;
 
+            #[cfg(any(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")),
+                target_arch = "wasm32"
+            ))]
             use $crate::isa::InstructionSet;
 
             const _: $(for<$($lifetime),+>)? $($unsafe)? fn($($arg_type),*) -> $ret = $($fallback_fn)+;

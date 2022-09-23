@@ -3,6 +3,8 @@ use crate::{AsciiCase, Error, FromHexDecode, FromHexEncode};
 use vsimd::tools::{alloc_uninit_bytes, assume_init, slice_mut};
 
 use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 impl FromHexDecode for Box<[u8]> {
     #[inline]

@@ -8,7 +8,7 @@ use vsimd::isa::{AVX2, SSE41};
 use vsimd::isa::NEON;
 
 #[cfg(target_arch = "wasm32")]
-use vsimd::WASM128;
+use vsimd::isa::WASM128;
 
 use core::mem::transmute as t;
 
@@ -18,10 +18,10 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-#[cfg(target_arch = "arm")]
+#[cfg(all(feature = "unstable", target_arch = "arm"))]
 use core::arch::arm::*;
 
-#[cfg(target_arch = "aarch64")]
+#[cfg(all(feature = "unstable", target_arch = "aarch64"))]
 use core::arch::aarch64::*;
 
 #[cfg(target_arch = "wasm32")]

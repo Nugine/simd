@@ -82,15 +82,17 @@ fn safety_unit_test(
             ("SGVsbA====", None),
         ];
 
+        let mut buf = [0u8; 64];
+
         for (encoded, expected) in test_vectors {
             let base64 = STANDARD;
 
             let is_valid = check(&base64, encoded.as_bytes()).is_ok();
-            let result: _ = base64.decode_type::<Vec<u8>>(encoded.as_bytes());
+            let result: _ = base64.decode(encoded.as_bytes(), OutRef::from_slice(&mut buf));
 
             assert_eq!(is_valid, result.is_ok());
             match expected {
-                Some(expected) => assert_eq!(&*result.unwrap(), expected.as_bytes()),
+                Some(expected) => assert_eq!(result.unwrap(), expected.as_bytes()),
                 None => assert!(result.is_err(), "expected = {expected:?}"),
             }
         }

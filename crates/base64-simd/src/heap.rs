@@ -4,6 +4,10 @@ use crate::{Base64, FromBase64Decode, FromBase64Encode};
 
 use vsimd::tools::{alloc_uninit_bytes, assume_init, slice_mut};
 
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
+
 impl FromBase64Decode for Box<[u8]> {
     #[inline]
     fn from_base64_decode(base64: &Base64, data: &[u8]) -> Result<Self, crate::Error> {
