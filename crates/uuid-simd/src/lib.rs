@@ -19,10 +19,17 @@
 mod error;
 pub use self::error::Error;
 
-mod spec;
+mod fallback;
 
-mod format;
-mod parse;
+#[cfg(any(
+    any(target_arch = "x86", target_arch = "x86_64"),
+    all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")),
+    target_arch = "wasm32"
+))]
+vsimd::item_group! {
+    mod simd;
+    mod spec;
+}
 
 mod multiversion;
 
@@ -57,7 +64,7 @@ pub fn parse<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d
         unsafe {
             let src = src.as_ptr();
             let dst = dst.as_mut_ptr().cast::<u8>();
-            crate::multiversion::parse_simple_raw::auto(src, dst)?;
+            crate::multiversion::parse_simple::auto(src, dst)?;
             return Ok(&mut *dst.cast());
         }
     }
@@ -76,7 +83,7 @@ pub fn parse<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d
             _ => return Err(Error::new()),
         };
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::parse_hyphenated_raw::auto(src, dst)?;
+        crate::multiversion::parse_hyphenated::auto(src, dst)?;
         Ok(&mut *dst.cast())
     }
 }
@@ -94,7 +101,7 @@ pub fn parse_simple<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Res
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::parse_simple_raw::auto(src, dst)?;
+        crate::multiversion::parse_simple::auto(src, dst)?;
         Ok(&mut *dst.cast())
     }
 }
@@ -112,7 +119,7 @@ pub fn parse_hyphenated<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) ->
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::parse_hyphenated_raw::auto(src, dst)?;
+        crate::multiversion::parse_hyphenated::auto(src, dst)?;
         Ok(&mut *dst.cast())
     }
 }
@@ -124,7 +131,7 @@ pub fn format_simple<'s, 'd>(src: &'s [u8; 16], mut dst: OutRef<'d, [u8; 32]>, c
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::format_simple_raw::auto(src, dst, case);
+        crate::multiversion::format_simple::auto(src, dst, case);
         &mut *dst.cast()
     }
 }
@@ -140,7 +147,7 @@ pub fn format_hyphenated<'s, 'd>(
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
-        crate::multiversion::format_hyphenated_raw::auto(src, dst, case);
+        crate::multiversion::format_hyphenated::auto(src, dst, case);
         &mut *dst.cast()
     }
 }

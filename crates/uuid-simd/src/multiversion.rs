@@ -4,33 +4,33 @@ use vsimd::ascii::AsciiCase;
 use vsimd::simd_dispatch;
 
 simd_dispatch!(
-    name        = parse_simple_raw,
+    name        = parse_simple,
     signature   = fn(src: *const u8, dst: *mut u8) -> Result<(), Error>,
-    fallback    = {crate::parse::parse_simple_fallback},
-    simd        = {crate::parse::parse_simple_simd},
+    fallback    = {crate::fallback::parse_simple},
+    simd        = {crate::simd::parse_simple},
     safety      = {unsafe},
 );
 
 simd_dispatch!(
-    name        = parse_hyphenated_raw,
+    name        = parse_hyphenated,
     signature   = fn(src: *const u8, dst: *mut u8) -> Result<(), Error>,
-    fallback    = {crate::parse::parse_hyphenated_fallback},
-    simd        = {crate::parse::parse_hyphenated_simd},
+    fallback    = {crate::fallback::parse_hyphenated},
+    simd        = {crate::simd::parse_hyphenated},
     safety      = {unsafe},
 );
 
 simd_dispatch!(
-    name        = format_simple_raw,
+    name        = format_simple,
     signature   = fn(src: *const u8, dst: *mut u8, case: AsciiCase) -> (),
-    fallback    = {crate::format::format_simple_fallback},
-    simd        = {crate::format::format_simple_simd},
+    fallback    = {crate::fallback::format_simple},
+    simd        = {crate::simd::format_simple},
     safety      = {unsafe},
 );
 
 simd_dispatch!(
-    name        = format_hyphenated_raw,
+    name        = format_hyphenated,
     signature   = fn(src: *const u8, dst: *mut u8, case: AsciiCase) -> (),
-    fallback    = {crate::format::format_hyphenated_fallback},
-    simd        = {crate::format::format_hyphenated_simd},
+    fallback    = {crate::fallback::format_hyphenated},
+    simd        = {crate::simd::format_hyphenated},
     safety      = {unsafe},
 );
