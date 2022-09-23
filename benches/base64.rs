@@ -74,5 +74,29 @@ pub fn bench_decode(c: &mut Criterion) {
     }
 }
 
-criterion_group!(benches, bench_encode, bench_decode);
+pub fn bench_check(c: &mut Criterion) {
+    let mut group = c.benchmark_group("base64-check");
+    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
+
+    let cases = [16, 32, 64, 256, 1024, 4096, 65536];
+    let inputs: Vec<Vec<u8>> = map_collect(cases, |n| base64_simd::STANDARD.encode_type(&rand_bytes(n)));
+
+    #[allow(clippy::type_complexity)]
+    let functions: &FnGroup<fn(&[u8])> = &[
+        ("base64-simd/auto", |src| {
+            assert!(base64_simd::STANDARD.check(src).is_ok());
+        }), //
+    ];
+
+    for &(name, f) in functions {
+        for src in &inputs {
+            group.throughput(Throughput::Bytes(src.len() as u64));
+            let id = BenchmarkId::new(name, src.len());
+
+            group.bench_with_input(id, src.as_slice(), |b, src| b.iter(|| f(black_box(src))));
+        }
+    }
+}
+
+criterion_group!(benches, bench_encode, bench_decode, bench_check);
 criterion_main!(benches);
