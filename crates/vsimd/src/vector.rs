@@ -1,7 +1,7 @@
 use core::mem::transmute;
 
 #[cfg(feature = "unstable")]
-use core::simd::{u8x16, u8x32, u8x64, u8x8};
+use core::simd::{u8x16, u8x32, u8x64, u8x8, Simd};
 
 #[cfg(not(feature = "unstable"))]
 #[derive(Debug, Clone, Copy)]
@@ -159,5 +159,41 @@ impl V512 {
     #[must_use]
     pub const fn double_bytes(bytes: [u8; 32]) -> Self {
         unsafe { transmute([bytes, bytes]) }
+    }
+}
+
+#[cfg(feature = "unstable")]
+impl From<V64> for Simd<u8, 8> {
+    #[inline(always)]
+    #[must_use]
+    fn from(v: V64) -> Self {
+        unsafe { transmute(v) }
+    }
+}
+
+#[cfg(feature = "unstable")]
+impl From<V128> for Simd<u8, 16> {
+    #[inline(always)]
+    #[must_use]
+    fn from(v: V128) -> Self {
+        unsafe { transmute(v) }
+    }
+}
+
+#[cfg(feature = "unstable")]
+impl From<V256> for Simd<u8, 32> {
+    #[inline(always)]
+    #[must_use]
+    fn from(v: V256) -> Self {
+        unsafe { transmute(v) }
+    }
+}
+
+#[cfg(feature = "unstable")]
+impl From<V512> for Simd<u8, 64> {
+    #[inline(always)]
+    #[must_use]
+    fn from(v: V512) -> Self {
+        unsafe { transmute(v) }
     }
 }
