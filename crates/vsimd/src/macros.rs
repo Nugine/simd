@@ -145,29 +145,20 @@ macro_rules! simd_dispatch {
             }
 
             #[inline(always)]
-            fn resolve_fastest() -> Option<$(for<$($lifetime),+>)? unsafe fn($($arg_type),*) -> $ret> {
+            pub $($unsafe)? fn auto$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                 if cfg!(target_feature = "avx2") {
-                    return Some(avx2)
+                    return unsafe { avx2($($arg_name),*) }
                 }
 
                 #[cfg(all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")))]
                 if cfg!(target_feature = "neon") {
-                    return Some(neon)
+                    return unsafe { neon($($arg_name),*) }
                 }
 
                 #[cfg(target_arch = "wasm32")]
                 if cfg!(target_feature = "simd128") {
-                    return Some(simd128)
-                }
-
-                None
-            }
-
-            #[inline(always)]
-            pub $($unsafe)? fn auto$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
-                if let Some(f) = resolve_fastest() {
-                    return unsafe{ f($($arg_name),*) }
+                    return unsafe { simd128($($arg_name),*) }
                 }
 
                 #[cfg(feature = "detect")]
