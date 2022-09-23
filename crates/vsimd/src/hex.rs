@@ -1,6 +1,6 @@
 use crate::alsw::{self, AlswLut, AlswLutX2};
-use crate::mask::{mask8x16_all, mask8x32_all, u8x32_highbit_any};
-use crate::{AVX2, NEON, SIMD128, SIMD256, SSE41, V128, V256, WASM128};
+use crate::mask::{mask8x16_all, mask8x32_all, u8x16_highbit_any, u8x32_highbit_any};
+use crate::{AVX2, NEON, SIMD128, SIMD256, SSE41, V128, V256, V64, WASM128};
 
 const fn parse_hex(x: u8) -> u8 {
     match x {
@@ -102,6 +102,9 @@ impl HexAlsw {
 
 impl_alsw!(HexAlsw);
 
+const HEX_ALSW_CHECK: AlswLut = HexAlsw::check_lut();
+const HEX_ALSW_DECODE: AlswLut = HexAlsw::decode_lut();
+
 const HEX_ALSW_CHECK_X2: AlswLutX2 = HexAlsw::check_lut().x2();
 const HEX_ALSW_DECODE_X2: AlswLutX2 = HexAlsw::decode_lut().x2();
 
@@ -116,7 +119,16 @@ const DECODE_UZP2: V256 = V256::double_bytes([
 ]);
 
 #[inline(always)]
-fn decode<S: SIMD256>(s: S, x: V256) -> (V256, V256) {
+fn decode16<S: SIMD128>(s: S, x: V128) -> (V128, V128) {
+    let (c1, c2) = alsw::decode_ascii16(s, x, HEX_ALSW_CHECK, HEX_ALSW_DECODE);
+
+    let b1 = s.u16x8_shl::<4>(c2);
+    let b2 = s.u16x8_shr::<12>(b1);
+    (s.v128_or(b1, b2), c1)
+}
+
+#[inline(always)]
+fn decode32<S: SIMD256>(s: S, x: V256) -> (V256, V256) {
     let (c1, c2) = alsw::decode_ascii32(s, x, HEX_ALSW_CHECK_X2, HEX_ALSW_DECODE_X2);
 
     let b1 = s.u16x16_shl::<4>(c2);
@@ -126,8 +138,30 @@ fn decode<S: SIMD256>(s: S, x: V256) -> (V256, V256) {
 
 #[allow(clippy::result_unit_err)]
 #[inline(always)]
+pub fn decode_ascii16<S: SIMD128>(s: S, x: V128) -> Result<V64, ()> {
+    let (y, is_invalid) = decode16(s, x);
+
+    let ans = if is_subtype!(S, SSE41 | WASM128) {
+        const UZP1: V128 = DECODE_UZP1.to_v128x2().0;
+        s.u8x16_swizzle(y, UZP1).to_v64x2().0
+    } else if is_subtype!(S, NEON) {
+        let (a, b) = y.to_v64x2();
+        s.u8x8_unzip_even(a, b)
+    } else {
+        unreachable!()
+    };
+
+    if u8x16_highbit_any(s, is_invalid) {
+        Err(())
+    } else {
+        Ok(ans)
+    }
+}
+
+#[allow(clippy::result_unit_err)]
+#[inline(always)]
 pub fn decode_ascii32<S: SIMD256>(s: S, x: V256) -> Result<V128, ()> {
-    let (y, is_invalid) = decode(s, x);
+    let (y, is_invalid) = decode32(s, x);
 
     let ans = if is_subtype!(S, SSE41 | WASM128) {
         let (a, b) = s.u8x16x2_swizzle(y, DECODE_UZP1).to_v128x2();
@@ -149,8 +183,8 @@ pub fn decode_ascii32<S: SIMD256>(s: S, x: V256) -> Result<V128, ()> {
 #[allow(clippy::result_unit_err)]
 #[inline(always)]
 pub fn decode_ascii32x2<S: SIMD256>(s: S, x: (V256, V256)) -> Result<V256, ()> {
-    let (y1, is_invalid1) = decode(s, x.0);
-    let (y2, is_invalid2) = decode(s, x.1);
+    let (y1, is_invalid1) = decode32(s, x.0);
+    let (y2, is_invalid2) = decode32(s, x.1);
     let is_invalid = s.v256_or(is_invalid1, is_invalid2);
 
     let ans = if is_subtype!(S, AVX2) {
