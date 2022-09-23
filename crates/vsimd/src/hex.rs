@@ -1,6 +1,6 @@
-use crate::alsw::{self, AlswLut, AlswLutX2};
-use crate::mask::{mask8x16_all, mask8x32_all, u8x16_highbit_any, u8x32_highbit_any};
-use crate::{AVX2, NEON, SIMD128, SIMD256, SSE41, V128, V256, V64, WASM128};
+use crate::alsw::{self, AlswLut};
+use crate::mask::{u8x16_highbit_any, u8x32_highbit_any};
+use crate::{Scalable, AVX2, NEON, SIMD128, SIMD256, SSE41, V128, V256, V64, WASM128};
 
 const fn parse_hex(x: u8) -> u8 {
     match x {
@@ -27,25 +27,18 @@ pub const fn unhex(x: u8) -> u8 {
 }
 
 #[inline(always)]
-pub fn check_ascii16<S: SIMD128>(s: S, x: V128) -> bool {
-    let x1 = s.u8x16_sub(x, s.u8x16_splat(0xb0));
-    let x2 = s.v128_and(x1, s.u8x16_splat(0xdf));
-    let x3 = s.u8x16_sub(x2, s.u8x16_splat(0x11));
-    let x4 = s.i8x16_lt(x1, s.i8x16_splat(-118));
-    let x5 = s.i8x16_lt(x3, s.i8x16_splat(-122));
-    let x6 = s.v128_or(x4, x5);
-    mask8x16_all(s, x6)
-}
-
-#[inline(always)]
-pub fn check_ascii32<S: SIMD256>(s: S, x: V256) -> bool {
-    let x1 = s.u8x32_sub(x, s.u8x32_splat(0xb0));
-    let x2 = s.v256_and(x1, s.u8x32_splat(0xdf));
-    let x3 = s.u8x32_sub(x2, s.u8x32_splat(0x11));
-    let x4 = s.i8x32_lt(x1, s.i8x32_splat(-118));
-    let x5 = s.i8x32_lt(x3, s.i8x32_splat(-122));
-    let x6 = s.v256_or(x4, x5);
-    mask8x32_all(s, x6)
+pub fn check_ascii_xn<S, V>(s: S, x: V) -> bool
+where
+    S: Scalable<V>,
+    V: Copy,
+{
+    let x1 = s.u8xn_sub(x, s.u8xn_splat(0xb0));
+    let x2 = s.and(x1, s.u8xn_splat(0xdf));
+    let x3 = s.u8xn_sub(x2, s.u8xn_splat(0x11));
+    let x4 = s.i8xn_lt(x1, s.i8xn_splat(-118));
+    let x5 = s.i8xn_lt(x3, s.i8xn_splat(-122));
+    let x6 = s.or(x4, x5);
+    s.mask8xn_all(x6)
 }
 
 pub const ENCODE_UPPER_LUT: V256 = V256::double_bytes(*b"0123456789ABCDEF");
@@ -118,22 +111,29 @@ const DECODE_UZP2: V256 = V256::double_bytes([
     0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, //
 ]);
 
+fn merge_bits<S: Scalable<V>, V: Copy>(s: S, x: V) -> V {
+    // x:  {0000hhhh|0000llll} xn
+
+    let x1 = s.u16xn_shl::<4>(x);
+    // x1: {hhhh0000|llll0000} xn
+
+    let x2 = s.u16xn_shr::<12>(x1);
+    // x2: {0000llll|00000000} xn
+
+    s.or(x1, x2)
+    //     {hhhhllll|????????} xn
+}
+
 #[inline(always)]
 fn decode16<S: SIMD128>(s: S, x: V128) -> (V128, V128) {
-    let (c1, c2) = alsw::decode_ascii16(s, x, HEX_ALSW_CHECK, HEX_ALSW_DECODE);
-
-    let b1 = s.u16x8_shl::<4>(c2);
-    let b2 = s.u16x8_shr::<12>(b1);
-    (s.v128_or(b1, b2), c1)
+    let (c1, c2) = alsw::decode_ascii_xn(s, x, HEX_ALSW_CHECK, HEX_ALSW_DECODE);
+    (merge_bits(s, c2), c1)
 }
 
 #[inline(always)]
 fn decode32<S: SIMD256>(s: S, x: V256) -> (V256, V256) {
-    let (c1, c2) = alsw::decode_ascii32(s, x, HEX_ALSW_CHECK_X2, HEX_ALSW_DECODE_X2);
-
-    let b1 = s.u16x16_shl::<4>(c2);
-    let b2 = s.u16x16_shr::<12>(b1);
-    (s.v256_or(b1, b2), c1)
+    let (c1, c2) = alsw::decode_ascii_xn(s, x, HEX_ALSW_CHECK_X2, HEX_ALSW_DECODE_X2);
+    (merge_bits(s, c2), c1)
 }
 
 #[allow(clippy::result_unit_err)]
