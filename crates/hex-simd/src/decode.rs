@@ -2,7 +2,7 @@ use crate::error::Error;
 
 use vsimd::hex::unhex;
 use vsimd::tools::{read, write};
-use vsimd::SIMD256;
+use vsimd::{SIMD256, V64};
 
 #[inline(always)]
 fn shl4(x: u8) -> u8 {
@@ -21,8 +21,30 @@ pub unsafe fn decode_fallback(src: *const u8, len: usize, dst: *mut u8) -> Resul
     Ok(())
 }
 
+unsafe fn decode16<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
+    let x = s.v128_load_unaligned(src);
+    let y = vsimd::hex::decode_ascii16(s, x).map_err(|()| Error::new())?;
+    dst.cast::<V64>().write_unaligned(y);
+    Ok(())
+}
+
+unsafe fn decode32<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
+    let x = s.v256_load_unaligned(src);
+    let y = vsimd::hex::decode_ascii32(s, x).map_err(|()| Error::new())?;
+    s.v128_store_unaligned(dst, y);
+    Ok(())
+}
+
 #[inline]
 pub unsafe fn decode_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, mut dst: *mut u8) -> Result<(), Error> {
+    if len == 16 {
+        return decode16(s, src, dst);
+    }
+
+    if len == 32 {
+        return decode32(s, src, dst);
+    }
+
     let end = src.add(len / 64 * 64);
     while src < end {
         let x0 = s.v256_load_unaligned(src);
@@ -38,19 +60,23 @@ pub unsafe fn decode_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, 
     }
     len %= 64;
 
+    if len == 0 {
+        return Ok(());
+    }
+
     if len >= 32 {
-        let x = s.v256_load_unaligned(src);
+        decode32(s, src, dst)?;
         src = src.add(32);
-
-        let y = vsimd::hex::decode_ascii32(s, x).map_err(|()| Error::new())?;
-        s.v128_store_unaligned(dst, y);
         dst = dst.add(16);
-
         len -= 32;
     }
 
-    if len > 0 {
-        decode_fallback(src, len, dst)?;
+    if len >= 16 {
+        decode16(s, src, dst)?;
+        src = src.add(16);
+        dst = dst.add(8);
+        len -= 16;
     }
-    Ok(())
+
+    decode_fallback(src, len, dst)
 }
