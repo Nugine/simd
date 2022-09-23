@@ -16,8 +16,20 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-mod utf16;
-mod utf32;
+mod fallback {
+    pub mod utf16;
+    pub mod utf32;
+}
+
+#[cfg(any(
+    any(target_arch = "x86", target_arch = "x86_64"),
+    all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")),
+    target_arch = "wasm32"
+))]
+mod simd {
+    pub mod utf16;
+    pub mod utf32;
+}
 
 mod multiversion;
 
