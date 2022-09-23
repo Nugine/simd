@@ -24,19 +24,33 @@ pub fn check_simd<S: SIMD256>(s: S, data: &[u8]) -> Result<(), Error> {
     unsafe {
         let (mut src, mut len) = (data.as_ptr(), data.len());
 
+        if len == 16 {
+            let x = s.v128_load_unaligned(src);
+            ensure!(vsimd::hex::check_ascii16(s, x));
+            return Ok(());
+        }
+
+        if len == 32 {
+            let x = s.v256_load_unaligned(src);
+            ensure!(vsimd::hex::check_ascii32(s, x));
+            return Ok(());
+        }
+
         let end = src.add(len / 32 * 32);
         while src < end {
             let x = s.v256_load_unaligned(src);
-            let is_ascii = vsimd::hex::check_ascii32(s, x);
-            ensure!(is_ascii);
+            ensure!(vsimd::hex::check_ascii32(s, x));
             src = src.add(32);
         }
         len %= 32;
 
+        if len == 0 {
+            return Ok(());
+        }
+
         if len >= 16 {
             let x = s.v128_load_unaligned(src);
-            let is_ascii = vsimd::hex::check_ascii16(s, x);
-            ensure!(is_ascii);
+            ensure!(vsimd::hex::check_ascii16(s, x));
             len -= 16;
             src = src.add(16);
         }
