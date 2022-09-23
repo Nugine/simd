@@ -1,6 +1,6 @@
 use crate::alsw::{self, AlswLut, AlswLutX2};
 use crate::mask::u8x32_highbit_any;
-use crate::{NEON, SIMD256, SSE41, V256, WASM128};
+use crate::{NEON, SIMD128, SIMD256, SSE41, V128, V256, WASM128};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Kind {
@@ -11,18 +11,18 @@ pub enum Kind {
 pub const STANDARD_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 pub const URL_SAFE_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
+const SPLIT_SHUFFLE: V256 = V256::from_bytes([
+    0x05, 0x04, 0x06, 0x05, 0x08, 0x07, 0x09, 0x08, //
+    0x0b, 0x0a, 0x0c, 0x0b, 0x0e, 0x0d, 0x0f, 0x0e, //
+    0x01, 0x00, 0x02, 0x01, 0x04, 0x03, 0x05, 0x04, //
+    0x07, 0x06, 0x08, 0x07, 0x0a, 0x09, 0x0b, 0x0a, //
+]);
+
 #[inline(always)]
-fn split_bits<S: SIMD256>(s: S, x: V256) -> V256 {
+fn split_bits_x2<S: SIMD256>(s: S, x: V256) -> V256 {
     // x: {????|AAAB|BBCC|CDDD|EEEF|FFGG|GHHH|????}
 
-    const SHUFFLE: V256 = V256::from_bytes([
-        0x05, 0x04, 0x06, 0x05, 0x08, 0x07, 0x09, 0x08, //
-        0x0b, 0x0a, 0x0c, 0x0b, 0x0e, 0x0d, 0x0f, 0x0e, //
-        0x01, 0x00, 0x02, 0x01, 0x04, 0x03, 0x05, 0x04, //
-        0x07, 0x06, 0x08, 0x07, 0x0a, 0x09, 0x0b, 0x0a, //
-    ]);
-
-    let x0 = s.u8x16x2_swizzle(x, SHUFFLE);
+    let x0 = s.u8x16x2_swizzle(x, SPLIT_SHUFFLE);
     // x0: {bbbbcccc|aaaaaabb|ccdddddd|bbbbcccc} x8 (1021)
 
     if is_subtype!(S, SSE41) {
@@ -67,13 +67,54 @@ fn split_bits<S: SIMD256>(s: S, x: V256) -> V256 {
         // {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
     }
 
-    {
-        unreachable!()
-    }
+    unreachable!()
 }
 
 #[inline(always)]
-fn merge_bits<S: SIMD256>(s: S, x: V256) -> V256 {
+fn split_bits_x1<S: SIMD128>(s: S, x: V128) -> V128 {
+    // x: {AAAB|BBCC|CDDD|????}
+
+    const SHUFFLE: V128 = SPLIT_SHUFFLE.to_v128x2().1;
+    let x0 = s.u8x16_swizzle(x, SHUFFLE);
+    // x0: {bbbbcccc|aaaaaabb|ccdddddd|bbbbcccc} x8 (1021)
+
+    if is_subtype!(S, SSE41) {
+        let m1 = s.u32x4_splat(u32::from_le_bytes([0x00, 0xfc, 0xc0, 0x0f]));
+        let x1 = s.v128_and(x0, m1);
+
+        let m2 = s.u32x4_splat(u32::from_le_bytes([0xf0, 0x03, 0x3f, 0x00]));
+        let x2 = s.v128_and(x0, m2);
+
+        let m3 = s.u32x4_splat(u32::from_le_bytes([0x40, 0x00, 0x00, 0x04]));
+        let x3 = s.u16x8_mul_hi(x1, m3);
+
+        let m4 = s.u32x4_splat(u32::from_le_bytes([0x10, 0x00, 0x00, 0x01]));
+        let x4 = s.i16x8_mul_lo(x2, m4);
+
+        return s.v128_or(x3, x4);
+    }
+
+    if is_subtype!(S, NEON | WASM128) {
+        let m1 = s.u32x4_splat(u32::from_le_bytes([0x00, 0xfc, 0x00, 0x00]));
+        let x1 = s.u16x8_shr::<10>(s.v128_and(x0, m1));
+
+        let m2 = s.u32x4_splat(u32::from_le_bytes([0xf0, 0x03, 0x00, 0x00]));
+        let x2 = s.u16x8_shl::<4>(s.v128_and(x0, m2));
+
+        let m3 = s.u32x4_splat(u32::from_le_bytes([0x00, 0x00, 0xc0, 0x0f]));
+        let x3 = s.u16x8_shr::<6>(s.v128_and(x0, m3));
+
+        let m4 = s.u32x4_splat(u32::from_le_bytes([0x00, 0x00, 0x3f, 0x00]));
+        let x4 = s.u16x8_shl::<8>(s.v128_and(x0, m4));
+
+        return s.v128_or(s.v128_or(x1, x2), s.v128_or(x3, x4));
+    }
+
+    unreachable!()
+}
+
+#[inline(always)]
+fn merge_bits_x2<S: SIMD256>(s: S, x: V256) -> V256 {
     // x : {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
 
     let y = if is_subtype!(S, SSE41) {
@@ -114,7 +155,7 @@ fn merge_bits<S: SIMD256>(s: S, x: V256) -> V256 {
     // {AAAB|BBCC|CDDD|0000|EEEF|FFGG|GHHH|0000}
 }
 
-const fn encoding_shift(charset: &'static [u8; 64]) -> V256 {
+const fn encoding_shift(charset: &'static [u8; 64]) -> V128 {
     // 0~25     'A'   [13]
     // 26~51    'a'   [0]
     // 52~61    '0'   [1~10]
@@ -131,38 +172,70 @@ const fn encoding_shift(charset: &'static [u8; 64]) -> V256 {
     }
     lut[11] = charset[62].wrapping_sub(62);
     lut[12] = charset[63].wrapping_sub(63);
-    V256::double_bytes(lut)
+    V128::from_bytes(lut)
 }
 
-pub const STANDARD_ENCODING_SHIFT: V256 = encoding_shift(STANDARD_CHARSET);
-pub const URL_SAFE_ENCODING_SHIFT: V256 = encoding_shift(URL_SAFE_CHARSET);
+pub const STANDARD_ENCODING_SHIFT: V128 = encoding_shift(STANDARD_CHARSET);
+pub const URL_SAFE_ENCODING_SHIFT: V128 = encoding_shift(URL_SAFE_CHARSET);
+
+pub const STANDARD_ENCODING_SHIFT_X2: V256 = STANDARD_ENCODING_SHIFT.x2();
+pub const URL_SAFE_ENCODING_SHIFT_X2: V256 = URL_SAFE_ENCODING_SHIFT.x2();
 
 #[inline(always)]
-pub fn encode_bytes24<S: SIMD256>(s: S, x: V256, shift_lut: V256) -> V256 {
-    // x: {????|AAAB|BBCC|CDDD|EEEF|FFGG|GHHH|????}
+fn encode_values24<S: SIMD256>(s: S, x: V256, shift_lut: V256) -> V256 {
+    // x: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
 
-    let x1 = split_bits(s, x);
-    // x1: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
-
-    let x2 = s.u8x32_sub_sat(x1, s.u8x32_splat(51));
+    let x1 = s.u8x32_sub_sat(x, s.u8x32_splat(51));
     // 0~25    => 0
     // 26~51   => 0
     // 52~61   => 1~10
     // 62      => 11
     // 63      => 12
 
-    let x3 = s.i8x32_lt(x1, s.u8x32_splat(26));
-    let x4 = s.v256_and(x3, s.u8x32_splat(13));
-    let x5 = s.v256_or(x2, x4);
+    let x2 = s.i8x32_lt(x, s.u8x32_splat(26));
+    let x3 = s.v256_and(x2, s.u8x32_splat(13));
+    let x4 = s.v256_or(x1, x3);
     // 0~25    => 0xff  => 13
     // 26~51   => 0     => 0
     // 52~61   => 0     => 1~10
     // 62      => 0     => 11
     // 63      => 0     => 12
 
-    let shift = s.u8x16x2_swizzle(shift_lut, x5);
-    s.u8x32_add(x1, shift)
+    let shift = s.u8x16x2_swizzle(shift_lut, x4);
+    s.u8x32_add(x, shift)
     // {{ascii}} x32
+}
+
+#[inline(always)]
+fn encode_values12<S: SIMD256>(s: S, x: V128, shift_lut: V128) -> V128 {
+    let x1 = s.u8x16_sub_sat(x, s.u8x16_splat(51));
+    let x2 = s.i8x16_lt(x, s.u8x16_splat(26));
+    let x3 = s.v128_and(x2, s.u8x16_splat(13));
+    let x4 = s.v128_or(x1, x3);
+    let shift = s.u8x16_swizzle(shift_lut, x4);
+    s.u8x16_add(x, shift)
+}
+
+#[inline(always)]
+pub fn encode_bytes24<S: SIMD256>(s: S, x: V256, shift_lut: V256) -> V256 {
+    // x: {????|AAAB|BBCC|CDDD|EEEF|FFGG|GHHH|????}
+
+    let values = split_bits_x2(s, x);
+    // values: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
+
+    encode_values24(s, values, shift_lut)
+    // {{ascii}} x32
+}
+
+#[inline(always)]
+pub fn encode_bytes12<S: SIMD256>(s: S, x: V128, shift_lut: V128) -> V128 {
+    // x: {AAAB|BBCC|CDDD|????}
+
+    let values = split_bits_x1(s, x);
+    // values: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x4
+
+    encode_values12(s, values, shift_lut)
+    // {{ascii}} x16
 }
 
 struct StandardAlsw;
@@ -256,7 +329,7 @@ pub fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2) -> bool {
 pub fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLutX2, decode: AlswLutX2) -> Result<V256, ()> {
     let (c1, c2) = alsw::decode_ascii32(s, x, check, decode);
 
-    let y = merge_bits(s, c2);
+    let y = merge_bits_x2(s, c2);
 
     if u8x32_highbit_any(s, c1) {
         Err(())

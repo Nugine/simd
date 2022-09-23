@@ -1,7 +1,6 @@
 use crate::Kind;
 
 use vsimd::base64::{STANDARD_CHARSET, URL_SAFE_CHARSET};
-use vsimd::base64::{STANDARD_ENCODING_SHIFT, URL_SAFE_ENCODING_SHIFT};
 
 use vsimd::tools::{read, slice, slice_parts, write};
 use vsimd::SIMD256;
@@ -95,8 +94,8 @@ pub(crate) unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, kind: Kind, p
 
 pub(crate) unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
     let (charset, shift_lut) = match kind {
-        Kind::Standard => (STANDARD_CHARSET.as_ptr(), STANDARD_ENCODING_SHIFT),
-        Kind::UrlSafe => (URL_SAFE_CHARSET.as_ptr(), URL_SAFE_ENCODING_SHIFT),
+        Kind::Standard => (STANDARD_CHARSET.as_ptr(), vsimd::base64::STANDARD_ENCODING_SHIFT_X2),
+        Kind::UrlSafe => (URL_SAFE_CHARSET.as_ptr(), vsimd::base64::URL_SAFE_ENCODING_SHIFT_X2),
     };
 
     let (mut src, mut len) = slice_parts(src);
