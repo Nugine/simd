@@ -37,9 +37,14 @@ extern crate alloc;
 mod error;
 pub use self::error::Error;
 
-mod check;
-mod decode;
-mod encode;
+mod fallback;
+
+#[cfg(any(
+    any(target_arch = "x86", target_arch = "x86_64"),
+    all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")),
+    target_arch = "wasm32"
+))]
+mod simd;
 
 mod multiversion;
 
@@ -53,8 +58,8 @@ pub use outref::OutRef;
 
 // -----------------------------------------------------------------------------
 
-use crate::decode::decoded_length;
-use crate::encode::encoded_length_unchecked;
+use crate::fallback::decoded_length;
+use crate::fallback::encoded_length_unchecked;
 
 use vsimd::base32::Kind;
 use vsimd::base32::{BASE32HEX_CHARSET, BASE32_CHARSET};
