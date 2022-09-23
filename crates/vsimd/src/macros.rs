@@ -17,11 +17,11 @@ macro_rules! debug_assert_ptr_align {
 #[macro_export]
 macro_rules! is_subtype {
     ($self:ident, $super:ident) => {{
-        <$self as $crate::InstructionSet>::is_subtype_of::<$super>()
+        <$self as $crate::isa::InstructionSet>::is_subtype_of::<$super>()
     }};
     ($self:ident, $super:ident | $($other:ident)|+) => {{
-        <$self as $crate::InstructionSet>::is_subtype_of::<$super>()
-         $(|| <$self as $crate::InstructionSet>::is_subtype_of::<$other>())+
+        <$self as $crate::isa::InstructionSet>::is_subtype_of::<$super>()
+         $(|| <$self as $crate::isa::InstructionSet>::is_subtype_of::<$other>())+
     }};
 }
 
@@ -44,7 +44,7 @@ macro_rules! simd_dispatch {
 
             use super::*;
 
-            use $crate::InstructionSet;
+            use $crate::isa::InstructionSet;
 
             const _: $(for<$($lifetime),+>)? $($unsafe)? fn($($arg_type),*) -> $ret = $($fallback_fn)+;
 
@@ -55,7 +55,7 @@ macro_rules! simd_dispatch {
 
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             $crate::item_group!{
-                use $crate::{AVX2, SSE41};
+                use $crate::isa::{AVX2, SSE41};
 
                 const _: $(for<$($lifetime),+>)? $($unsafe)? fn(AVX2 $(,$arg_type)*) -> $ret = $($simd_fn)+::<AVX2>;
                 const _: $(for<$($lifetime),+>)? $($unsafe)? fn(SSE41$(,$arg_type)*) -> $ret = $($simd_fn)+::<SSE41>;
@@ -75,7 +75,7 @@ macro_rules! simd_dispatch {
 
             #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
             $crate::item_group!{
-                use $crate::NEON;
+                use $crate::isa::NEON;
 
                 const _: $(for<$($lifetime),+>)? $($unsafe)? fn(NEON$(,$arg_type)*) -> $ret = $($simd_fn)+::<NEON>;
 
@@ -88,7 +88,7 @@ macro_rules! simd_dispatch {
 
             #[cfg(target_arch = "wasm32")]
             $crate::item_group!{
-                use $crate::WASM128;
+                use $crate::isa::WASM128;
 
                 const _: $(for<$($lifetime),+>)? $($unsafe)? fn(WASM128$(,$arg_type)*) -> $ret = $($simd_fn)+::<WASM128>;
 
@@ -102,19 +102,19 @@ macro_rules! simd_dispatch {
             #[inline(always)]
             fn resolve() -> $(for<$($lifetime),+>)? unsafe fn($($arg_type),*) -> $ret {
                 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-                if $crate::AVX2::is_enabled() {
+                if $crate::isa::AVX2::is_enabled() {
                     return avx2;
                 }
                 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-                if $crate::SSE41::is_enabled() {
+                if $crate::isa::SSE41::is_enabled() {
                     return sse41;
                 }
                 #[cfg(all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")))]
-                if $crate::NEON::is_enabled() {
+                if $crate::isa::NEON::is_enabled() {
                     return neon;
                 }
                 #[cfg(target_arch = "wasm32")]
-                if $crate::WASM128::is_enabled() {
+                if $crate::isa::WASM128::is_enabled() {
                     return simd128;
                 }
                 $($fallback_fn)+

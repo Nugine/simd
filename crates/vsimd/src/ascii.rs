@@ -1,7 +1,8 @@
 use crate::mask::{mask8x32_any, u8x32_highbit_any};
 use crate::pod::align;
 use crate::tools::{read, unroll};
-use crate::{Scalable, SIMD256, V256};
+use crate::vector::V256;
+use crate::{Scalable, SIMD256};
 
 use core::ops::Not;
 

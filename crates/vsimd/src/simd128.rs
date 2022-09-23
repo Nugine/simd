@@ -1,4 +1,6 @@
-use crate::{NEON, SIMD64, SSE41, V128, WASM128};
+use crate::isa::{NEON, SSE41, WASM128};
+use crate::vector::V128;
+use crate::SIMD64;
 
 use core::mem::transmute as t;
 

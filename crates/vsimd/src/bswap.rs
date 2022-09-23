@@ -1,6 +1,7 @@
 use crate::pod::{align, POD};
 use crate::tools::slice;
-use crate::{SIMD256, V128, V256};
+use crate::vector::{V128, V256};
+use crate::SIMD256;
 
 pub(crate) const SHUFFLE_U16X8: V128 = V128::from_bytes([
     0x01, 0x00, 0x03, 0x02, 0x05, 0x04, 0x07, 0x06, //

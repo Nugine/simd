@@ -3,7 +3,8 @@ use crate::spec::*;
 
 use vsimd::hex::unhex;
 use vsimd::tools::{read, write};
-use vsimd::{SIMD256, V256};
+use vsimd::vector::V256;
+use vsimd::SIMD256;
 
 #[inline(always)]
 const fn shl4(x: u8) -> u8 {

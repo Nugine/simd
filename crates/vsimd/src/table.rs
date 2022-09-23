@@ -1,4 +1,5 @@
-use crate::{Scalable, NEON, SSE41, WASM128};
+use crate::isa::{NEON, SSE41, WASM128};
+use crate::Scalable;
 
 #[inline(always)]
 pub fn u8x16xn_lookup<S, V>(s: S, lut: V, x: V) -> V

@@ -1,6 +1,7 @@
 use vsimd::pod::align;
 use vsimd::tools::unroll;
-use vsimd::{SIMD256, V256};
+use vsimd::vector::V256;
+use vsimd::SIMD256;
 
 /// See [`char::from_u32`]
 #[inline]

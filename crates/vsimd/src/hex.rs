@@ -1,6 +1,8 @@
 use crate::alsw::{self, AlswLut};
+use crate::isa::{AVX2, NEON, SSE41, WASM128};
 use crate::mask::{u8x16_highbit_any, u8x32_highbit_any};
-use crate::{Scalable, AVX2, NEON, SIMD128, SIMD256, SSE41, V128, V256, V64, WASM128};
+use crate::vector::{V128, V256, V64};
+use crate::{Scalable, SIMD128, SIMD256};
 
 const fn parse_hex(x: u8) -> u8 {
     match x {

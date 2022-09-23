@@ -1,6 +1,8 @@
 use crate::alsw::{self, AlswLut};
+use crate::isa::{NEON, SSE41, WASM128};
 use crate::mask::u8x32_highbit_any;
-use crate::{Scalable, NEON, SIMD128, SIMD256, SSE41, V128, V256, WASM128};
+use crate::vector::{V128, V256};
+use crate::{Scalable, SIMD128, SIMD256};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Kind {

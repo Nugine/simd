@@ -2,7 +2,8 @@ use crate::spec::*;
 
 use vsimd::ascii::AsciiCase;
 use vsimd::tools::{read, write};
-use vsimd::{SIMD256, V256};
+use vsimd::vector::V256;
+use vsimd::SIMD256;
 
 #[inline(always)]
 const fn char_lut_fallback(case: AsciiCase) -> &'static [u8; 16] {

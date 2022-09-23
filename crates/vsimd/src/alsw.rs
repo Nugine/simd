@@ -4,7 +4,8 @@
 
 use crate::algorithm::{avgr, lookup};
 use crate::table::u8x16xn_lookup;
-use crate::{Scalable, V128, V256};
+use crate::vector::{V128, V256};
+use crate::Scalable;
 
 use core::ops::Not;
 

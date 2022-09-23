@@ -1,11 +1,11 @@
-use vsimd::{is_subtype, SIMD128};
-use vsimd::{SIMD256, V128, V256};
+use vsimd::vector::{V128, V256};
+use vsimd::{is_subtype, SIMD128, SIMD256};
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-use vsimd::{AVX2, SSE41};
+use vsimd::isa::{AVX2, SSE41};
 
 #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
-use vsimd::NEON;
+use vsimd::isa::NEON;
 
 #[cfg(target_arch = "wasm32")]
 use vsimd::WASM128;

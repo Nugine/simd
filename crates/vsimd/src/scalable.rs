@@ -1,5 +1,7 @@
+use crate::isa::InstructionSet;
 use crate::mask::*;
-use crate::{InstructionSet, SIMD128, SIMD256, V128, V256};
+use crate::vector::{V128, V256};
+use crate::{SIMD128, SIMD256};
 
 pub unsafe trait Scalable<V: Copy>: InstructionSet {
     fn and(self, a: V, b: V) -> V;

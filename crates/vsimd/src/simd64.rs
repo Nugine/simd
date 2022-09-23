@@ -1,7 +1,8 @@
-use crate::{InstructionSet, V64};
+use crate::isa::InstructionSet;
+use crate::vector::V64;
 
 #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
-use crate::NEON;
+use crate::isa::NEON;
 
 #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
 use core::mem::transmute as t;
