@@ -127,7 +127,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_setzero_si256()) };
         }
         {
-            V256::double_v128(self.v128_create_zero())
+            self.v128_create_zero().x2()
         }
     }
 
@@ -207,7 +207,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_set1_epi8(x as i8)) };
         }
         {
-            V256::double_v128(self.u8x16_splat(x))
+            self.u8x16_splat(x).x2()
         }
     }
 
@@ -218,7 +218,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_set1_epi16(x as i16)) };
         }
         {
-            V256::double_v128(self.u16x8_splat(x))
+            self.u16x8_splat(x).x2()
         }
     }
 
@@ -229,7 +229,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_set1_epi32(x as i32)) };
         }
         {
-            V256::double_v128(self.u32x4_splat(x))
+            self.u32x4_splat(x).x2()
         }
     }
 
@@ -240,7 +240,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_set1_epi64x(x as i64)) };
         }
         {
-            V256::double_v128(self.u64x2_splat(x))
+            self.u64x2_splat(x).x2()
         }
     }
 
@@ -251,7 +251,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_set1_epi8(x)) };
         }
         {
-            V256::double_v128(self.i8x16_splat(x))
+            self.i8x16_splat(x).x2()
         }
     }
 
@@ -262,7 +262,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_set1_epi16(x)) };
         }
         {
-            V256::double_v128(self.i16x8_splat(x))
+            self.i16x8_splat(x).x2()
         }
     }
 
@@ -273,7 +273,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_set1_epi32(x)) };
         }
         {
-            V256::double_v128(self.i32x4_splat(x))
+            self.i32x4_splat(x).x2()
         }
     }
 
@@ -284,7 +284,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_set1_epi64x(x)) };
         }
         {
-            V256::double_v128(self.i64x2_splat(x))
+            self.i64x2_splat(x).x2()
         }
     }
 

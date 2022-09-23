@@ -82,6 +82,12 @@ impl V128 {
         let x: [V64; 2] = unsafe { transmute(self) };
         (x[0], x[1])
     }
+
+    #[inline(always)]
+    #[must_use]
+    pub const fn x2(self) -> V256 {
+        unsafe { transmute([self, self]) }
+    }
 }
 
 impl V256 {
@@ -118,8 +124,8 @@ impl V256 {
 
     #[inline(always)]
     #[must_use]
-    pub const fn double_v128(x: V128) -> Self {
-        unsafe { transmute([x, x]) }
+    pub const fn x2(self) -> V512 {
+        unsafe { transmute([self, self]) }
     }
 }
 
@@ -153,11 +159,5 @@ impl V512 {
     #[must_use]
     pub const fn double_bytes(bytes: [u8; 32]) -> Self {
         unsafe { transmute([bytes, bytes]) }
-    }
-
-    #[inline(always)]
-    #[must_use]
-    pub const fn double_v256(x: V256) -> Self {
-        unsafe { transmute([x, x]) }
     }
 }

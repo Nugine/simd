@@ -17,11 +17,11 @@ pub(crate) const SHUFFLE_U64X2: V128 = V128::from_bytes([
     0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08, //
 ]);
 
-pub(crate) const SHUFFLE_U16X16: V256 = V256::double_v128(SHUFFLE_U16X8);
+pub(crate) const SHUFFLE_U16X16: V256 = SHUFFLE_U16X8.x2();
 
-pub(crate) const SHUFFLE_U32X8: V256 = V256::double_v128(SHUFFLE_U32X4);
+pub(crate) const SHUFFLE_U32X8: V256 = SHUFFLE_U32X4.x2();
 
-pub(crate) const SHUFFLE_U64X4: V256 = V256::double_v128(SHUFFLE_U64X2);
+pub(crate) const SHUFFLE_U64X4: V256 = SHUFFLE_U64X2.x2();
 
 pub unsafe trait BSwapExt: POD {
     fn swap_single(x: Self) -> Self;
