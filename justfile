@@ -12,9 +12,10 @@ doc pkg="vsimd":
 x86-bench *ARGS:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
+    mkdir -p target/x86-bench
     COMMIT_HASH=`git rev-parse --short HEAD`
     export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1"
-    time cargo criterion -p simd-benches --history-id $COMMIT_HASH {{ARGS}}
+    time cargo criterion -p simd-benches --history-id $COMMIT_HASH --message-format json {{ARGS}} > target/x86-bench/$COMMIT_HASH.jsonl
 
 js-bench:
     #!/bin/bash -e
