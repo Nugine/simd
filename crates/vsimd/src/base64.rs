@@ -1,6 +1,6 @@
 use crate::alsw::{self, AlswLut};
 use crate::mask::u8x32_highbit_any;
-use crate::{NEON, SIMD128, SIMD256, SSE41, V128, V256, WASM128};
+use crate::{Scalable, NEON, SIMD128, SIMD256, SSE41, V128, V256, WASM128};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Kind {
@@ -181,39 +181,28 @@ pub const URL_SAFE_ENCODING_SHIFT: V128 = encoding_shift(URL_SAFE_CHARSET);
 pub const STANDARD_ENCODING_SHIFT_X2: V256 = STANDARD_ENCODING_SHIFT.x2();
 pub const URL_SAFE_ENCODING_SHIFT_X2: V256 = URL_SAFE_ENCODING_SHIFT.x2();
 
-#[inline(always)]
-fn encode_values24<S: SIMD256>(s: S, x: V256, shift_lut: V256) -> V256 {
-    // x: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
+fn encode_values<S: Scalable<V>, V: Copy>(s: S, x: V, shift_lut: V) -> V {
+    // x: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} xn
 
-    let x1 = s.u8x32_sub_sat(x, s.u8x32_splat(51));
+    let x1 = s.u8xn_sub_sat(x, s.u8xn_splat(51));
     // 0~25    => 0
     // 26~51   => 0
     // 52~61   => 1~10
     // 62      => 11
     // 63      => 12
 
-    let x2 = s.i8x32_lt(x, s.u8x32_splat(26));
-    let x3 = s.v256_and(x2, s.u8x32_splat(13));
-    let x4 = s.v256_or(x1, x3);
+    let x2 = s.i8xn_lt(x, s.u8xn_splat(26));
+    let x3 = s.and(x2, s.u8xn_splat(13));
+    let x4 = s.or(x1, x3);
     // 0~25    => 0xff  => 13
     // 26~51   => 0     => 0
     // 52~61   => 0     => 1~10
     // 62      => 0     => 11
     // 63      => 0     => 12
 
-    let shift = s.u8x16x2_swizzle(shift_lut, x4);
-    s.u8x32_add(x, shift)
-    // {{ascii}} x32
-}
-
-#[inline(always)]
-fn encode_values12<S: SIMD256>(s: S, x: V128, shift_lut: V128) -> V128 {
-    let x1 = s.u8x16_sub_sat(x, s.u8x16_splat(51));
-    let x2 = s.i8x16_lt(x, s.u8x16_splat(26));
-    let x3 = s.v128_and(x2, s.u8x16_splat(13));
-    let x4 = s.v128_or(x1, x3);
-    let shift = s.u8x16_swizzle(shift_lut, x4);
-    s.u8x16_add(x, shift)
+    let shift = s.u8x16xn_swizzle(shift_lut, x4);
+    s.u8xn_add(x, shift)
+    // {{ascii}} xn
 }
 
 #[inline(always)]
@@ -223,7 +212,7 @@ pub fn encode_bytes24<S: SIMD256>(s: S, x: V256, shift_lut: V256) -> V256 {
     let values = split_bits_x2(s, x);
     // values: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
 
-    encode_values24(s, values, shift_lut)
+    encode_values(s, values, shift_lut)
     // {{ascii}} x32
 }
 
@@ -234,7 +223,7 @@ pub fn encode_bytes12<S: SIMD256>(s: S, x: V128, shift_lut: V128) -> V128 {
     let values = split_bits_x1(s, x);
     // values: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x4
 
-    encode_values12(s, values, shift_lut)
+    encode_values(s, values, shift_lut)
     // {{ascii}} x16
 }
 
