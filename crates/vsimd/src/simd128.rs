@@ -1,4 +1,4 @@
-use crate::{InstructionSet, NEON, SSE41, V128, WASM128};
+use crate::{NEON, SIMD64, SSE41, V128, WASM128};
 
 use core::mem::transmute as t;
 
@@ -17,7 +17,7 @@ use core::arch::aarch64::*;
 #[cfg(target_arch = "wasm32")]
 use core::arch::wasm32::*;
 
-pub unsafe trait SIMD128: InstructionSet {
+pub unsafe trait SIMD128: SIMD64 {
     #[inline(always)]
     unsafe fn v128_load(self, addr: *const u8) -> V128 {
         debug_assert_ptr_align!(addr, 16);

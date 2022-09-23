@@ -5,7 +5,7 @@ use core::simd::{u8x16, u8x32, u8x64, u8x8};
 
 #[cfg(not(feature = "unstable"))]
 #[derive(Debug, Clone, Copy)]
-#[repr(C, align(16))]
+#[repr(C, align(8))]
 pub struct V64([u8; 8]);
 
 #[cfg(not(feature = "unstable"))]

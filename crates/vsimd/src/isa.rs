@@ -1,5 +1,5 @@
 use crate::tools::is_same_type;
-use crate::{SIMD128, SIMD256};
+use crate::{SIMD128, SIMD256, SIMD64};
 
 pub unsafe trait InstructionSet: Copy + 'static {
     unsafe fn new() -> Self;
@@ -81,6 +81,7 @@ unsafe impl InstructionSet for SSE41 {
     }
 }
 
+unsafe impl SIMD64 for SSE41 {}
 unsafe impl SIMD128 for SSE41 {}
 unsafe impl SIMD256 for SSE41 {}
 
@@ -108,6 +109,7 @@ unsafe impl InstructionSet for AVX2 {
     }
 }
 
+unsafe impl SIMD64 for AVX2 {}
 unsafe impl SIMD128 for AVX2 {}
 unsafe impl SIMD256 for AVX2 {}
 
@@ -130,8 +132,8 @@ unsafe impl InstructionSet for NEON {
     }
 }
 
+unsafe impl SIMD64 for NEON {}
 unsafe impl SIMD128 for NEON {}
-
 unsafe impl SIMD256 for NEON {}
 
 unsafe impl InstructionSet for WASM128 {
@@ -153,5 +155,6 @@ unsafe impl InstructionSet for WASM128 {
     }
 }
 
+unsafe impl SIMD64 for WASM128 {}
 unsafe impl SIMD128 for WASM128 {}
 unsafe impl SIMD256 for WASM128 {}
