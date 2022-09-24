@@ -1,4 +1,19 @@
-//! TODO
+//! SIMD-accelerated UUID operations.
+//!
+//! # Examples
+//!
+//! ```
+//! # #[cfg(feature="uuid")]
+//! # {
+//! use uuid::Uuid;
+//! use uuid_simd::UuidExt;
+//!
+//! let text = "67e55044-10b1-426f-9247-bb680e5fe0c8";
+//! let uuid: Uuid = Uuid::parse(text.as_bytes()).unwrap();
+//! println!("{}", uuid.format_simple())
+//! # }
+//! ```
+//!
 
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
