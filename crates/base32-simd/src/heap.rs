@@ -8,6 +8,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromBase32Decode for Box<[u8]> {
     #[inline]
     fn from_base32_decode(base32: &Base32, data: &[u8]) -> Result<Self, crate::Error> {
@@ -30,6 +31,7 @@ impl FromBase32Decode for Box<[u8]> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromBase32Decode for Vec<u8> {
     #[inline]
     fn from_base32_decode(base32: &Base32, data: &[u8]) -> Result<Self, crate::Error> {
@@ -38,6 +40,7 @@ impl FromBase32Decode for Vec<u8> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromBase32Encode for Box<[u8]> {
     #[inline]
     fn from_base32_encode(base32: &Base32, data: &[u8]) -> Self {
@@ -61,6 +64,7 @@ impl FromBase32Encode for Box<[u8]> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromBase32Encode for Box<str> {
     #[inline]
     fn from_base32_encode(base32: &Base32, data: &[u8]) -> Self {
@@ -74,6 +78,7 @@ impl FromBase32Encode for Box<str> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromBase32Encode for Vec<u8> {
     #[inline]
     fn from_base32_encode(base32: &Base32, data: &[u8]) -> Self {
@@ -82,6 +87,7 @@ impl FromBase32Encode for Vec<u8> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromBase32Encode for String {
     #[inline]
     fn from_base32_encode(base32: &Base32, data: &[u8]) -> Self {

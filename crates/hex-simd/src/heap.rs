@@ -6,6 +6,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexDecode for Box<[u8]> {
     #[inline]
     fn from_hex_decode(data: &[u8]) -> Result<Self, Error> {
@@ -28,6 +29,7 @@ impl FromHexDecode for Box<[u8]> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexDecode for Vec<u8> {
     #[inline]
     fn from_hex_decode(data: &[u8]) -> Result<Self, Error> {
@@ -36,6 +38,7 @@ impl FromHexDecode for Vec<u8> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexEncode for Box<[u8]> {
     #[inline]
     #[must_use]
@@ -59,6 +62,7 @@ impl FromHexEncode for Box<[u8]> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexEncode for Box<str> {
     #[inline]
     #[must_use]
@@ -73,6 +77,7 @@ impl FromHexEncode for Box<str> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexEncode for Vec<u8> {
     #[inline]
     #[must_use]
@@ -82,6 +87,7 @@ impl FromHexEncode for Vec<u8> {
     }
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexEncode for String {
     #[inline]
     #[must_use]
