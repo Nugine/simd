@@ -197,3 +197,39 @@ impl From<V512> for Simd<u8, 64> {
         unsafe { transmute(v) }
     }
 }
+
+#[cfg(feature = "unstable")]
+impl From<Simd<u8, 8>> for V64 {
+    #[inline(always)]
+    #[must_use]
+    fn from(v: Simd<u8, 8>) -> Self {
+        unsafe { transmute(v) }
+    }
+}
+
+#[cfg(feature = "unstable")]
+impl From<Simd<u8, 16>> for V128 {
+    #[inline(always)]
+    #[must_use]
+    fn from(v: Simd<u8, 16>) -> Self {
+        unsafe { transmute(v) }
+    }
+}
+
+#[cfg(feature = "unstable")]
+impl From<Simd<u8, 32>> for V256 {
+    #[inline(always)]
+    #[must_use]
+    fn from(v: Simd<u8, 32>) -> Self {
+        unsafe { transmute(v) }
+    }
+}
+
+#[cfg(feature = "unstable")]
+impl From<Simd<u8, 64>> for V512 {
+    #[inline(always)]
+    #[must_use]
+    fn from(v: Simd<u8, 64>) -> Self {
+        unsafe { transmute(v) }
+    }
+}
