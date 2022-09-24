@@ -9,7 +9,7 @@ use vsimd::SIMD256;
 #[inline(always)]
 pub unsafe fn parse_simple<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let x = s.v256_load_unaligned(src);
-    let y = vsimd::hex::decode_ascii32(s, x).map_err(|()| Error::new())?;
+    let y = try_!(vsimd::hex::decode_ascii32(s, x));
     s.v128_store_unaligned(dst, y);
     Ok(())
 }
@@ -34,7 +34,7 @@ pub unsafe fn parse_hyphenated<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -
     let a2 = i16x16_set_lane7(s, a1, src.add(16).cast::<i16>().read_unaligned());
     let a3 = i32x8_set_lane7(s, a2, src.add(32).cast::<i32>().read_unaligned());
 
-    let ans = vsimd::hex::decode_ascii32(s, a3).map_err(|()| Error::new())?;
+    let ans = try_!(vsimd::hex::decode_ascii32(s, a3));
     s.v128_store_unaligned(dst, ans);
 
     Ok(())

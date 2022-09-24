@@ -87,7 +87,7 @@ pub unsafe fn decode<S: SIMD256>(
     // n*5/8 >= 10+10+6
     while n >= 42 {
         let x = s.v256_load_unaligned(src);
-        let y = vsimd::base32::decode_ascii32(s, x, check_lut, decode_lut).map_err(|()| Error::new())?;
+        let y = try_!(vsimd::base32::decode_ascii32(s, x, check_lut, decode_lut));
 
         let (y1, y2) = y.to_v128x2();
         s.v128_store_unaligned(dst, y1);

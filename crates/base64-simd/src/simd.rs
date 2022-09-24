@@ -66,7 +66,7 @@ pub unsafe fn decode<S: SIMD256>(
     // n*3/4 >= 24+4
     while n >= 38 {
         let x = s.v256_load_unaligned(src);
-        let y = vsimd::base64::decode_ascii32(s, x, check_lut, decode_lut).map_err(|()| Error::new())?;
+        let y = try_!(vsimd::base64::decode_ascii32(s, x, check_lut, decode_lut));
 
         let (y1, y2) = y.to_v128x2();
         s.v128_store_unaligned(dst, y1);

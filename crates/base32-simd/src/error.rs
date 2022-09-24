@@ -34,3 +34,13 @@ macro_rules! ensure {
         }
     };
 }
+
+#[allow(unused_macros)]
+macro_rules! try_ {
+    ($result:expr) => {
+        match $result {
+            Ok(value) => value,
+            Err(_) => return Err(Error::new()),
+        }
+    };
+}

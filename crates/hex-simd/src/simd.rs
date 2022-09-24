@@ -107,7 +107,7 @@ pub unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: Ascii
 #[inline(always)]
 unsafe fn decode16<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let x = s.v128_load_unaligned(src);
-    let y = vsimd::hex::decode_ascii16(s, x).map_err(|()| Error::new())?;
+    let y = try_!(vsimd::hex::decode_ascii16(s, x));
     dst.cast::<V64>().write_unaligned(y);
     Ok(())
 }
@@ -115,7 +115,7 @@ unsafe fn decode16<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(),
 #[inline(always)]
 unsafe fn decode32<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let x = s.v256_load_unaligned(src);
-    let y = vsimd::hex::decode_ascii32(s, x).map_err(|()| Error::new())?;
+    let y = try_!(vsimd::hex::decode_ascii32(s, x));
     s.v128_store_unaligned(dst, y);
     Ok(())
 }
@@ -139,7 +139,7 @@ pub unsafe fn decode<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, mut d
         src = src.add(32);
 
         let x = (x0, x1);
-        let y = vsimd::hex::decode_ascii32x2(s, x).map_err(|()| Error::new())?;
+        let y = try_!(vsimd::hex::decode_ascii32x2(s, x));
         s.v256_store_unaligned(dst, y);
         dst = dst.add(32);
     }
