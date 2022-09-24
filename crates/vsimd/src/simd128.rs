@@ -240,9 +240,8 @@ pub unsafe trait SIMD128: SIMD64 {
         #[cfg(all(feature = "unstable", target_arch = "arm"))]
         if is_subtype!(Self, NEON) {
             return unsafe {
-                let a = t(a);
-                let a = vorr_u64(vget_low_u64(a), vget_high_u64(a));
-                vget_lane_u64::<0>(a) == 0
+                let a: [u64; 2] = t(a);
+                (a[0] | a[1]) == 0
             };
         }
         #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
