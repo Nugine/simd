@@ -35,6 +35,7 @@ pub use self::simd64::SIMD64;
 mod simd128;
 pub use self::simd128::SIMD128;
 
+#[macro_use]
 mod simd256;
 pub use self::simd256::SIMD256;
 

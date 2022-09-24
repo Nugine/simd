@@ -24,34 +24,31 @@ use core::arch::aarch64::*;
 #[cfg(target_arch = "wasm32")]
 use core::arch::wasm32::*;
 
-#[inline(always)]
-pub(crate) fn simd256_vop1<S: SIMD256>(s: S, a: V256, f: impl Fn(S, V128) -> V128) -> V256 {
-    let a = a.to_v128x2();
-    let b = (f(s, a.0), f(s, a.1));
-    V256::from_v128x2(b)
-}
-
-#[inline(always)]
-pub(crate) fn simd256_vop2<S: SIMD256>(s: S, a: V256, b: V256, f: impl Fn(S, V128, V128) -> V128) -> V256 {
-    let a = a.to_v128x2();
-    let b = b.to_v128x2();
-    let c = (f(s, a.0, b.0), f(s, a.1, b.1));
-    V256::from_v128x2(c)
-}
-
-#[inline(always)]
-pub(crate) fn simd256_vop3<S: SIMD256>(
-    s: S,
-    a: V256,
-    b: V256,
-    c: V256,
-    f: impl Fn(S, V128, V128, V128) -> V128,
-) -> V256 {
-    let a = a.to_v128x2();
-    let b = b.to_v128x2();
-    let c = c.to_v128x2();
-    let d = (f(s, a.0, b.0, c.0), f(s, a.1, b.1, c.1));
-    V256::from_v128x2(d)
+macro_rules! simd256_vop {
+    ($s:expr, $f:expr, $a:expr) => {{
+        let s = $s;
+        let f = $f;
+        let a = $a.to_v128x2();
+        let b = (f(s, a.0), f(s, a.1));
+        V256::from_v128x2(b)
+    }};
+    ($s:expr, $f:expr, $a:expr, $b:expr) => {{
+        let s = $s;
+        let f = $f;
+        let a = $a.to_v128x2();
+        let b = $b.to_v128x2();
+        let c = (f(s, a.0, b.0), f(s, a.1, b.1));
+        V256::from_v128x2(c)
+    }};
+    ($s:expr, $f:expr, $a:expr, $b:expr, $c:expr) => {{
+        let s = $s;
+        let f = $f;
+        let a = $a.to_v128x2();
+        let b = $b.to_v128x2();
+        let c = $c.to_v128x2();
+        let d = (f(s, a.0, b.0, c.0), f(s, a.1, b.1, c.1));
+        V256::from_v128x2(d)
+    }};
 }
 
 pub unsafe trait SIMD256: SIMD128 {
@@ -144,7 +141,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return self.v256_xor(a, self.u8x32_eq(a, a));
         }
         {
-            simd256_vop1(self, a, Self::v128_not)
+            simd256_vop!(self, Self::v128_not, a)
         }
     }
 
@@ -155,7 +152,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_and_si256(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::v128_and)
+            simd256_vop!(self, Self::v128_and, a, b)
         }
     }
 
@@ -166,7 +163,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_or_si256(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::v128_or)
+            simd256_vop!(self, Self::v128_or, a, b)
         }
     }
 
@@ -177,7 +174,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_xor_si256(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::v128_xor)
+            simd256_vop!(self, Self::v128_xor, a, b)
         }
     }
 
@@ -188,7 +185,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_andnot_si256(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::v128_andnot)
+            simd256_vop!(self, Self::v128_andnot, a, b)
         }
     }
 
@@ -302,7 +299,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_add_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_add)
+            simd256_vop!(self, Self::u8x16_add, a, b)
         }
     }
 
@@ -313,7 +310,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_add_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_add)
+            simd256_vop!(self, Self::u16x8_add, a, b)
         }
     }
 
@@ -324,7 +321,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_add_epi32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u32x4_add)
+            simd256_vop!(self, Self::u32x4_add, a, b)
         }
     }
 
@@ -335,7 +332,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_add_epi64(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u64x2_add)
+            simd256_vop!(self, Self::u64x2_add, a, b)
         }
     }
 
@@ -346,7 +343,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_sub_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_sub)
+            simd256_vop!(self, Self::u8x16_sub, a, b)
         }
     }
 
@@ -357,7 +354,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_sub_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_sub)
+            simd256_vop!(self, Self::u16x8_sub, a, b)
         }
     }
 
@@ -368,7 +365,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_sub_epi32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u32x4_sub)
+            simd256_vop!(self, Self::u32x4_sub, a, b)
         }
     }
 
@@ -379,7 +376,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_sub_epi64(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u64x2_sub)
+            simd256_vop!(self, Self::u64x2_sub, a, b)
         }
     }
 
@@ -390,7 +387,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_subs_epu8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_sub_sat)
+            simd256_vop!(self, Self::u8x16_sub_sat, a, b)
         }
     }
 
@@ -401,7 +398,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_subs_epu16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_sub_sat)
+            simd256_vop!(self, Self::u16x8_sub_sat, a, b)
         }
     }
 
@@ -412,7 +409,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_subs_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i8x16_sub_sat)
+            simd256_vop!(self, Self::i8x16_sub_sat, a, b)
         }
     }
 
@@ -423,7 +420,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_subs_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i16x8_sub_sat)
+            simd256_vop!(self, Self::i16x8_sub_sat, a, b)
         }
     }
 
@@ -434,7 +431,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_mullo_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i16x8_mul_lo)
+            simd256_vop!(self, Self::i16x8_mul_lo, a, b)
         }
     }
 
@@ -445,7 +442,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_mullo_epi32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i32x4_mul_lo)
+            simd256_vop!(self, Self::i32x4_mul_lo, a, b)
         }
     }
 
@@ -456,7 +453,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_slli_epi16::<IMM8>(t(a))) };
         }
         {
-            simd256_vop1(self, a, Self::u16x8_shl::<IMM8>)
+            simd256_vop!(self, Self::u16x8_shl::<IMM8>, a)
         }
     }
 
@@ -467,7 +464,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_slli_epi32::<IMM8>(t(a))) };
         }
         {
-            simd256_vop1(self, a, Self::u32x4_shl::<IMM8>)
+            simd256_vop!(self, Self::u32x4_shl::<IMM8>, a)
         }
     }
 
@@ -478,7 +475,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_srli_epi16::<IMM8>(t(a))) };
         }
         {
-            simd256_vop1(self, a, Self::u16x8_shr::<IMM8>)
+            simd256_vop!(self, Self::u16x8_shr::<IMM8>, a)
         }
     }
 
@@ -489,7 +486,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_srli_epi32::<IMM8>(t(a))) };
         }
         {
-            simd256_vop1(self, a, Self::u32x4_shr::<IMM8>)
+            simd256_vop!(self, Self::u32x4_shr::<IMM8>, a)
         }
     }
 
@@ -500,7 +497,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_cmpeq_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_eq)
+            simd256_vop!(self, Self::u8x16_eq, a, b)
         }
     }
 
@@ -511,7 +508,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_cmpeq_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_eq)
+            simd256_vop!(self, Self::u16x8_eq, a, b)
         }
     }
 
@@ -522,7 +519,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_cmpeq_epi32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u32x4_eq)
+            simd256_vop!(self, Self::u32x4_eq, a, b)
         }
     }
 
@@ -535,7 +532,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return self.i8x32_lt(a, b);
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_lt)
+            simd256_vop!(self, Self::u8x16_lt, a, b)
         }
     }
 
@@ -548,7 +545,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return self.i16x16_lt(a, b);
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_lt)
+            simd256_vop!(self, Self::u16x8_lt, a, b)
         }
     }
 
@@ -561,7 +558,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return self.i32x8_lt(a, b);
         }
         {
-            simd256_vop2(self, a, b, Self::u32x4_lt)
+            simd256_vop!(self, Self::u32x4_lt, a, b)
         }
     }
 
@@ -572,7 +569,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_cmpgt_epi8(t(b), t(a))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i8x16_lt)
+            simd256_vop!(self, Self::i8x16_lt, a, b)
         }
     }
 
@@ -583,7 +580,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_cmpgt_epi16(t(b), t(a))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i16x8_lt)
+            simd256_vop!(self, Self::i16x8_lt, a, b)
         }
     }
 
@@ -594,7 +591,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_cmpgt_epi32(t(b), t(a))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i32x4_lt)
+            simd256_vop!(self, Self::i32x4_lt, a, b)
         }
     }
 
@@ -605,7 +602,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_max_epu8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_max)
+            simd256_vop!(self, Self::u8x16_max, a, b)
         }
     }
 
@@ -616,7 +613,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_max_epu16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_max)
+            simd256_vop!(self, Self::u16x8_max, a, b)
         }
     }
 
@@ -627,7 +624,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_max_epu32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u32x4_max)
+            simd256_vop!(self, Self::u32x4_max, a, b)
         }
     }
 
@@ -638,7 +635,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_max_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i8x16_max)
+            simd256_vop!(self, Self::i8x16_max, a, b)
         }
     }
 
@@ -649,7 +646,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_max_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i16x8_max)
+            simd256_vop!(self, Self::i16x8_max, a, b)
         }
     }
 
@@ -660,7 +657,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_max_epi32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i32x4_max)
+            simd256_vop!(self, Self::i32x4_max, a, b)
         }
     }
 
@@ -671,7 +668,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_min_epu8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_min)
+            simd256_vop!(self, Self::u8x16_min, a, b)
         }
     }
 
@@ -682,7 +679,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_min_epu16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_min)
+            simd256_vop!(self, Self::u16x8_min, a, b)
         }
     }
 
@@ -693,7 +690,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_min_epu32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u32x4_min)
+            simd256_vop!(self, Self::u32x4_min, a, b)
         }
     }
 
@@ -704,7 +701,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_min_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i8x16_min)
+            simd256_vop!(self, Self::i8x16_min, a, b)
         }
     }
 
@@ -715,7 +712,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_min_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i16x8_min)
+            simd256_vop!(self, Self::i16x8_min, a, b)
         }
     }
 
@@ -726,7 +723,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_min_epi32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i32x4_min)
+            simd256_vop!(self, Self::i32x4_min, a, b)
         }
     }
 
@@ -737,7 +734,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_shuffle_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_swizzle)
+            simd256_vop!(self, Self::u8x16_swizzle, a, b)
         }
     }
 
@@ -747,7 +744,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return self.u8x16x2_swizzle(a, crate::bswap::SHUFFLE_U16X16);
         }
         {
-            simd256_vop1(self, a, Self::u16x8_bswap)
+            simd256_vop!(self, Self::u16x8_bswap, a)
         }
     }
 
@@ -757,7 +754,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return self.u8x16x2_swizzle(a, crate::bswap::SHUFFLE_U32X8);
         }
         {
-            simd256_vop1(self, a, Self::u32x4_bswap)
+            simd256_vop!(self, Self::u32x4_bswap, a)
         }
     }
 
@@ -767,7 +764,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return self.u8x16x2_swizzle(a, crate::bswap::SHUFFLE_U64X4);
         }
         {
-            simd256_vop1(self, a, Self::u64x2_bswap)
+            simd256_vop!(self, Self::u64x2_bswap, a)
         }
     }
 
@@ -840,7 +837,7 @@ pub unsafe trait SIMD256: SIMD128 {
     #[inline(always)]
     fn v256_bsl(self, a: V256, b: V256, c: V256) -> V256 {
         if is_subtype!(Self, NEON) {
-            return simd256_vop3(self, a, b, c, Self::v128_bsl);
+            return simd256_vop!(self, Self::v128_bsl, a, b, c);
         }
         {
             self.v256_xor(self.v256_and(self.v256_xor(b, c), a), c)
@@ -891,7 +888,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_unpacklo_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_zip_lo)
+            simd256_vop!(self, Self::u8x16_zip_lo, a, b)
         }
     }
 
@@ -902,7 +899,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_unpackhi_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_zip_hi)
+            simd256_vop!(self, Self::u8x16_zip_hi, a, b)
         }
     }
 
@@ -913,7 +910,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_unpacklo_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_zip_lo)
+            simd256_vop!(self, Self::u16x8_zip_lo, a, b)
         }
     }
 
@@ -924,7 +921,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_unpackhi_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_zip_hi)
+            simd256_vop!(self, Self::u16x8_zip_hi, a, b)
         }
     }
 
@@ -935,7 +932,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_unpacklo_epi32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u32x4_zip_lo)
+            simd256_vop!(self, Self::u32x4_zip_lo, a, b)
         }
     }
 
@@ -946,7 +943,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_unpackhi_epi32(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u32x4_zip_hi)
+            simd256_vop!(self, Self::u32x4_zip_hi, a, b)
         }
     }
 
@@ -957,7 +954,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_unpacklo_epi64(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u64x2_zip_lo)
+            simd256_vop!(self, Self::u64x2_zip_lo, a, b)
         }
     }
 
@@ -968,7 +965,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_unpackhi_epi64(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u64x2_zip_hi)
+            simd256_vop!(self, Self::u64x2_zip_hi, a, b)
         }
     }
 
@@ -1081,7 +1078,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_mulhi_epu16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u16x8_mul_hi)
+            simd256_vop!(self, Self::u16x8_mul_hi, a, b)
         }
     }
 
@@ -1092,7 +1089,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_mulhi_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i16x8_mul_hi)
+            simd256_vop!(self, Self::i16x8_mul_hi, a, b)
         }
     }
 
@@ -1103,7 +1100,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_maddubs_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i16x8_maddubs)
+            simd256_vop!(self, Self::i16x8_maddubs, a, b)
         }
     }
 
@@ -1133,7 +1130,7 @@ pub unsafe trait SIMD256: SIMD128 {
             unimplemented!()
         }
         {
-            simd256_vop3(self, a, b, c, Self::u8x16_blendv)
+            simd256_vop!(self, Self::u8x16_blendv, a, b, c)
         }
     }
 
@@ -1144,7 +1141,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_madd_epi16(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i16x8_madd)
+            simd256_vop!(self, Self::i16x8_madd, a, b)
         }
     }
 
@@ -1155,7 +1152,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_avg_epu8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_avgr)
+            simd256_vop!(self, Self::u8x16_avgr, a, b)
         }
     }
 
@@ -1166,7 +1163,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_adds_epi8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::i8x16_add_sat)
+            simd256_vop!(self, Self::i8x16_add_sat, a, b)
         }
     }
 
@@ -1177,7 +1174,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_adds_epu8(t(a), t(b))) };
         }
         {
-            simd256_vop2(self, a, b, Self::u8x16_add_sat)
+            simd256_vop!(self, Self::u8x16_add_sat, a, b)
         }
     }
 }

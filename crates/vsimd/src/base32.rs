@@ -1,7 +1,6 @@
 use crate::alsw::{self, AlswLut};
 use crate::isa::{AVX2, NEON, SSE41, WASM128};
 use crate::mask::u8x32_highbit_any;
-use crate::simd256::simd256_vop2;
 use crate::vector::{V128, V256};
 use crate::SIMD256;
 
@@ -65,7 +64,7 @@ fn u32x8_blend_0x55<S: SIMD256>(s: S, a: V256, b: V256) -> V256 {
         return s.u32x8_blend::<0x55>(a, b);
     }
     if is_subtype!(S, SSE41) {
-        return simd256_vop2(s, a, b, S::u32x4_blend::<0x5>);
+        return simd256_vop!(s, S::u32x4_blend::<0x5>, a, b);
     }
     unreachable!()
 }
