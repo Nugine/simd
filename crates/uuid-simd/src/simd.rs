@@ -6,7 +6,7 @@ use vsimd::tools::read;
 use vsimd::vector::V256;
 use vsimd::SIMD256;
 
-#[inline]
+#[inline(always)]
 pub unsafe fn parse_simple<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let x = s.v256_load_unaligned(src);
     let y = vsimd::hex::decode_ascii32(s, x).map_err(|()| Error::new())?;
@@ -14,7 +14,7 @@ pub unsafe fn parse_simple<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Re
     Ok(())
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn parse_hyphenated<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     match [read(src, 8), read(src, 13), read(src, 18), read(src, 23)] {
         [b'-', b'-', b'-', b'-'] => {}
@@ -48,7 +48,7 @@ const fn char_lut(case: AsciiCase) -> V256 {
     }
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn format_simple<S: SIMD256>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
     let lut = char_lut(case);
     let x = s.v128_load_unaligned(src);
@@ -56,7 +56,7 @@ pub unsafe fn format_simple<S: SIMD256>(s: S, src: *const u8, dst: *mut u8, case
     s.v256_store_unaligned(dst, y);
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn format_hyphenated<S: SIMD256>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
     const SWIZZLE: V256 = V256::from_bytes([
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, //

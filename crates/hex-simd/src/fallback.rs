@@ -2,23 +2,37 @@ use crate::Error;
 
 use vsimd::ascii::AsciiCase;
 use vsimd::hex::unhex;
-use vsimd::tools::{read, write};
+use vsimd::tools::{read, slice_parts};
 
-#[inline]
+#[inline(always)]
 pub fn check(data: &[u8]) -> Result<(), Error> {
-    let mut iter = data.chunks_exact(4);
-    for chunk in &mut iter {
-        let y1 = unhex(chunk[0]);
-        let y2 = unhex(chunk[1]);
-        let y3 = unhex(chunk[2]);
-        let y4 = unhex(chunk[3]);
-        ensure!((y1 | y2 | y3 | y4) != 0xff);
+    unsafe {
+        let (mut src, mut len) = slice_parts(data);
+
+        let end = src.add(len / 4 * 4);
+        while src < end {
+            let y1 = unhex(read(src, 0));
+            let y2 = unhex(read(src, 1));
+            let y3 = unhex(read(src, 2));
+            let y4 = unhex(read(src, 3));
+            ensure!((y1 | y2 | y3 | y4) != 0xff);
+            src = src.add(4);
+        }
+        len %= 4;
+
+        let mut flag = 0;
+        let end = src.add(len);
+        while src < end {
+            flag |= unhex(read(src, 0));
+            src = src.add(1);
+        }
+        ensure!(flag != 0xff);
     }
-    let flag = iter.remainder().iter().fold(0, |acc, &x| acc | unhex(x));
-    ensure!(flag != 0xff);
+
     Ok(())
 }
 
+#[inline]
 const fn full_table(table: &[u8; 16]) -> [u16; 256] {
     let mut buf = [0; 256];
     let mut i = 0;
@@ -59,14 +73,17 @@ fn shl4(x: u8) -> u8 {
     x.wrapping_shl(4)
 }
 
-#[inline]
-pub unsafe fn decode(src: *const u8, len: usize, dst: *mut u8) -> Result<(), Error> {
-    for i in 0..len / 2 {
-        let y1 = unhex(read(src, i * 2));
-        let y2 = unhex(read(src, i * 2 + 1));
+#[inline(always)]
+pub unsafe fn decode(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
+    let end = src.add(len);
+    while src < end {
+        let y1 = unhex(read(src, 0));
+        let y2 = unhex(read(src, 1));
         ensure!((y1 | y2) != 0xff);
         let z = shl4(y1) | y2;
-        write(dst, i, z);
+        dst.write(z);
+        src = src.add(2);
+        dst = dst.add(1);
     }
     Ok(())
 }

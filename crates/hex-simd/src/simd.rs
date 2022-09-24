@@ -7,7 +7,7 @@ use vsimd::tools::slice_parts;
 use vsimd::vector::V64;
 use vsimd::SIMD256;
 
-#[inline]
+#[inline(always)]
 pub fn check<S: SIMD256>(s: S, data: &[u8]) -> Result<(), Error> {
     unsafe {
         let (mut src, mut len) = (data.as_ptr(), data.len());
@@ -104,6 +104,7 @@ pub unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: Ascii
     }
 }
 
+#[inline(always)]
 unsafe fn decode16<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let x = s.v128_load_unaligned(src);
     let y = vsimd::hex::decode_ascii16(s, x).map_err(|()| Error::new())?;
@@ -111,6 +112,7 @@ unsafe fn decode16<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(),
     Ok(())
 }
 
+#[inline(always)]
 unsafe fn decode32<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let x = s.v256_load_unaligned(src);
     let y = vsimd::hex::decode_ascii32(s, x).map_err(|()| Error::new())?;
@@ -118,7 +120,7 @@ unsafe fn decode32<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(),
     Ok(())
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn decode<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, mut dst: *mut u8) -> Result<(), Error> {
     if len == 16 {
         return decode16(s, src, dst);

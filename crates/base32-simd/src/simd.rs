@@ -9,7 +9,7 @@ use vsimd::base32::{BASE32_ALSW_CHECK_X2, BASE32_ALSW_DECODE_X2};
 use vsimd::tools::{slice, slice_parts};
 use vsimd::SIMD256;
 
-#[inline]
+#[inline(always)]
 pub fn check<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error> {
     let check_lut = match kind {
         Kind::Base32 => BASE32_ALSW_CHECK_X2,
@@ -34,6 +34,7 @@ pub fn check<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error> {
     }
 }
 
+#[inline(always)]
 pub unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
     let (charset, encoding_lut) = match kind {
         Kind::Base32 => (BASE32_CHARSET.as_ptr(), BASE32_ENCODING_LUT),
@@ -43,12 +44,18 @@ pub unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: Kind,
     let (mut src, mut len) = slice_parts(src);
 
     if len >= (10 + 20 + 6) {
-        for _ in 0..2 {
+        {
             let u40 = read_be_bytes::<5>(src);
             encode_bits::<8>(dst, charset, u40);
             src = src.add(5);
             dst = dst.add(8);
-            len -= 5;
+
+            let u40 = read_be_bytes::<5>(src);
+            encode_bits::<8>(dst, charset, u40);
+            src = src.add(5);
+            dst = dst.add(8);
+
+            len -= 10;
         }
 
         while len >= (20 + 6) {
@@ -64,7 +71,7 @@ pub unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: Kind,
     fallback::encode(slice(src, len), dst, kind, padding)
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn decode<S: SIMD256>(
     s: S,
     mut src: *const u8,

@@ -4,7 +4,7 @@ use vsimd::base32::Kind;
 use vsimd::base32::{BASE32HEX_CHARSET, BASE32_CHARSET};
 use vsimd::tools::{read, slice_parts, write};
 
-#[inline]
+#[inline(always)]
 unsafe fn check_extra(src: *const u8, extra: usize, table: *const u8) -> Result<(), Error> {
     match extra {
         0 => {}
@@ -29,7 +29,7 @@ unsafe fn check_extra(src: *const u8, extra: usize, table: *const u8) -> Result<
     Ok(())
 }
 
-#[inline]
+#[inline(always)]
 pub fn check(src: &[u8], kind: Kind) -> Result<(), Error> {
     let table = match kind {
         Kind::Base32 => BASE32_TABLE.as_ptr(),
@@ -71,9 +71,11 @@ pub unsafe fn encode_bits<const N: usize>(dst: *mut u8, charset: *const u8, x: u
         let shift = (N - 1) * 5;
         write(dst, 0, read(charset, (x >> shift) as usize));
     }
-    for i in 1..N {
+    let mut i = 1;
+    while i < N {
         let shift = (N - 1 - i) * 5;
         write(dst, i, read(charset, ((x >> shift) & 0x1f) as usize));
+        i += 1;
     }
 }
 
@@ -84,25 +86,28 @@ pub unsafe fn read_be_bytes<const N: usize>(src: *const u8) -> u64 {
     #[cfg(not(target_arch = "wasm32"))]
     {
         if N == 3 {
-            let x1: u64 = read(src, 0).into();
-            let x2: u64 = src.add(1).cast::<u16>().read_unaligned().to_be().into();
-            return (x1 << 16) | x2;
+            let x1: u8 = read(src, 0);
+            let x2: u16 = src.add(1).cast::<u16>().read_unaligned().to_be();
+            return ((x1 as u64) << 16) | (x2 as u64);
         }
         if N == 5 {
-            let x1: u64 = read(src, 0).into();
-            let x2: u64 = src.add(1).cast::<u32>().read_unaligned().to_be().into();
-            return (x1 << 32) | x2;
+            let x1: u8 = read(src, 0);
+            let x2: u32 = src.add(1).cast::<u32>().read_unaligned().to_be();
+            return ((x1 as u64) << 32) | (x2 as u64);
         }
     }
 
     let mut ans = 0;
-    for i in 0..N {
+    let mut i = 0;
+    while i < N {
         let shift = (N - 1 - i) * 8;
-        ans |= u64::from(read(src, i)) << shift;
+        ans |= (read(src, i) as u64) << shift;
+        i += 1;
     }
     ans
 }
 
+#[inline(always)]
 unsafe fn encode_extra(src: *const u8, extra: usize, dst: *mut u8, charset: *const u8, padding: bool) {
     match extra {
         0 => {}
@@ -110,21 +115,33 @@ unsafe fn encode_extra(src: *const u8, extra: usize, dst: *mut u8, charset: *con
             let u10 = read_be_bytes::<1>(src) << 2;
             encode_bits::<2>(dst, charset, u10);
             if padding {
-                (2..8).for_each(|i| write(dst, i, b'='));
+                let mut i = 2;
+                while i < 8 {
+                    write(dst, i, b'=');
+                    i += 1;
+                }
             }
         }
         2 => {
             let u20 = read_be_bytes::<2>(src) << 4;
             encode_bits::<4>(dst, charset, u20);
             if padding {
-                (4..8).for_each(|i| write(dst, i, b'='));
+                let mut i = 4;
+                while i < 8 {
+                    write(dst, i, b'=');
+                    i += 1;
+                }
             }
         }
         3 => {
             let u25 = read_be_bytes::<3>(src) << 1;
             encode_bits::<5>(dst, charset, u25);
             if padding {
-                (5..8).for_each(|i| write(dst, i, b'='));
+                let mut i = 5;
+                while i < 8 {
+                    write(dst, i, b'=');
+                    i += 1;
+                }
             }
         }
         4 => {
@@ -138,6 +155,7 @@ unsafe fn encode_extra(src: *const u8, extra: usize, dst: *mut u8, charset: *con
     }
 }
 
+#[inline(always)]
 pub unsafe fn encode(src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
     let charset: *const u8 = match kind {
         Kind::Base32 => BASE32_CHARSET.as_ptr(),
@@ -158,6 +176,7 @@ pub unsafe fn encode(src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
     encode_extra(src, len, dst, charset, padding)
 }
 
+#[inline]
 const fn decoding_table(charset: &[u8; 32]) -> [u8; 256] {
     let mut table = [0xff; 256];
     let mut i = 0;
@@ -171,6 +190,7 @@ const fn decoding_table(charset: &[u8; 32]) -> [u8; 256] {
 const BASE32_TABLE: &[u8; 256] = &decoding_table(BASE32_CHARSET);
 const BASE32HEX_TABLE: &[u8; 256] = &decoding_table(BASE32HEX_CHARSET);
 
+#[inline]
 pub fn decoded_length(data: &[u8], padding: bool) -> Result<(usize, usize), Error> {
     if data.is_empty() {
         return Ok((0, 0));
@@ -198,10 +218,12 @@ unsafe fn decode_bits<const N: usize>(src: *const u8, table: *const u8) -> (u64,
     debug_assert!(matches!(N, 2 | 4 | 5 | 7 | 8));
     let mut ans: u64 = 0;
     let mut flag = 0;
-    for i in 0..N {
+    let mut i = 0;
+    while i < N {
         let bits = read(table, read(src, i) as usize);
         flag |= bits;
         ans = (ans << 5) | u64::from(bits);
+        i += 1;
     }
     (ans, flag)
 }
@@ -228,13 +250,15 @@ unsafe fn write_be_bytes<const N: usize>(dst: *mut u8, x: u64) {
         }
     }
 
-    for i in 0..N {
+    let mut i = 0;
+    while i < N {
         let shift = (N - 1 - i) * 8;
         write(dst, i, (x >> shift) as u8);
+        i += 1;
     }
 }
 
-#[inline]
+#[inline(always)]
 unsafe fn decode_extra(src: *const u8, extra: usize, dst: *mut u8, table: *const u8) -> Result<(), Error> {
     match extra {
         0 => {}
@@ -263,7 +287,7 @@ unsafe fn decode_extra(src: *const u8, extra: usize, dst: *mut u8, table: *const
     Ok(())
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn decode(mut src: *const u8, mut n: usize, mut dst: *mut u8, kind: Kind) -> Result<(), Error> {
     let table = match kind {
         Kind::Base32 => BASE32_TABLE.as_ptr(),

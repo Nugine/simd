@@ -65,6 +65,7 @@ unsafe impl BSwapExt for u64 {
     }
 }
 
+#[inline(always)]
 unsafe fn unroll_ptr<T>(mut src: *const T, len: usize, chunk_size: usize, mut f: impl FnMut(*const T)) {
     let chunks_end = src.add(len / chunk_size * chunk_size);
     let end = src.add(len);
@@ -84,6 +85,7 @@ unsafe fn unroll_ptr<T>(mut src: *const T, len: usize, chunk_size: usize, mut f:
 
 type SliceRawParts<T> = (*const T, usize);
 
+#[inline(always)]
 fn raw_align32<T: POD>(slice: &[T]) -> (SliceRawParts<T>, SliceRawParts<V256>, SliceRawParts<T>) {
     let (p, m, s) = align::<_, V256>(slice);
     let p = (p.as_ptr(), p.len());
@@ -92,7 +94,7 @@ fn raw_align32<T: POD>(slice: &[T]) -> (SliceRawParts<T>, SliceRawParts<V256>, S
     (p, m, s)
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn bswap_fallback<T>(src: *const T, len: usize, mut dst: *mut T)
 where
     T: BSwapExt,
@@ -105,7 +107,7 @@ where
     })
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn bswap_simd<S: SIMD256, T>(s: S, src: *const T, len: usize, mut dst: *mut T)
 where
     T: BSwapExt,

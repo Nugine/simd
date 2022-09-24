@@ -5,12 +5,12 @@ use vsimd::tools::unroll;
 use vsimd::vector::V256;
 use vsimd::SIMD256;
 
-#[inline]
+#[inline(always)]
 pub unsafe fn swap_endianness<S: SIMD256>(s: S, src: *const u32, len: usize, dst: *mut u32) {
     vsimd::bswap::bswap_simd(s, src, len, dst)
 }
 
-#[inline]
+#[inline(always)]
 pub fn is_utf32le_ct<S: SIMD256>(s: S, data: &[u32]) -> bool {
     let (prefix, middle, suffix) = align::<_, V256>(data);
 

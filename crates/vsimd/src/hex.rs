@@ -113,6 +113,7 @@ const DECODE_UZP2: V256 = V256::double_bytes([
     0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, //
 ]);
 
+#[inline(always)]
 fn merge_bits<S: Scalable<V>, V: Copy>(s: S, x: V) -> V {
     // x:  {0000hhhh|0000llll} xn
 

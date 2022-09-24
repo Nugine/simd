@@ -27,6 +27,7 @@ use core::arch::aarch64::*;
 #[cfg(target_arch = "wasm32")]
 use core::arch::wasm32::*;
 
+#[inline(always)]
 pub fn i16x16_set_lane7<S: SIMD256>(s: S, a: V256, x: i16) -> V256 {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     if is_subtype!(S, AVX2) {
@@ -58,6 +59,7 @@ pub fn i16x16_set_lane7<S: SIMD256>(s: S, a: V256, x: i16) -> V256 {
     }
 }
 
+#[inline(always)]
 pub fn i32x8_set_lane7<S: SIMD256>(s: S, a: V256, x: i32) -> V256 {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     if is_subtype!(S, AVX2) {
@@ -89,6 +91,7 @@ pub fn i32x8_set_lane7<S: SIMD256>(s: S, a: V256, x: i32) -> V256 {
     }
 }
 
+#[inline(always)]
 pub fn i32x4_get_lane3<S: SIMD128>(s: S, a: V128) -> i32 {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     if is_subtype!(S, SSE41) {
@@ -108,6 +111,7 @@ pub fn i32x4_get_lane3<S: SIMD128>(s: S, a: V128) -> i32 {
     }
 }
 
+#[inline(always)]
 pub fn i16x8_get_lane7<S: SIMD128>(s: S, a: V128) -> i16 {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     if is_subtype!(S, SSE41) {

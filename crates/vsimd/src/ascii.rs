@@ -35,7 +35,7 @@ pub enum AsciiCase {
     Upper,
 }
 
-#[inline]
+#[inline(always)]
 #[must_use]
 pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
     let mut ans = 0;
@@ -43,7 +43,7 @@ pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
     ans < 0x80
 }
 
-#[inline]
+#[inline(always)]
 pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
     let (prefix, middle, suffix) = align::<_, V256>(data);
 

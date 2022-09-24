@@ -183,6 +183,7 @@ pub const URL_SAFE_ENCODING_SHIFT: V128 = encoding_shift(URL_SAFE_CHARSET);
 pub const STANDARD_ENCODING_SHIFT_X2: V256 = STANDARD_ENCODING_SHIFT.x2();
 pub const URL_SAFE_ENCODING_SHIFT_X2: V256 = URL_SAFE_ENCODING_SHIFT.x2();
 
+#[inline(always)]
 fn encode_values<S: Scalable<V>, V: Copy>(s: S, x: V, shift_lut: V) -> V {
     // x: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} xn
 
