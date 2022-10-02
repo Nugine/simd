@@ -38,7 +38,7 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
       - run: |
-          cargo test --release --workspace --exclude simd-benches
+          cargo build --release --workspace --exclude simd-benches
 
   x86-test:
     runs-on: ubuntu-latest
