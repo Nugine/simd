@@ -1,6 +1,25 @@
+use vsimd::ascii::lookup_ascii_whitespace;
+
 #[inline(always)]
 fn find_non_ascii_whitespace(data: &[u8]) -> usize {
     vsimd::ascii::multiversion::find_non_ascii_whitespace::auto(data)
+}
+
+#[inline(always)]
+unsafe fn remove_ascii_whitespace_fallback(mut src: *const u8, len: usize, mut dst: *mut u8) -> usize {
+    let dst_base = dst;
+
+    let end = src.add(len);
+    while src < end {
+        let x = src.read();
+        if lookup_ascii_whitespace(x) == 0 {
+            dst.write(x);
+            dst = dst.add(1);
+        }
+        src = src.add(1);
+    }
+
+    dst.offset_from(dst_base) as usize
 }
 
 #[inline(always)]
@@ -14,7 +33,7 @@ fn remove_ascii_whitespace(data: &mut [u8]) -> &mut [u8] {
         let dirty_len = data.len() - non_aw_pos;
         let dirty_data = data.as_mut_ptr().add(non_aw_pos);
 
-        let clean_len = vsimd::ascii::remove_ascii_whitespace_fallback(dirty_data, dirty_len);
+        let clean_len = remove_ascii_whitespace_fallback(dirty_data, dirty_len, dirty_data);
 
         data.get_unchecked_mut(..(non_aw_pos + clean_len))
     }

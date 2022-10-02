@@ -1,6 +1,6 @@
 use crate::mask::{mask8x32_any, u8x32_highbit_any};
 use crate::pod::align;
-use crate::tools::{read, unroll};
+use crate::tools::{read, slice, slice_parts, unroll};
 use crate::vector::V256;
 use crate::{Scalable, SIMD256};
 
@@ -60,7 +60,8 @@ pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
 }
 
 #[inline(always)]
-fn lookup_ascii_whitespace(c: u8) -> u8 {
+#[must_use]
+pub fn lookup_ascii_whitespace(c: u8) -> u8 {
     const TABLE: &[u8; 256] = &{
         let mut ans = [0; 256];
         let mut i: u8 = 0;
@@ -74,24 +75,6 @@ fn lookup_ascii_whitespace(c: u8) -> u8 {
         ans
     };
     unsafe { *TABLE.get_unchecked(c as usize) }
-}
-
-#[inline]
-pub unsafe fn remove_ascii_whitespace_fallback(data: *mut u8, len: usize) -> usize {
-    let mut src: *const u8 = data;
-    let mut dst: *mut u8 = data;
-    let end: *const u8 = data.add(len);
-
-    while src < end {
-        let byte = src.read();
-        if lookup_ascii_whitespace(byte) == 0 {
-            dst.write(byte);
-            dst = dst.add(1);
-        }
-        src = src.add(1);
-    }
-
-    dst.offset_from(data) as usize
 }
 
 #[inline(always)]
@@ -122,67 +105,60 @@ fn has_ascii_whitespace_u8x32<S: SIMD256>(s: S, x: V256) -> bool {
     mask8x32_any(s, s.v256_or(m1, s.v256_and(m2, m3)))
 }
 
-#[inline]
+#[inline(always)]
 #[must_use]
 pub fn find_non_ascii_whitespace_fallback(data: &[u8]) -> usize {
     unsafe {
         let len = data.len();
         let mut src = data.as_ptr();
+        let base = src;
 
-        const UNROLL: usize = 8;
-        let unroll_end = src.add(len / UNROLL * UNROLL);
-        while src < unroll_end {
+        const L: usize = 8;
+        let end = src.add(len / L * L);
+        while src < end {
             let mut flag = 0;
-            for i in 0..UNROLL {
+            let mut i = 0;
+            while i < L {
                 flag |= lookup_ascii_whitespace(read(src, i));
+                i += 1;
             }
             if flag != 0 {
                 break;
             }
-            src = src.add(UNROLL);
+            src = src.add(L);
         }
 
-        let real_end = data.as_ptr().add(len);
-        while src < real_end {
+        let end = base.add(len);
+        while src < end {
             if lookup_ascii_whitespace(src.read()) != 0 {
                 break;
             }
             src = src.add(1);
         }
 
-        src.offset_from(data.as_ptr()) as usize
+        src.offset_from(base) as usize
     }
 }
 
-#[inline]
+#[inline(always)]
 pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
-    let (prefix, middle, suffix) = align::<_, V256>(data);
+    unsafe {
+        let (mut src, len) = slice_parts(data);
+        let base = src;
 
-    let mut pos: usize = 0;
-
-    {
-        let offset = find_non_ascii_whitespace_fallback(prefix);
-        pos = pos.wrapping_add(offset);
-        if offset != prefix.len() {
-            return pos;
+        let end = src.add(len / 32 * 32);
+        while src < end {
+            let x = s.v256_load_unaligned(src);
+            if has_ascii_whitespace_u8x32(s, x) {
+                break;
+            }
+            src = src.add(32);
         }
-    }
 
-    for chunk in middle {
-        if has_ascii_whitespace_u8x32(s, *chunk) {
-            let offset = find_non_ascii_whitespace_fallback(chunk.as_bytes());
-            pos += offset;
-            return pos;
-        }
-        pos += 32;
+        let checked_len = src.offset_from(base) as usize;
+        let pos = find_non_ascii_whitespace_fallback(slice(src, len - checked_len));
+        checked_len + pos
     }
-
-    {
-        let offset = find_non_ascii_whitespace_fallback(suffix);
-        pos = pos.wrapping_add(offset);
-    }
-
-    pos
 }
 
 #[inline(always)]
