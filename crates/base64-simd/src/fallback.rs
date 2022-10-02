@@ -1,4 +1,6 @@
-use crate::{Config, Error, Kind};
+use core::ptr::null_mut;
+
+use crate::{Config, Error, Extra, Kind};
 
 use vsimd::base64::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 
@@ -9,7 +11,7 @@ pub(crate) const fn encoded_length_unchecked(len: usize, config: Config) -> usiz
     let extra = len % 3;
     if extra == 0 {
         len / 3 * 4
-    } else if config.padding {
+    } else if config.extra.padding() {
         len / 3 * 4 + 4
     } else {
         len / 3 * 4 + extra + 1
@@ -68,7 +70,7 @@ unsafe fn encode_extra(extra: usize, src: *const u8, dst: *mut u8, charset: *con
 
 pub(crate) unsafe fn encode(src: &[u8], mut dst: *mut u8, config: Config) {
     let kind = config.kind;
-    let padding = config.padding;
+    let padding = config.extra.padding();
 
     let charset = match kind {
         Kind::Standard => STANDARD_CHARSET.as_ptr(),
@@ -115,14 +117,34 @@ pub(crate) fn decoded_length(src: &[u8], config: Config) -> Result<(usize, usize
 
     let n = unsafe {
         let len = src.len();
-        if config.padding {
-            ensure!(len % 4 == 0);
+
+        let count_pad = || {
             let last1 = *src.get_unchecked(len - 1);
             let last2 = *src.get_unchecked(len - 2);
-            let count = (last1 == b'=') as usize + (last2 == b'=') as usize;
-            len - count
-        } else {
-            len
+            if last1 == b'=' {
+                if last2 == b'=' {
+                    2
+                } else {
+                    1
+                }
+            } else {
+                0
+            }
+        };
+
+        match config.extra {
+            Extra::Pad => {
+                ensure!(len % 4 == 0);
+                len - count_pad()
+            }
+            Extra::NoPad => len,
+            Extra::Forgiving => {
+                if len % 4 == 0 {
+                    len - count_pad()
+                } else {
+                    len
+                }
+            }
         }
     };
 
@@ -138,60 +160,88 @@ pub(crate) fn decoded_length(src: &[u8], config: Config) -> Result<(usize, usize
 }
 
 #[inline(always)]
-unsafe fn decode_ascii8(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
+unsafe fn decode_ascii8<const WRITE: bool>(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
     let mut x = u64::from_le_bytes(src.cast::<[u8; 8]>().read());
     let mut y: u64 = 0;
     let mut flag = 0;
+
     for i in 0..8 {
         let bits = read(table, (x & 0xff) as usize);
         flag |= bits;
         x >>= 8;
-        y |= (bits as u64) << (58 - i * 6);
+
+        if WRITE {
+            y |= (bits as u64) << (58 - i * 6);
+        }
     }
     ensure!(flag != 0xff);
-    dst.cast::<u64>().write_unaligned(y.to_be());
+
+    if WRITE {
+        dst.cast::<u64>().write_unaligned(y.to_be());
+    }
     Ok(())
 }
 
 #[inline(always)]
-unsafe fn decode_ascii4(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
+unsafe fn decode_ascii4<const WRITE: bool>(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
     let mut x = u32::from_le_bytes(src.cast::<[u8; 4]>().read());
     let mut y: u32 = 0;
     let mut flag = 0;
+
     for i in 0..4 {
         let bits = read(table, (x & 0xff) as usize);
         flag |= bits;
         x >>= 8;
-        y |= (bits as u32) << (18 - i * 6);
+
+        if WRITE {
+            y |= (bits as u32) << (18 - i * 6);
+        }
     }
     ensure!(flag != 0xff);
-    let y = y.to_be_bytes();
-    write(dst, 0, y[1]);
-    write(dst, 1, y[2]);
-    write(dst, 2, y[3]);
+
+    if WRITE {
+        let y = y.to_be_bytes();
+        write(dst, 0, y[1]);
+        write(dst, 1, y[2]);
+        write(dst, 2, y[3]);
+    }
     Ok(())
 }
 
 #[inline(always)]
-unsafe fn decode_extra(extra: usize, src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
+unsafe fn decode_extra<const WRITE: bool>(
+    extra: usize,
+    src: *const u8,
+    dst: *mut u8,
+    table: *const u8,
+    forgiving: bool,
+) -> Result<(), Error> {
     match extra {
         0 => {}
         1 => core::hint::unreachable_unchecked(),
         2 => {
             let [x1, x2] = src.cast::<[u8; 2]>().read();
+
             let y1 = read(table, x1 as usize);
             let y2 = read(table, x2 as usize);
-            ensure!(y2 & 0x0f == 0 && (y1 | y2) != 0xff);
-            write(dst, 0, (y1 << 2) | (y2 >> 4));
+            ensure!((y1 | y2) != 0xff && (forgiving || (y2 & 0x0f) == 0));
+
+            if WRITE {
+                write(dst, 0, (y1 << 2) | (y2 >> 4));
+            }
         }
         3 => {
             let [x1, x2, x3] = src.cast::<[u8; 3]>().read();
+
             let y1 = read(table, x1 as usize);
             let y2 = read(table, x2 as usize);
             let y3 = read(table, x3 as usize);
-            ensure!(y3 & 0x03 == 0 && (y1 | y2 | y3) != 0xff);
-            write(dst, 0, (y1 << 2) | (y2 >> 4));
-            write(dst, 1, (y2 << 4) | (y3 >> 2));
+            ensure!((y1 | y2 | y3) != 0xff && (forgiving || (y3 & 0x03) == 0));
+
+            if WRITE {
+                write(dst, 0, (y1 << 2) | (y2 >> 4));
+                write(dst, 1, (y2 << 4) | (y3 >> 2));
+            }
         }
         _ => core::hint::unreachable_unchecked(),
     }
@@ -200,6 +250,7 @@ unsafe fn decode_extra(extra: usize, src: *const u8, dst: *mut u8, table: *const
 
 pub(crate) unsafe fn decode(mut src: *const u8, mut dst: *mut u8, mut n: usize, config: Config) -> Result<(), Error> {
     let kind = config.kind;
+    let forgiving = config.extra.forgiving();
 
     let table = match kind {
         Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
@@ -208,73 +259,25 @@ pub(crate) unsafe fn decode(mut src: *const u8, mut dst: *mut u8, mut n: usize, 
 
     // n*3/4 >= 6+2
     while n >= 11 {
-        decode_ascii8(src, dst, table)?;
+        decode_ascii8::<true>(src, dst, table)?;
         src = src.add(8);
         dst = dst.add(6);
         n -= 8;
     }
 
     while n >= 4 {
-        decode_ascii4(src, dst, table)?;
+        decode_ascii4::<true>(src, dst, table)?;
         src = src.add(4);
         dst = dst.add(3);
         n -= 4;
     }
 
-    decode_extra(n, src, dst, table)
-}
-
-#[inline(always)]
-unsafe fn check_ascii8(src: *const u8, table: *const u8) -> Result<(), Error> {
-    let mut x = u64::from_le_bytes(src.cast::<[u8; 8]>().read());
-    let mut flag = 0;
-    for _ in 0..8 {
-        let bits = read(table, (x & 0xff) as usize);
-        flag |= bits;
-        x >>= 8;
-    }
-    ensure!(flag != 0xff);
-    Ok(())
-}
-
-#[inline(always)]
-unsafe fn check_ascii4(src: *const u8, table: *const u8) -> Result<(), Error> {
-    let mut x = u32::from_le_bytes(src.cast::<[u8; 4]>().read());
-    let mut flag = 0;
-    for _ in 0..4 {
-        let bits = read(table, (x & 0xff) as usize);
-        flag |= bits;
-        x >>= 8;
-    }
-    ensure!(flag != 0xff);
-    Ok(())
-}
-
-#[inline(always)]
-unsafe fn check_extra(extra: usize, src: *const u8, table: *const u8) -> Result<(), Error> {
-    match extra {
-        0 => {}
-        1 => core::hint::unreachable_unchecked(),
-        2 => {
-            let [x1, x2] = src.cast::<[u8; 2]>().read();
-            let y1 = read(table, x1 as usize);
-            let y2 = read(table, x2 as usize);
-            ensure!(y2 & 0x0f == 0 && (y1 | y2) != 0xff);
-        }
-        3 => {
-            let [x1, x2, x3] = src.cast::<[u8; 3]>().read();
-            let y1 = read(table, x1 as usize);
-            let y2 = read(table, x2 as usize);
-            let y3 = read(table, x3 as usize);
-            ensure!(y3 & 0x03 == 0 && (y1 | y2 | y3) != 0xff);
-        }
-        _ => core::hint::unreachable_unchecked(),
-    }
-    Ok(())
+    decode_extra::<true>(n, src, dst, table, forgiving)
 }
 
 pub(crate) fn check(src: &[u8], config: Config) -> Result<(), Error> {
     let kind = config.kind;
+    let forgiving = config.extra.forgiving();
 
     let (mut src, mut n) = (src.as_ptr(), src.len());
 
@@ -286,17 +289,17 @@ pub(crate) fn check(src: &[u8], config: Config) -> Result<(), Error> {
     unsafe {
         // n*3/4 >= 6+2
         while n >= 11 {
-            check_ascii8(src, table)?;
+            decode_ascii8::<false>(src, null_mut(), table)?;
             src = src.add(8);
             n -= 8;
         }
 
         while n >= 4 {
-            check_ascii4(src, table)?;
+            decode_ascii4::<false>(src, null_mut(), table)?;
             src = src.add(4);
             n -= 4;
         }
 
-        check_extra(n, src, table)
+        decode_extra::<false>(n, src, null_mut(), table, forgiving)
     }
 }

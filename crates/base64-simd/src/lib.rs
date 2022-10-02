@@ -49,12 +49,13 @@ mod simd;
 
 mod ascii;
 
-mod forgiving;
-
 mod multiversion;
 
 #[cfg(feature = "alloc")]
 mod heap;
+
+mod forgiving;
+pub use self::forgiving::*;
 
 #[cfg(test)]
 mod tests;
@@ -79,14 +80,44 @@ pub struct Base64 {
 #[derive(Debug, Clone, Copy)]
 struct Config {
     kind: Kind,
-    padding: bool,
+    extra: Extra,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum Extra {
+    Pad,
+    NoPad,
+    Forgiving,
+}
+
+impl Extra {
+    /// Whether to add padding when encoding
+    #[inline(always)]
+    #[must_use]
+    const fn padding(self) -> bool {
+        match self {
+            Extra::Pad => true,
+            Extra::NoPad => false,
+            Extra::Forgiving => true,
+        }
+    }
+
+    #[inline(always)]
+    #[must_use]
+    const fn forgiving(self) -> bool {
+        match self {
+            Extra::Pad => false,
+            Extra::NoPad => false,
+            Extra::Forgiving => true,
+        }
+    }
 }
 
 /// Standard charset with padding.
 pub const STANDARD: Base64 = Base64 {
     config: Config {
         kind: Kind::Standard,
-        padding: true,
+        extra: Extra::Pad,
     },
 };
 
@@ -94,7 +125,7 @@ pub const STANDARD: Base64 = Base64 {
 pub const URL_SAFE: Base64 = Base64 {
     config: Config {
         kind: Kind::UrlSafe,
-        padding: true,
+        extra: Extra::Pad,
     },
 };
 
@@ -102,7 +133,7 @@ pub const URL_SAFE: Base64 = Base64 {
 pub const STANDARD_NO_PAD: Base64 = Base64 {
     config: Config {
         kind: Kind::Standard,
-        padding: false,
+        extra: Extra::NoPad,
     },
 };
 
@@ -110,7 +141,32 @@ pub const STANDARD_NO_PAD: Base64 = Base64 {
 pub const URL_SAFE_NO_PAD: Base64 = Base64 {
     config: Config {
         kind: Kind::UrlSafe,
-        padding: false,
+        extra: Extra::NoPad,
+    },
+};
+
+/// Standard charset with forgiving behavior.
+///
+/// This configuration
+/// + adds padding characters when encoding.
+/// + allows non-zero trailing bits when decoding.
+pub const STANDARD_FORGIVING: Base64 = Base64 {
+    config: Config {
+        kind: Kind::Standard,
+        extra: Extra::Forgiving,
+    },
+};
+
+/// URL-Safe charset with forgiving behavior.
+///
+/// This configuration
+/// + adds padding characters when encoding.
+/// + allows non-zero trailing bits when decoding.
+///
+pub const URL_SAFE_FORGIVING: Base64 = Base64 {
+    config: Config {
+        kind: Kind::UrlSafe,
+        extra: Extra::Forgiving,
     },
 };
 
@@ -248,20 +304,6 @@ impl Base64 {
     pub fn decode_type<T: FromBase64Decode>(&self, data: &[u8]) -> Result<T, Error> {
         T::from_base64_decode(self, data)
     }
-}
-
-/// Forgiving decodes a base64 string to bytes and writes inplace.
-///
-/// This function uses the standard charset.
-///
-/// See <https://infra.spec.whatwg.org/#forgiving-base64>
-///
-/// # Errors
-/// This function returns `Err` if the content of `data` is invalid.
-#[inline]
-pub fn forgiving_decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
-    let data = crate::forgiving::normalize(data);
-    STANDARD_NO_PAD.decode_inplace(data)
 }
 
 /// Types that can represent a base64 string.
