@@ -100,7 +100,11 @@ pub unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: Ascii
     }
 
     if len > 0 {
-        fallback::encode(slice(src, len), dst, case);
+        let table = match case {
+            AsciiCase::Lower => fallback::FULL_LOWER_TABLE,
+            AsciiCase::Upper => fallback::FULL_UPPER_TABLE,
+        };
+        fallback::encode_short(src, len, dst, table.as_ptr());
     }
 }
 
@@ -163,5 +167,5 @@ pub unsafe fn decode<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, mut d
         len -= 16;
     }
 
-    fallback::decode(src, len, dst)
+    fallback::decode_short(src, len, dst)
 }
