@@ -61,6 +61,12 @@ pub fn bench_decode(c: &mut Criterion) {
             assert!(faster_hex::hex_check_fallback(src));
             faster_hex::hex_decode_fallback(src, dst);
         }),
+        ("hex/fallback", |src, dst| {
+            hex::decode_to_slice(src, dst).unwrap();
+        }),
+        ("base16/fallback", |src, dst| {
+            base16::decode_slice(src, dst).unwrap();
+        }),
     ];
 
     for &(name, f) in functions {
@@ -94,6 +100,13 @@ pub fn bench_encode(c: &mut Criterion) {
         }),
         ("faster-hex/fallback", |src, dst| {
             faster_hex::hex_encode_fallback(src, dst);
+        }),
+        ("hex/fallback", |src, dst| {
+            hex::encode_to_slice(src, dst).unwrap();
+        }),
+        ("base16/fallback", |src, dst| {
+            let config = base16::EncConfig::EncodeLower;
+            base16::encode_config_slice(src, config, dst);
         }),
     ];
 
