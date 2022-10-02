@@ -1,15 +1,15 @@
-use crate::{Error, Kind};
+use crate::{Config, Error, Kind};
 
 use vsimd::base64::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 
 use vsimd::tools::{read, slice_parts, write};
 
 #[inline(always)]
-pub const fn encoded_length_unchecked(len: usize, padding: bool) -> usize {
+pub(crate) const fn encoded_length_unchecked(len: usize, config: Config) -> usize {
     let extra = len % 3;
     if extra == 0 {
         len / 3 * 4
-    } else if padding {
+    } else if config.padding {
         len / 3 * 4 + 4
     } else {
         len / 3 * 4 + extra + 1
@@ -66,7 +66,10 @@ unsafe fn encode_extra(extra: usize, src: *const u8, dst: *mut u8, charset: *con
     }
 }
 
-pub unsafe fn encode(src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
+pub(crate) unsafe fn encode(src: &[u8], mut dst: *mut u8, config: Config) {
+    let kind = config.kind;
+    let padding = config.padding;
+
     let charset = match kind {
         Kind::Standard => STANDARD_CHARSET.as_ptr(),
         Kind::UrlSafe => URL_SAFE_CHARSET.as_ptr(),
@@ -105,14 +108,14 @@ pub const STANDARD_DECODE_TABLE: &[u8; 256] = &decode_table(STANDARD_CHARSET);
 pub const URL_SAFE_DECODE_TABLE: &[u8; 256] = &decode_table(URL_SAFE_CHARSET);
 
 #[inline(always)]
-pub fn decoded_length(src: &[u8], padding: bool) -> Result<(usize, usize), Error> {
+pub(crate) fn decoded_length(src: &[u8], config: Config) -> Result<(usize, usize), Error> {
     if src.is_empty() {
         return Ok((0, 0));
     }
 
     let n = unsafe {
         let len = src.len();
-        if padding {
+        if config.padding {
             ensure!(len % 4 == 0);
             let last1 = *src.get_unchecked(len - 1);
             let last2 = *src.get_unchecked(len - 2);
@@ -195,7 +198,9 @@ unsafe fn decode_extra(extra: usize, src: *const u8, dst: *mut u8, table: *const
     Ok(())
 }
 
-pub unsafe fn decode(mut src: *const u8, mut dst: *mut u8, mut n: usize, kind: Kind) -> Result<(), Error> {
+pub(crate) unsafe fn decode(mut src: *const u8, mut dst: *mut u8, mut n: usize, config: Config) -> Result<(), Error> {
+    let kind = config.kind;
+
     let table = match kind {
         Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
         Kind::UrlSafe => URL_SAFE_DECODE_TABLE.as_ptr(),
@@ -268,7 +273,9 @@ unsafe fn check_extra(extra: usize, src: *const u8, table: *const u8) -> Result<
     Ok(())
 }
 
-pub fn check(src: &[u8], kind: Kind) -> Result<(), Error> {
+pub(crate) fn check(src: &[u8], config: Config) -> Result<(), Error> {
+    let kind = config.kind;
+
     let (mut src, mut n) = (src.as_ptr(), src.len());
 
     let table = match kind {

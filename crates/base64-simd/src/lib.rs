@@ -73,32 +73,45 @@ use vsimd::tools::slice_mut;
 /// Base64 variant
 #[derive(Debug)]
 pub struct Base64 {
+    config: Config,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Config {
     kind: Kind,
     padding: bool,
 }
 
 /// Standard charset with padding.
 pub const STANDARD: Base64 = Base64 {
-    kind: Kind::Standard,
-    padding: true,
+    config: Config {
+        kind: Kind::Standard,
+        padding: true,
+    },
 };
 
 /// URL-Safe charset with padding.
 pub const URL_SAFE: Base64 = Base64 {
-    kind: Kind::UrlSafe,
-    padding: true,
+    config: Config {
+        kind: Kind::UrlSafe,
+        padding: true,
+    },
 };
 
 /// Standard charset without padding.
 pub const STANDARD_NO_PAD: Base64 = Base64 {
-    kind: Kind::Standard,
-    padding: false,
+    config: Config {
+        kind: Kind::Standard,
+        padding: false,
+    },
 };
 
 /// URL-Safe charset without padding.
 pub const URL_SAFE_NO_PAD: Base64 = Base64 {
-    kind: Kind::UrlSafe,
-    padding: false,
+    config: Config {
+        kind: Kind::UrlSafe,
+        padding: false,
+    },
 };
 
 impl Base64 {
@@ -106,7 +119,7 @@ impl Base64 {
     #[inline]
     #[must_use]
     pub const fn charset(&self) -> &[u8; 64] {
-        match self.kind {
+        match self.config.kind {
             Kind::Standard => STANDARD_CHARSET,
             Kind::UrlSafe => URL_SAFE_CHARSET,
         }
@@ -120,7 +133,7 @@ impl Base64 {
     #[must_use]
     pub const fn encoded_length(&self, n: usize) -> usize {
         assert!(n <= usize::MAX / 2);
-        encoded_length_unchecked(n, self.padding)
+        encoded_length_unchecked(n, self.config)
     }
 
     /// Estimates the decoded length.
@@ -141,7 +154,7 @@ impl Base64 {
     /// The result is a precise value which can be used for allocation.
     #[inline]
     pub fn decoded_length(&self, data: &[u8]) -> Result<usize, Error> {
-        let (_, m) = decoded_length(data, self.padding)?;
+        let (_, m) = decoded_length(data, self.config)?;
         Ok(m)
     }
 
@@ -151,9 +164,9 @@ impl Base64 {
     /// This function returns `Err` if the content of `data` is invalid.
     #[inline]
     pub fn check(&self, data: &[u8]) -> Result<(), Error> {
-        let (n, _) = decoded_length(data, self.padding)?;
+        let (n, _) = decoded_length(data, self.config)?;
         let src = unsafe { data.get_unchecked(..n) };
-        crate::multiversion::check::auto(src, self.kind)
+        crate::multiversion::check::auto(src, self.config)
     }
 
     /// Encodes bytes to a base64 string.
@@ -164,11 +177,11 @@ impl Base64 {
     #[must_use]
     pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> &'d mut [u8] {
         unsafe {
-            let m = encoded_length_unchecked(src.len(), self.padding);
+            let m = encoded_length_unchecked(src.len(), self.config);
             assert!(dst.len() >= m);
 
             let dst = dst.as_mut_ptr();
-            self::multiversion::encode::auto(src, dst, self.kind, self.padding);
+            self::multiversion::encode::auto(src, dst, self.config);
 
             slice_mut(dst, m)
         }
@@ -195,12 +208,12 @@ impl Base64 {
     #[inline]
     pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error> {
         unsafe {
-            let (n, m) = decoded_length(src, self.padding)?;
+            let (n, m) = decoded_length(src, self.config)?;
             assert!(dst.len() >= m);
 
             let src = src.as_ptr();
             let dst = dst.as_mut_ptr();
-            self::multiversion::decode::auto(src, dst, n, self.kind)?;
+            self::multiversion::decode::auto(src, dst, n, self.config)?;
 
             Ok(slice_mut(dst, m))
         }
@@ -213,11 +226,11 @@ impl Base64 {
     #[inline]
     pub fn decode_inplace<'d>(&'_ self, data: &'d mut [u8]) -> Result<&'d mut [u8], Error> {
         unsafe {
-            let (n, m) = decoded_length(data, self.padding)?;
+            let (n, m) = decoded_length(data, self.config)?;
 
             let dst: *mut u8 = data.as_mut_ptr();
             let src: *const u8 = dst;
-            self::multiversion::decode::auto(src, dst, n, self.kind)?;
+            self::multiversion::decode::auto(src, dst, n, self.config)?;
 
             Ok(slice_mut(dst, m))
         }

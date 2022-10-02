@@ -1,5 +1,5 @@
 use crate::fallback::{self, encode_bits24};
-use crate::{Error, Kind};
+use crate::{Config, Error, Kind};
 
 use vsimd::base64::{STANDARD_ALSW_CHECK_X2, URL_SAFE_ALSW_CHECK_X2};
 use vsimd::base64::{STANDARD_ALSW_DECODE_X2, URL_SAFE_ALSW_DECODE_X2};
@@ -8,7 +8,9 @@ use vsimd::base64::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 use vsimd::tools::{slice, slice_parts};
 use vsimd::SIMD256;
 
-pub(crate) unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
+pub(crate) unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, config: Config) {
+    let kind = config.kind;
+
     let (mut src, mut len) = slice_parts(src);
 
     if len >= (6 + 24 + 4) {
@@ -48,16 +50,18 @@ pub(crate) unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind
         len -= 12;
     }
 
-    fallback::encode(slice(src, len), dst, kind, padding)
+    fallback::encode(slice(src, len), dst, config)
 }
 
-pub unsafe fn decode<S: SIMD256>(
+pub(crate) unsafe fn decode<S: SIMD256>(
     s: S,
     mut src: *const u8,
     mut dst: *mut u8,
     mut n: usize,
-    kind: Kind,
+    config: Config,
 ) -> Result<(), Error> {
+    let kind = config.kind;
+
     let (check_lut, decode_lut) = match kind {
         Kind::Standard => (STANDARD_ALSW_CHECK_X2, STANDARD_ALSW_DECODE_X2),
         Kind::UrlSafe => (URL_SAFE_ALSW_CHECK_X2, URL_SAFE_ALSW_DECODE_X2),
@@ -77,10 +81,12 @@ pub unsafe fn decode<S: SIMD256>(
         n -= 32;
     }
 
-    fallback::decode(src, dst, n, kind)
+    fallback::decode(src, dst, n, config)
 }
 
-pub fn check<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error> {
+pub(crate) fn check<S: SIMD256>(s: S, src: &[u8], config: Config) -> Result<(), Error> {
+    let kind = config.kind;
+
     let (mut src, mut n) = (src.as_ptr(), src.len());
 
     let check_lut = match kind {
@@ -98,6 +104,6 @@ pub fn check<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error> {
             n -= 32;
         }
 
-        fallback::check(slice(src, n), kind)
+        fallback::check(slice(src, n), config)
     }
 }

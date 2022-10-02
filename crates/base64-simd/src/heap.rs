@@ -17,14 +17,14 @@ impl FromBase64Decode for Box<[u8]> {
         }
 
         unsafe {
-            let (n, m) = decoded_length(data, base64.padding)?;
+            let (n, m) = decoded_length(data, base64.config)?;
 
             // safety: 0 < m < isize::MAX
             let mut uninit_buf = alloc_uninit_bytes(m);
 
             let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
             let src: *const u8 = data.as_ptr();
-            crate::multiversion::decode::auto(src, dst, n, base64.kind)?;
+            crate::multiversion::decode::auto(src, dst, n, base64.config)?;
 
             Ok(assume_init(uninit_buf))
         }
@@ -49,13 +49,13 @@ impl FromBase64Encode for Box<[u8]> {
         }
 
         unsafe {
-            let m = encoded_length_unchecked(data.len(), base64.padding);
+            let m = encoded_length_unchecked(data.len(), base64.config);
             assert!(m <= usize::MAX / 2);
 
             let mut uninit_buf = alloc_uninit_bytes(m);
 
             let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-            crate::multiversion::encode::auto(data, dst, base64.kind, base64.padding);
+            crate::multiversion::encode::auto(data, dst, base64.config);
 
             let len = uninit_buf.len();
             let ptr = Box::into_raw(uninit_buf).cast::<u8>();
