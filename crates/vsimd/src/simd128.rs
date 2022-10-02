@@ -1812,7 +1812,7 @@ mod tests {
 
     use crate::isa::InstructionSet;
 
-    use const_str::hex_bytes as hex;
+    use const_str::hex;
 
     #[test]
     fn u8x16_any_zero() {

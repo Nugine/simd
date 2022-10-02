@@ -3,7 +3,7 @@ use uuid_simd::{AsciiCase, OutRef, UuidExt};
 
 use std::mem::MaybeUninit;
 
-use const_str::hex_bytes as hex;
+use const_str::hex;
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use uuid::Uuid;
 
