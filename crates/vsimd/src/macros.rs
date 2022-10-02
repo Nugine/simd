@@ -33,6 +33,7 @@ macro_rules! simd_dispatch {
         fallback    = {$($fallback_fn:tt)+},
         simd        = {$($simd_fn:tt)+},
         safety      = {$($unsafe:ident)?},
+        visibility  = {$vis:vis},
     ) => {
         pub mod $name {
             #![allow(
@@ -54,7 +55,7 @@ macro_rules! simd_dispatch {
             const _: $(for<$($lifetime),+>)? $($unsafe)? fn($($arg_type),*) -> $ret = $($fallback_fn)+;
 
             #[inline]
-            pub $($unsafe)? fn fallback$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+            $vis $($unsafe)? fn fallback$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                 $($fallback_fn)+($($arg_name),*)
             }
 
@@ -67,13 +68,13 @@ macro_rules! simd_dispatch {
 
                 #[inline]
                 #[target_feature(enable = "avx2")]
-                pub unsafe fn avx2$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+                $vis unsafe fn avx2$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                     $($simd_fn)+(AVX2::new() $(,$arg_name)*)
                 }
 
                 #[inline]
                 #[target_feature(enable = "sse4.1")]
-                pub unsafe fn sse41$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+                $vis unsafe fn sse41$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                     $($simd_fn)+(SSE41::new() $(,$arg_name)*)
                 }
             }
@@ -86,7 +87,7 @@ macro_rules! simd_dispatch {
 
                 #[inline]
                 #[target_feature(enable = "neon")]
-                pub unsafe fn neon$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+                $vis unsafe fn neon$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                     $($simd_fn)+(NEON::new() $(,$arg_name)*)
                 }
             }
@@ -99,7 +100,7 @@ macro_rules! simd_dispatch {
 
                 #[inline]
                 #[target_feature(enable = "simd128")]
-                pub unsafe fn simd128$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+                $vis unsafe fn simd128$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                     $($simd_fn)+(WASM128::new() $(,$arg_name)*)
                 }
             }
@@ -136,7 +137,7 @@ macro_rules! simd_dispatch {
             }
 
             #[inline(always)]
-            pub $($unsafe)? fn auto_indirect$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+            $vis $($unsafe)? fn auto_indirect$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                 unsafe {
                     let f: unsafe fn($($arg_type),*) -> $ret = core::mem::transmute(IFUNC.load(Relaxed));
                     f($($arg_name),*)
@@ -144,13 +145,13 @@ macro_rules! simd_dispatch {
             }
 
             #[inline(always)]
-            pub $($unsafe)? fn auto_direct$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+            $vis $($unsafe)? fn auto_direct$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                 let f = resolve();
                 unsafe { f($($arg_name),*) }
             }
 
             #[inline(always)]
-            pub $($unsafe)? fn auto$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+            $vis $($unsafe)? fn auto$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                 if cfg!(target_feature = "avx2") {
                     return unsafe { avx2($($arg_name),*) }

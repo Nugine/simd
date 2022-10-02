@@ -9,6 +9,7 @@ simd_dispatch!(
     fallback    = {crate::fallback::parse_simple},
     simd        = {crate::simd::parse_simple},
     safety      = {unsafe},
+    visibility  = {pub},
 );
 
 simd_dispatch!(
@@ -17,6 +18,7 @@ simd_dispatch!(
     fallback    = {crate::fallback::parse_hyphenated},
     simd        = {crate::simd::parse_hyphenated},
     safety      = {unsafe},
+    visibility  = {pub},
 );
 
 simd_dispatch!(
@@ -25,6 +27,7 @@ simd_dispatch!(
     fallback    = {crate::fallback::format_simple},
     simd        = {crate::simd::format_simple},
     safety      = {unsafe},
+    visibility  = {pub},
 );
 
 simd_dispatch!(
@@ -33,4 +36,5 @@ simd_dispatch!(
     fallback    = {crate::fallback::format_hyphenated},
     simd        = {crate::simd::format_hyphenated},
     safety      = {unsafe},
+    visibility  = {pub},
 );

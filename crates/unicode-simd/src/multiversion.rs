@@ -8,6 +8,7 @@ simd_dispatch!(
     fallback    = {crate::fallback::utf32::is_utf32le_ct},
     simd        = {crate::simd::utf32::is_utf32le_ct},
     safety      = {},
+    visibility  = {pub},
 );
 
 simd_dispatch!(
@@ -16,6 +17,7 @@ simd_dispatch!(
     fallback    = {crate::fallback::utf32::swap_endianness},
     simd        = {crate::simd::utf32::swap_endianness},
     safety      = {unsafe},
+    visibility  = {pub},
 );
 
 simd_dispatch!(
@@ -24,4 +26,5 @@ simd_dispatch!(
     fallback    = {crate::fallback::utf16::swap_endianness},
     simd        = {crate::simd::utf16::swap_endianness},
     safety      = {unsafe},
+    visibility  = {pub},
 );

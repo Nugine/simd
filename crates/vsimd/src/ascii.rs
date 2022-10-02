@@ -15,6 +15,7 @@ pub mod multiversion {
         fallback    = {is_ascii_ct_fallback},
         simd        = {is_ascii_ct_simd},
         safety      = {},
+        visibility  = {pub},
     );
 
     crate::simd_dispatch!(
@@ -23,6 +24,7 @@ pub mod multiversion {
         fallback    = {find_non_ascii_whitespace_fallback},
         simd        = {find_non_ascii_whitespace_simd},
         safety      = {},
+        visibility  = {pub},
     );
 }
 

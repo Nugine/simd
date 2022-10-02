@@ -8,6 +8,7 @@ simd_dispatch!(
     fallback    = {crate::fallback::check},
     simd        = {crate::simd::check},
     safety      = {},
+    visibility  = {pub},
 );
 
 simd_dispatch!(
@@ -16,6 +17,7 @@ simd_dispatch!(
     fallback    = {crate::fallback::decode},
     simd        = {crate::simd::decode},
     safety      = {unsafe},
+    visibility  = {pub},
 );
 
 simd_dispatch!(
@@ -24,4 +26,5 @@ simd_dispatch!(
     fallback    = {crate::fallback::encode},
     simd        = {crate::simd::encode},
     safety      = {unsafe},
+    visibility  = {pub},
 );
