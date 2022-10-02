@@ -47,6 +47,8 @@ mod fallback;
 ))]
 mod simd;
 
+mod ascii;
+
 mod forgiving;
 
 mod multiversion;

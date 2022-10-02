@@ -1,43 +1,4 @@
-use vsimd::ascii::lookup_ascii_whitespace;
-
-#[inline(always)]
-fn find_non_ascii_whitespace(data: &[u8]) -> usize {
-    vsimd::ascii::multiversion::find_non_ascii_whitespace::auto(data)
-}
-
-#[inline(always)]
-unsafe fn remove_ascii_whitespace_fallback(mut src: *const u8, len: usize, mut dst: *mut u8) -> usize {
-    let dst_base = dst;
-
-    let end = src.add(len);
-    while src < end {
-        let x = src.read();
-        if lookup_ascii_whitespace(x) == 0 {
-            dst.write(x);
-            dst = dst.add(1);
-        }
-        src = src.add(1);
-    }
-
-    dst.offset_from(dst_base) as usize
-}
-
-#[inline(always)]
-fn remove_ascii_whitespace(data: &mut [u8]) -> &mut [u8] {
-    let non_aw_pos = find_non_ascii_whitespace(data);
-    if non_aw_pos >= data.len() {
-        return data;
-    }
-
-    unsafe {
-        let dirty_len = data.len() - non_aw_pos;
-        let dirty_data = data.as_mut_ptr().add(non_aw_pos);
-
-        let clean_len = remove_ascii_whitespace_fallback(dirty_data, dirty_len, dirty_data);
-
-        data.get_unchecked_mut(..(non_aw_pos + clean_len))
-    }
-}
+use crate::ascii::remove_ascii_whitespace_inplace;
 
 const fn discard_table(mask: u8) -> [u8; 256] {
     let charset = vsimd::base64::STANDARD_CHARSET;
@@ -73,7 +34,7 @@ fn discard2(ch: &mut u8) {
 }
 
 pub fn normalize(buf: &mut [u8]) -> &mut [u8] {
-    let buf = remove_ascii_whitespace(buf);
+    let buf = remove_ascii_whitespace_inplace(buf);
 
     if buf.is_empty() {
         return buf;
@@ -111,36 +72,6 @@ pub fn normalize(buf: &mut [u8]) -> &mut [u8] {
                 buf
             }
             _ => core::hint::unreachable_unchecked(),
-        }
-    }
-}
-
-#[cfg(test)]
-
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_remove_ascii_whitespace() {
-        let cases = [
-            "abcd",
-            "ab\tcd",
-            "ab\ncd",
-            "ab\x0Ccd",
-            "ab\rcd",
-            "ab cd",
-            "ab\t\n\x0C\r cd",
-            "ab\t\n\x0C\r =\t\n\x0C\r =\t\n\x0C\r ",
-        ];
-        for case in cases {
-            let mut buf = case.to_owned().into_bytes();
-            let expected = {
-                let mut v = buf.clone();
-                v.retain(|c| !c.is_ascii_whitespace());
-                v
-            };
-            let ans = remove_ascii_whitespace(&mut buf);
-            assert_eq!(ans, &*expected, "case = {:?}", case);
         }
     }
 }
