@@ -54,6 +54,7 @@ pub fn bench_decode(c: &mut Criterion) {
         ("hex-simd/auto", |src, dst| {
             hex_simd::decode(src, OutRef::from_slice(dst)).unwrap();
         }),
+        #[cfg(feature = "detect")]
         ("faster-hex/auto", |src, dst| {
             faster_hex::hex_decode(src, dst).unwrap();
         }),
@@ -95,6 +96,7 @@ pub fn bench_encode(c: &mut Criterion) {
         ("hex-simd/auto", |src, dst| {
             let _ = hex_simd::encode(src, OutRef::from_slice(dst), AsciiCase::Lower);
         }),
+        #[cfg(feature = "detect")]
         ("faster-hex/auto", |src, dst| {
             faster_hex::hex_encode(src, dst).unwrap();
         }),

@@ -37,7 +37,7 @@ path = "base32.rs"
 harness = false
 
 [features]
-default = ["std"]
+default = ["std", "detect"]
 detect = [
     "base32-simd/detect",
     "base64-simd/detect",
