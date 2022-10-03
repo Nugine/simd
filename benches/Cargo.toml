@@ -37,7 +37,7 @@ path = "base32.rs"
 harness = false
 
 [features]
-default = ["std", "detect"]
+default = []
 detect = [
     "base32-simd/detect",
     "base64-simd/detect",
@@ -45,35 +45,32 @@ detect = [
     "unicode-simd/detect",
     "uuid-simd/detect",
 ]
-std = [
-    "base32-simd/std",
-    "base64-simd/std",
-    "hex-simd/std",
-    "unicode-simd/std",
-    "uuid-simd/std",
-]
 analyze = ["serde", "serde_json", "anyhow", "tabled", "ordered-float"]
 
 [dependencies.base32-simd]
 path = "../crates/base32-simd"
 default-features = false
+features = ["std"]
 
 [dependencies.base64-simd]
 path = "../crates/base64-simd"
 default-features = false
+features = ["std"]
 
 [dependencies.hex-simd]
 path = "../crates/hex-simd"
 default-features = false
+features = ["std"]
 
 [dependencies.unicode-simd]
 path = "../crates/unicode-simd"
 default-features = false
+features = ["std"]
 
 [dependencies.uuid-simd]
 path = "../crates/uuid-simd"
 default-features = false
-features = ["uuid"]
+features = ["std", "uuid"]
 
 [dependencies]
 rand = "0.8.5"
