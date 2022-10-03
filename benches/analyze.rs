@@ -175,7 +175,8 @@ fn render_table(table_data: &[TableData]) -> Result<Vec<(String, Table)>> {
             b.add_record(record);
         }
 
-        let table = b.build().with(Style::markdown());
+        let mut table = b.build();
+        table.with(Style::markdown());
         ans.push((title, table));
     }
 
