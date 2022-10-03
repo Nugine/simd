@@ -1,7 +1,12 @@
-dev:
-    just fmt
+dev: fmt clippy
     /usr/bin/time -v -o target/time-test-all.txt just test-all
     cat target/time-test-all.txt
+
+clippy: fmt
+    cargo clippy --target x86_64-unknown-linux-gnu
+    cargo clippy --target armv7-unknown-linux-gnueabihf
+    cargo clippy --target aarch64-unknown-linux-gnu
+    cargo clippy --target wasm32-unknown-unknown
 
 doc pkg="vsimd":
     #!/bin/bash -e

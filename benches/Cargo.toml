@@ -86,6 +86,7 @@ tabled = { version = "0.8.0", optional = true }
 ordered-float = { version = "3.1.0", optional = true }
 hex = "0.4.3"
 base16 = "0.2.1"
+getrandom = { version = "0.2", features = ["js"] }
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["real_blackbox"] }

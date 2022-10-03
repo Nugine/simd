@@ -34,6 +34,8 @@
     clippy::wildcard_imports,
     clippy::module_name_repetitions,
     clippy::cast_sign_loss,
+    clippy::cast_lossless,
+    clippy::cast_possible_truncation,
     clippy::items_after_statements
 )]
 
