@@ -14,7 +14,8 @@
 //! # }
 //! ```
 //!
-
+#![doc=vsimd::shared_docs!()]
+//
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]

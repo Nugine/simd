@@ -1,4 +1,7 @@
 //! SIMD-accelerated Unicode validation and transcoding
+//!
+#![doc=vsimd::shared_docs!()]
+//
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
