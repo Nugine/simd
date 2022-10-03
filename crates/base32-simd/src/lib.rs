@@ -25,10 +25,22 @@
     missing_debug_implementations,
     missing_docs,
     clippy::all,
+    clippy::pedantic,
     clippy::cargo,
     clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
+#![allow(
+    clippy::inline_always,
+    clippy::wildcard_imports,
+    clippy::module_name_repetitions,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_lossless,
+    clippy::items_after_statements,
+    clippy::match_same_arms,
+    clippy::verbose_bit_mask
+)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -72,25 +84,25 @@ pub struct Base32 {
     padding: bool,
 }
 
-/// Base32 charset with padding.
+/// `Base32` charset with padding.
 pub const BASE32: Base32 = Base32 {
     kind: Kind::Base32,
     padding: true,
 };
 
-/// Base32Hex charset with padding.
+/// `Base32Hex` charset with padding.
 pub const BASE32HEX: Base32 = Base32 {
     kind: Kind::Base32Hex,
     padding: true,
 };
 
-/// Base32 charset withnot padding.
+/// `Base32` charset withnot padding.
 pub const BASE32_NO_PAD: Base32 = Base32 {
     kind: Kind::Base32,
     padding: false,
 };
 
-/// Base32Hex charset withnot padding.
+/// `Base32Hex` charset withnot padding.
 pub const BASE32HEX_NO_PAD: Base32 = Base32 {
     kind: Kind::Base32Hex,
     padding: false,
@@ -134,6 +146,9 @@ impl Base32 {
     /// Calculates the decoded length.
     ///
     /// The result is a precise value which can be used for allocation.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is partially invalid.
     #[inline]
     pub fn decoded_length(&self, data: &[u8]) -> Result<usize, Error> {
         let (_, m) = decoded_length(data, self.padding)?;
@@ -226,6 +241,9 @@ impl Base32 {
     }
 
     /// Decodes a base32 string to bytes and returns a specified type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is invalid.
     #[inline]
     pub fn decode_type<T: FromBase32Decode>(&self, data: &[u8]) -> Result<T, Error> {
         T::from_base32_decode(self, data)
@@ -241,5 +259,8 @@ pub trait FromBase32Encode: Sized {
 /// Types that can be decoded from a base32 string.
 pub trait FromBase32Decode: Sized {
     /// Decodes a base32 string to bytes case-insensitively and returns the self type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is invalid.
     fn from_base32_decode(base32: &Base32, data: &[u8]) -> Result<Self, Error>;
 }

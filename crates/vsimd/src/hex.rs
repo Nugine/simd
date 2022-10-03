@@ -194,7 +194,7 @@ pub fn decode_ascii32x2<S: SIMD256>(s: S, x: (V256, V256)) -> Result<V256, ()> {
         let ab = s.u8x16x2_swizzle(y1, DECODE_UZP1);
         let cd = s.u8x16x2_swizzle(y2, DECODE_UZP2);
         let acbd = s.v256_or(ab, cd);
-        s.u64x4_permute::<0b11011000>(acbd) // 0213
+        s.u64x4_permute::<0b_1101_1000>(acbd) // 0213
     } else if is_subtype!(S, SSE41 | WASM128) {
         let ab = s.u8x16x2_swizzle(y1, DECODE_UZP1);
         let cd = s.u8x16x2_swizzle(y2, DECODE_UZP1);

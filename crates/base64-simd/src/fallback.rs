@@ -32,7 +32,7 @@ unsafe fn encode_bits48(src: *const u8, dst: *mut u8, charset: *const u8) {
     let x = u64::from_be_bytes(src.cast::<[u8; 8]>().read());
     for i in 0..8 {
         let y = read(charset, ((x >> (58 - i * 6)) & 0x3f) as usize);
-        write(dst, i, y)
+        write(dst, i, y);
     }
 }
 
@@ -93,7 +93,7 @@ pub(crate) unsafe fn encode(src: &[u8], mut dst: *mut u8, config: Config) {
         len -= 3;
     }
 
-    encode_extra(len, src, dst, charset, padding)
+    encode_extra(len, src, dst, charset, padding);
 }
 
 const fn decode_table(charset: &'static [u8; 64]) -> [u8; 256] {

@@ -10,14 +10,29 @@
 //
 #![deny(
     missing_debug_implementations,
+    missing_docs,
     clippy::all,
+    clippy::pedantic,
     clippy::cargo,
-    clippy::missing_inline_in_public_items,
-    clippy::must_use_candidate
+    clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
 #![allow(
-    clippy::missing_safety_doc, // TODO
+    clippy::inline_always,
+    missing_docs,
+    clippy::missing_safety_doc,
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_lossless,
+    clippy::verbose_bit_mask,
+    clippy::module_name_repetitions,
+    clippy::wildcard_imports,
+    clippy::items_after_statements,
+    clippy::match_same_arms,
+    clippy::many_single_char_names
 )]
 
 #[cfg(feature = "alloc")]

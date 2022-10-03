@@ -173,7 +173,7 @@ pub unsafe fn encode(src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
     }
     len %= 5;
 
-    encode_extra(src, len, dst, charset, padding)
+    encode_extra(src, len, dst, charset, padding);
 }
 
 #[inline]

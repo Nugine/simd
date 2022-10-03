@@ -26,11 +26,12 @@
     missing_debug_implementations,
     missing_docs,
     clippy::all,
+    clippy::pedantic,
     clippy::cargo,
-    clippy::missing_inline_in_public_items,
-    clippy::must_use_candidate
+    clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
+#![allow(clippy::inline_always)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -75,6 +76,9 @@ pub const fn encoded_length(n: usize) -> usize {
 }
 
 /// Calculates the decoded length.
+///
+/// # Errors
+/// This function returns `Err` if `n` is not even.
 #[inline]
 pub fn decoded_length(n: usize) -> Result<usize, Error> {
     ensure!(n % 2 == 0);
@@ -160,6 +164,9 @@ pub fn encode_as_str<'s, 'd>(src: &'s [u8], dst: OutRef<'d, [u8]>, case: AsciiCa
 /// Types that can be decoded from a hex string.
 pub trait FromHexDecode: Sized {
     /// Decodes a hex string to bytes case-insensitively and returns the self type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is invalid.
     fn from_hex_decode(data: &[u8]) -> Result<Self, Error>;
 }
 
@@ -177,6 +184,9 @@ pub fn encode_type<T: FromHexEncode>(data: &[u8], case: AsciiCase) -> T {
 }
 
 /// Decodes a hex string to bytes case-insensitively and returns a specified type.
+///
+/// # Errors
+/// This function returns `Err` if the content of `data` is invalid.
 #[inline]
 pub fn decode_type<T: FromHexDecode>(data: &[u8]) -> Result<T, Error> {
     T::from_hex_decode(data)

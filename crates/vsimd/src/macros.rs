@@ -8,7 +8,7 @@ macro_rules! item_group {
 macro_rules! debug_assert_ptr_align {
     ($ptr:expr, $align:literal) => {{
         let align: usize = $align;
-        let ptr = $ptr as *const _ as *const ();
+        let ptr = <*const _>::cast::<()>($ptr);
         let addr = ptr as usize;
         debug_assert!(addr % align == 0)
     }};

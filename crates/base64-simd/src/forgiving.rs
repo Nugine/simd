@@ -31,6 +31,9 @@ pub fn forgiving_decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
 ///
 /// # Errors
 /// This function returns `Err` if the content of `src` is invalid.
+///
+/// # Panics
+/// This function asserts that `src.len() <= dst.len()`
 #[inline]
 pub fn forgiving_decode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error> {
     assert!(src.len() <= dst.len());
@@ -121,7 +124,7 @@ fn test_forgiving() {
         o(&hex!("85 E9 65 A3 0A 2B 95"));
 
         i(" h e l l o w o r\nl\rd\t");
-        o(&hex!("85 E9 65 A3 0A 2B 95"))
+        o(&hex!("85 E9 65 A3 0A 2B 95"));
     }
 
     for i in 0..inputs.len() {

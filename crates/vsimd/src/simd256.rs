@@ -1045,7 +1045,7 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u64x4_unzip_even(self, a: V256, b: V256) -> V256 {
         if is_subtype!(Self, AVX2) {
             let acbd = self.u64x2x2_zip_lo(a, b);
-            let abcd = self.u64x4_permute::<0b11011000>(acbd); // 0213
+            let abcd = self.u64x4_permute::<0b_1101_1000>(acbd); // 0213
             return abcd;
         }
         {
@@ -1060,7 +1060,7 @@ pub unsafe trait SIMD256: SIMD128 {
     fn u64x4_unzip_odd(self, a: V256, b: V256) -> V256 {
         if is_subtype!(Self, AVX2) {
             let acbd = self.u64x2x2_zip_hi(a, b);
-            let abcd = self.u64x4_permute::<0b11011000>(acbd); // 0213
+            let abcd = self.u64x4_permute::<0b_1101_1000>(acbd); // 0213
             return abcd;
         }
         {

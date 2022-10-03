@@ -76,7 +76,7 @@ pub unsafe fn encode(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
             i += 1;
         }
     }
-    encode_short(src, len % 8, dst, table)
+    encode_short(src, len % 8, dst, table);
 }
 
 #[inline(always)]

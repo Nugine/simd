@@ -68,7 +68,7 @@ pub unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: Kind,
         }
     }
 
-    fallback::encode(slice(src, len), dst, kind, padding)
+    fallback::encode(slice(src, len), dst, kind, padding);
 }
 
 #[inline(always)]

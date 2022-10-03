@@ -7,11 +7,12 @@
     missing_debug_implementations,
     missing_docs,
     clippy::all,
+    clippy::pedantic,
     clippy::cargo,
-    clippy::missing_inline_in_public_items,
-    clippy::must_use_candidate
+    clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
+#![allow(clippy::inline_always)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -69,10 +70,13 @@ pub fn utf32_swap_endianness_inplace(data: &mut [u32]) {
 }
 
 /// TODO: test, bench
+///
+/// # Panics
+/// This function asserts that `src.len() <= dst.len()`
 #[inline]
 #[must_use]
 pub fn utf32_swap_endianness<'s, 'd>(src: &'s [u32], mut dst: OutRef<'d, [u32]>) -> &'d mut [u32] {
-    assert_eq!(src.len(), dst.len());
+    assert!(src.len() <= dst.len());
     let len = src.len();
     let src = src.as_ptr();
     let dst = dst.as_mut_ptr();
@@ -90,10 +94,13 @@ pub fn utf16_swap_endianness_inplace(data: &mut [u16]) {
 }
 
 /// TODO: test, bench
+///
+/// # Panics
+/// This function asserts that `src.len() <= dst.len()`
 #[inline]
 #[must_use]
 pub fn utf16_swap_endianness<'s, 'd>(src: &'s [u16], mut dst: OutRef<'d, [u16]>) -> &'d mut [u16] {
-    assert_eq!(src.len(), dst.len());
+    assert!(src.len() <= dst.len());
     let len = src.len();
     let src = src.as_ptr();
     let dst = dst.as_mut_ptr();

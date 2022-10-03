@@ -25,11 +25,22 @@
     missing_debug_implementations,
     missing_docs,
     clippy::all,
+    clippy::pedantic,
     clippy::cargo,
-    clippy::missing_inline_in_public_items,
-    clippy::must_use_candidate
+    clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
+#![allow(
+    clippy::inline_always,
+    clippy::wildcard_imports,
+    clippy::module_name_repetitions,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_lossless,
+    clippy::items_after_statements,
+    clippy::match_same_arms,
+    clippy::verbose_bit_mask
+)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -208,6 +219,9 @@ impl Base64 {
     /// Calculates the decoded length.
     ///
     /// The result is a precise value which can be used for allocation.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is partially invalid.
     #[inline]
     pub fn decoded_length(&self, data: &[u8]) -> Result<usize, Error> {
         let (_, m) = decoded_length(data, self.config)?;
@@ -300,6 +314,9 @@ impl Base64 {
     }
 
     /// Decodes a base64 string to bytes and returns a specified type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is invalid.
     #[inline]
     pub fn decode_type<T: FromBase64Decode>(&self, data: &[u8]) -> Result<T, Error> {
         T::from_base64_decode(self, data)
@@ -315,5 +332,8 @@ pub trait FromBase64Encode: Sized {
 /// Types that can be decoded from a base64 string.
 pub trait FromBase64Decode: Sized {
     /// Decodes a base64 string to bytes case-insensitively and returns the self type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is invalid.
     fn from_base64_decode(base64: &Base64, data: &[u8]) -> Result<Self, Error>;
 }

@@ -16,9 +16,10 @@ item_group! {
 #[inline]
 #[must_use]
 pub unsafe fn alloc_uninit_bytes(len: usize) -> Box<[MaybeUninit<u8>]> {
+    #[allow(clippy::checked_conversions)]
     #[cfg(any(debug_assertions, miri))]
     {
-        assert!(len > 0 && len <= (isize::MAX as usize))
+        assert!(len > 0 && len <= (isize::MAX as usize));
     }
     use alloc::alloc::{alloc, handle_alloc_error, Layout};
     let layout = Layout::from_size_align_unchecked(len, 1);
@@ -46,7 +47,7 @@ pub unsafe fn read<T>(base: *const T, offset: usize) -> T {
 
 #[inline(always)]
 pub unsafe fn write<T>(base: *mut T, offset: usize, value: T) {
-    base.add(offset).write(value)
+    base.add(offset).write(value);
 }
 
 #[inline(always)]
@@ -63,7 +64,7 @@ pub unsafe fn slice_mut<'a, T>(data: *mut T, len: usize) -> &'a mut [T] {
 pub fn unroll<T>(slice: &[T], chunk_size: usize, mut f: impl FnMut(&T)) {
     let mut iter = slice.chunks_exact(chunk_size);
     for chunk in &mut iter {
-        chunk.iter().for_each(&mut f)
+        chunk.iter().for_each(&mut f);
     }
     iter.remainder().iter().for_each(&mut f);
 }

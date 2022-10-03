@@ -7,7 +7,7 @@ use vsimd::SIMD256;
 
 #[inline(always)]
 pub unsafe fn swap_endianness<S: SIMD256>(s: S, src: *const u32, len: usize, dst: *mut u32) {
-    vsimd::bswap::bswap_simd(s, src, len, dst)
+    vsimd::bswap::bswap_simd(s, src, len, dst);
 }
 
 #[inline(always)]
@@ -25,7 +25,7 @@ pub fn is_utf32le_ct<S: SIMD256>(s: S, data: &[u32]) -> bool {
             y = s.u32x8_max(y, a2);
         });
 
-        let m = s.u32x8_splat(0x110000 - 0x800 - 1);
+        let m = s.u32x8_splat(0x11_0000 - 0x800 - 1);
         ans &= s.v256_all_zero(s.u32x8_lt(m, y));
     }
 

@@ -24,11 +24,18 @@
     missing_debug_implementations,
     missing_docs,
     clippy::all,
+    clippy::pedantic,
     clippy::cargo,
-    clippy::missing_inline_in_public_items,
-    clippy::must_use_candidate
+    clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
+#![allow(
+    clippy::inline_always,
+    clippy::wildcard_imports,
+    clippy::module_name_repetitions,
+    clippy::cast_sign_loss,
+    clippy::items_after_statements
+)]
 
 #[macro_use]
 mod error;

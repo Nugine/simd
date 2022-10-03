@@ -104,7 +104,7 @@ where
         let y = BSwapExt::swap_single(x);
         dst.write(y);
         dst = dst.add(1);
-    })
+    });
 }
 
 #[inline(always)]
@@ -117,7 +117,7 @@ where
     {
         let (src, len) = prefix;
         bswap_fallback(src, len, dst);
-        dst = dst.add(len)
+        dst = dst.add(len);
     }
 
     {
@@ -127,7 +127,7 @@ where
             let y = <T as BSwapExt>::swap_simd(s, x);
             s.v256_store_unaligned(dst.cast(), y);
             dst = dst.add(8);
-        })
+        });
     }
 
     {

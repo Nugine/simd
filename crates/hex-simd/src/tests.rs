@@ -61,7 +61,7 @@ fn safety_unit_test(
             dbgmsg!("generating ok case n = {}", n);
 
             let iter = (0..16).cycle().take(n).map(|x| char::from_digit(x, 16).unwrap() as u8);
-            ans.push(iter.collect())
+            ans.push(iter.collect());
         }
 
         ans

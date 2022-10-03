@@ -50,7 +50,7 @@ pub(crate) unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, conf
         len -= 12;
     }
 
-    fallback::encode(slice(src, len), dst, config)
+    fallback::encode(slice(src, len), dst, config);
 }
 
 pub(crate) unsafe fn decode<S: SIMD256>(
