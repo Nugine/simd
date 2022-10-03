@@ -19,7 +19,7 @@ x86-bench *ARGS:
     cd {{justfile_directory()}}
     mkdir -p target/x86-bench
     COMMIT_HASH=`git rev-parse --short HEAD`
-    if [ -z "FALLBACK" ]; then
+    if [ -z "$FALLBACK" ]; then
         export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1"
     fi
     time cargo criterion -p simd-benches --history-id $COMMIT_HASH --message-format json {{ARGS}} > target/x86-bench/$COMMIT_HASH.jsonl
