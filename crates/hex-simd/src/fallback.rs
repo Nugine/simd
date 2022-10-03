@@ -95,26 +95,27 @@ fn shl4(x: u8) -> u8 {
 }
 
 #[inline(always)]
-unsafe fn decode_bits(src: *const u8, dst: *mut u8) -> Result<(), Error> {
+unsafe fn decode_bits(src: *const u8, dst: *mut u8) -> u8 {
     let y1 = unhex(read(src, 0));
     let y2 = unhex(read(src, 1));
-    ensure!((y1 | y2) != 0xff);
     let z = shl4(y1) | y2;
     dst.write(z);
-    Ok(())
+    y1 | y2
 }
 
 #[inline(always)]
 pub unsafe fn decode(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
     let end = src.add(len / 16 * 16);
     while src < end {
+        let mut flag = 0;
         let mut i = 0;
         while i < 8 {
-            decode_bits(src, dst)?;
+            flag |= decode_bits(src, dst);
             src = src.add(2);
             dst = dst.add(1);
             i += 1;
         }
+        ensure!(flag != 0xff);
     }
     decode_short(src, len % 16, dst)
 }
@@ -122,10 +123,12 @@ pub unsafe fn decode(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result
 #[inline(always)]
 pub unsafe fn decode_short(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
     let end = src.add(len);
+    let mut flag = 0;
     while src < end {
-        decode_bits(src, dst)?;
+        flag |= decode_bits(src, dst);
         src = src.add(2);
         dst = dst.add(1);
     }
+    ensure!(flag != 0xff);
     Ok(())
 }
