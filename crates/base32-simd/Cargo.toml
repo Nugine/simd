@@ -26,7 +26,6 @@ outref = "0.3.0"
 vsimd = { path = "../vsimd", version = "0.1.0-dev" }
 
 [dev-dependencies]
-base32 = "0.4.0"
 rand = "0.8.5"
 
 [target.'cfg(target_arch="wasm32")'.dev-dependencies]
