@@ -2,85 +2,102 @@ use crate::Error;
 
 use vsimd::ascii::AsciiCase;
 use vsimd::hex::unhex;
-use vsimd::tools::{read, slice_parts};
+use vsimd::tools::{read, write};
 
 #[inline(always)]
 pub fn check(data: &[u8]) -> Result<(), Error> {
+    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
     unsafe {
-        let (mut src, mut len) = slice_parts(data);
-
-        let end = src.add(len / 4 * 4);
-        while src < end {
-            let y1 = unhex(read(src, 0));
-            let y2 = unhex(read(src, 1));
-            let y3 = unhex(read(src, 2));
-            let y4 = unhex(read(src, 3));
-            ensure!((y1 | y2 | y3 | y4) != 0xff);
-            src = src.add(4);
+        if cfg!(target_feature = "sse2") {
+            return crate::spec::x86::sse2_check(data);
         }
-        len %= 4;
-
-        let mut flag = 0;
-        let end = src.add(len);
-        while src < end {
-            flag |= unhex(read(src, 0));
-            src = src.add(1);
-        }
-        ensure!(flag != 0xff);
     }
+    check_short(data)
+}
 
+#[inline(always)]
+pub fn check_short(data: &[u8]) -> Result<(), Error> {
+    // FIXME:
+    // The ct version triggers incorrect auto-vectorization when avx2 is enabled.
+    // https://github.com/Nugine/simd/issues/14
+    // https://github.com/rust-lang/rust/issues/102709
+    //
+
+    if cfg!(target_feature = "avx2") {
+        check_short_sc(data)
+    } else {
+        check_short_ct(data)
+    }
+}
+
+fn check_short_sc(data: &[u8]) -> Result<(), Error> {
+    for &x in data {
+        ensure!(unhex(x) != 0xff);
+    }
     Ok(())
 }
 
-#[inline]
-const fn full_table(table: &[u8; 16]) -> [u16; 256] {
-    let mut buf = [0; 256];
-    let mut i = 0;
-    while i < 256 {
-        let hi = table[i >> 4];
-        let lo = table[i & 0xf];
-        buf[i] = u16::from_ne_bytes([hi, lo]);
-        i += 1;
+fn check_short_ct(data: &[u8]) -> Result<(), Error> {
+    let mut flag = 0;
+    for &x in data {
+        flag |= unhex(x);
     }
-    buf
+    ensure!(flag != 0xff);
+    Ok(())
 }
 
-pub const FULL_LOWER_TABLE: &[u16; 256] = &full_table(vsimd::hex::LOWER_CHARSET);
-pub const FULL_UPPER_TABLE: &[u16; 256] = &full_table(vsimd::hex::UPPER_CHARSET);
-
 #[inline(always)]
-unsafe fn encode_bits(src: *const u8, dst: *mut u8, table: *const u16) {
+unsafe fn encode_bits(src: *const u8, dst: *mut u8, charset: *const u8) {
     let x = src.read();
-    let y = read(table, x as usize);
-    dst.cast::<u16>().write_unaligned(y);
+    let hi = read(charset, (x >> 4) as usize);
+    let lo = read(charset, (x & 0x0f) as usize);
+    write(dst, 0, hi);
+    write(dst, 1, lo);
 }
 
 #[inline(always)]
-pub unsafe fn encode(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
-    let table = match case {
-        AsciiCase::Lower => FULL_LOWER_TABLE.as_ptr(),
-        AsciiCase::Upper => FULL_UPPER_TABLE.as_ptr(),
-    };
+pub unsafe fn encode(src: &[u8], dst: *mut u8, case: AsciiCase) {
+    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
+    {
+        if cfg!(target_feature = "sse2") {
+            crate::spec::x86::sse2_encode(src, dst, case);
+            return;
+        }
+    }
+
+    encode_long(src, dst, case);
+}
+
+pub fn charset(case: AsciiCase) -> &'static [u8; 16] {
+    match case {
+        AsciiCase::Lower => vsimd::hex::LOWER_CHARSET,
+        AsciiCase::Upper => vsimd::hex::UPPER_CHARSET,
+    }
+}
+
+unsafe fn encode_long(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
+    let charset = charset(case).as_ptr();
+
     let (mut src, len) = (src.as_ptr(), src.len());
 
     let end = src.add(len / 8 * 8);
     while src < end {
         let mut i = 0;
         while i < 8 {
-            encode_bits(src, dst, table);
+            encode_bits(src, dst, charset);
             src = src.add(1);
             dst = dst.add(2);
             i += 1;
         }
     }
-    encode_short(src, len % 8, dst, table);
+    encode_short(src, len % 8, dst, charset);
 }
 
 #[inline(always)]
-pub unsafe fn encode_short(mut src: *const u8, len: usize, mut dst: *mut u8, table: *const u16) {
+pub unsafe fn encode_short(mut src: *const u8, len: usize, mut dst: *mut u8, charset: *const u8) {
     let end = src.add(len);
     while src < end {
-        encode_bits(src, dst, table);
+        encode_bits(src, dst, charset);
         src = src.add(1);
         dst = dst.add(2);
     }
@@ -101,7 +118,19 @@ unsafe fn decode_bits(src: *const u8, dst: *mut u8) -> u8 {
 }
 
 #[inline(always)]
-pub unsafe fn decode(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
+pub unsafe fn decode(src: *const u8, len: usize, dst: *mut u8) -> Result<(), Error> {
+    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
+    {
+        if cfg!(target_feature = "sse2") {
+            return crate::spec::x86::sse2_decode(src, len, dst);
+        }
+    }
+
+    decode_long(src, len, dst)
+}
+
+#[inline(always)]
+pub unsafe fn decode_long(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
     let end = src.add(len / 16 * 16);
     while src < end {
         let mut flag = 0;

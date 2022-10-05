@@ -32,7 +32,13 @@
     clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
-#![allow(clippy::inline_always)]
+#![allow(
+    clippy::inline_always,
+    clippy::wildcard_imports,
+    clippy::cast_possible_wrap,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
+)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -49,6 +55,8 @@ mod fallback;
     target_arch = "wasm32"
 ))]
 mod simd;
+
+mod spec;
 
 mod multiversion;
 

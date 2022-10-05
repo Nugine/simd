@@ -10,7 +10,7 @@ use vsimd::SIMD256;
 #[inline(always)]
 pub fn check<S: SIMD256>(s: S, data: &[u8]) -> Result<(), Error> {
     unsafe {
-        let (mut src, mut len) = (data.as_ptr(), data.len());
+        let (mut src, mut len) = slice_parts(data);
 
         if len == 16 {
             let x = s.v128_load_unaligned(src);
@@ -43,7 +43,7 @@ pub fn check<S: SIMD256>(s: S, data: &[u8]) -> Result<(), Error> {
             src = src.add(16);
         }
 
-        fallback::check(slice(src, len))
+        fallback::check_short(slice(src, len))
     }
 }
 
@@ -100,11 +100,11 @@ pub unsafe fn encode<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: Ascii
     }
 
     if len > 0 {
-        let table = match case {
-            AsciiCase::Lower => fallback::FULL_LOWER_TABLE,
-            AsciiCase::Upper => fallback::FULL_UPPER_TABLE,
+        let charset = match case {
+            AsciiCase::Lower => vsimd::hex::LOWER_CHARSET.as_ptr(),
+            AsciiCase::Upper => vsimd::hex::UPPER_CHARSET.as_ptr(),
         };
-        fallback::encode_short(src, len, dst, table.as_ptr());
+        fallback::encode_short(src, len, dst, charset);
     }
 }
 
