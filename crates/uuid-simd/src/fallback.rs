@@ -9,7 +9,7 @@ const fn shl4(x: u8) -> u8 {
     x.wrapping_shl(4)
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn parse_simple(src: *const u8, dst: *mut u8) -> Result<(), Error> {
     let mut flag = 0;
     for i in 0..16 {
@@ -22,7 +22,7 @@ pub unsafe fn parse_simple(src: *const u8, dst: *mut u8) -> Result<(), Error> {
     Ok(())
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn parse_hyphenated(src: *const u8, dst: *mut u8) -> Result<(), Error> {
     match [read(src, 8), read(src, 13), read(src, 18), read(src, 23)] {
         [b'-', b'-', b'-', b'-'] => {}
@@ -55,7 +55,7 @@ const fn char_lut(case: AsciiCase) -> &'static [u8; 16] {
     }
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn format_simple(src: *const u8, dst: *mut u8, case: AsciiCase) {
     let lut = char_lut(case).as_ptr();
     for i in 0..16 {
@@ -67,23 +67,32 @@ pub unsafe fn format_simple(src: *const u8, dst: *mut u8, case: AsciiCase) {
     }
 }
 
-#[inline]
+#[inline(always)]
 pub unsafe fn format_hyphenated(src: *const u8, dst: *mut u8, case: AsciiCase) {
     let lut = char_lut(case).as_ptr();
     let groups = [(0, 8), (9, 13), (14, 18), (19, 23), (24, 36)];
 
+    let mut g = 0;
     let mut i = 0;
-    for (g, (start, end)) in groups.iter().copied().enumerate() {
-        for j in (start..end).step_by(2) {
+    while g < 5 {
+        let (start, end) = groups[g];
+
+        let mut j = start;
+        while j < end {
             let x = read(src, i);
             i += 1;
+
             let hi = read(lut, (x >> 4) as usize);
             let lo = read(lut, (x & 0x0f) as usize);
             write(dst, j, hi);
             write(dst, j + 1, lo);
+            j += 2;
         }
+
         if g < 4 {
             write(dst, end, b'-');
         }
+
+        g += 1;
     }
 }
