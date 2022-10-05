@@ -21,18 +21,24 @@ pub(crate) const fn encoded_length_unchecked(len: usize, config: Config) -> usiz
 #[inline(always)]
 pub unsafe fn encode_bits24(src: *const u8, dst: *mut u8, charset: *const u8) {
     let x = u32::from_be_bytes([0, read(src, 0), read(src, 1), read(src, 2)]);
-    for i in 0..4 {
-        let y = read(charset, ((x >> (18 - i * 6)) & 0x3f) as usize);
+    let mut i = 0;
+    while i < 4 {
+        let bits = (x >> (18 - i * 6)) & 0x3f;
+        let y = read(charset, bits as usize);
         write(dst, i, y);
+        i += 1;
     }
 }
 
 #[inline(always)]
 unsafe fn encode_bits48(src: *const u8, dst: *mut u8, charset: *const u8) {
     let x = u64::from_be_bytes(src.cast::<[u8; 8]>().read());
-    for i in 0..8 {
-        let y = read(charset, ((x >> (58 - i * 6)) & 0x3f) as usize);
+    let mut i = 0;
+    while i < 8 {
+        let bits = (x >> (58 - i * 6)) & 0x3f;
+        let y = read(charset, bits as usize);
         write(dst, i, y);
+        i += 1;
     }
 }
 
@@ -79,19 +85,32 @@ pub(crate) unsafe fn encode(src: &[u8], mut dst: *mut u8, config: Config) {
 
     let (mut src, mut len) = slice_parts(src);
 
-    while len >= (6 + 2) {
+    const L: usize = 4;
+    while len >= L * 6 + 2 {
+        let mut i = 0;
+        while i < L {
+            encode_bits48(src, dst, charset);
+            src = src.add(6);
+            dst = dst.add(8);
+            i += 1;
+        }
+        len -= L * 6;
+    }
+
+    while len >= 6 + 2 {
         encode_bits48(src, dst, charset);
         src = src.add(6);
         dst = dst.add(8);
         len -= 6;
     }
 
-    while len >= 3 {
+    let end = src.add(len / 3 * 3);
+    while src < end {
         encode_bits24(src, dst, charset);
         src = src.add(3);
         dst = dst.add(4);
-        len -= 3;
     }
+    len %= 3;
 
     encode_extra(len, src, dst, charset, padding);
 }
@@ -161,43 +180,47 @@ pub(crate) fn decoded_length(src: &[u8], config: Config) -> Result<(usize, usize
 
 #[inline(always)]
 unsafe fn decode_ascii8<const WRITE: bool>(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
-    let mut x = u64::from_le_bytes(src.cast::<[u8; 8]>().read());
     let mut y: u64 = 0;
     let mut flag = 0;
 
-    for i in 0..8 {
-        let bits = read(table, (x & 0xff) as usize);
+    let mut i = 0;
+    while i < 8 {
+        let x = read(src, i);
+        let bits = read(table, x as usize);
         flag |= bits;
-        x >>= 8;
 
         if WRITE {
             y |= (bits as u64) << (58 - i * 6);
         }
+
+        i += 1;
     }
-    ensure!(flag != 0xff);
 
     if WRITE {
         dst.cast::<u64>().write_unaligned(y.to_be());
     }
+
+    ensure!(flag != 0xff);
     Ok(())
 }
 
 #[inline(always)]
 unsafe fn decode_ascii4<const WRITE: bool>(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
-    let mut x = u32::from_le_bytes(src.cast::<[u8; 4]>().read());
     let mut y: u32 = 0;
     let mut flag = 0;
 
-    for i in 0..4 {
-        let bits = read(table, (x & 0xff) as usize);
+    let mut i = 0;
+    while i < 4 {
+        let x = read(src, i);
+        let bits = read(table, x as usize);
         flag |= bits;
-        x >>= 8;
 
         if WRITE {
             y |= (bits as u32) << (18 - i * 6);
         }
+
+        i += 1;
     }
-    ensure!(flag != 0xff);
 
     if WRITE {
         let y = y.to_be_bytes();
@@ -205,6 +228,8 @@ unsafe fn decode_ascii4<const WRITE: bool>(src: *const u8, dst: *mut u8, table: 
         write(dst, 1, y[2]);
         write(dst, 2, y[3]);
     }
+
+    ensure!(flag != 0xff);
     Ok(())
 }
 
@@ -265,12 +290,13 @@ pub(crate) unsafe fn decode(mut src: *const u8, mut dst: *mut u8, mut n: usize, 
         n -= 8;
     }
 
-    while n >= 4 {
+    let end = src.add(n / 4 * 4);
+    while src < end {
         decode_ascii4::<true>(src, dst, table)?;
         src = src.add(4);
         dst = dst.add(3);
-        n -= 4;
     }
+    n %= 4;
 
     decode_extra::<true>(n, src, dst, table, forgiving)
 }
