@@ -3,16 +3,20 @@ use std::env;
 use std::fs;
 use std::ops::Not;
 
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use ordered_float::OrderedFloat;
 use serde_json::Value;
-use simd_benches::map_collect;
-use tabled::Style;
-use tabled::Table;
+use tabled::{Style, Table};
 
 fn default<T: Default>() -> T {
     T::default()
+}
+
+fn map_collect<T, U, C>(iter: impl IntoIterator<Item = T>, f: impl FnMut(T) -> U) -> C
+where
+    C: FromIterator<U>,
+{
+    iter.into_iter().map(f).collect()
 }
 
 #[derive(Debug)]

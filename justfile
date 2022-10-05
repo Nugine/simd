@@ -42,7 +42,7 @@ x86-bench dispatch *ARGS:
     NAME=target/x86-bench/$COMMIT_HASH-{{dispatch}}
 
     time cargo criterion -p simd-benches --history-id $COMMIT_HASH --message-format json --features "$FEATURES" {{ARGS}} > $NAME.jsonl
-    just bench-analyze $COMMIT_HASH > $NAME.md
+    just analyze $COMMIT_HASH {{dispatch}} > $NAME.md
     bat $NAME.md
 
 bench-all:
@@ -50,10 +50,10 @@ bench-all:
     just x86-bench dynamic
     just x86-bench fallback
 
-bench-analyze commit:
+analyze commit dispatch:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    cargo run -q -p simd-benches --bin sb-analyze --features analyze -- target/x86-bench/{{commit}}.jsonl
+    cargo run -q -p analyze -- target/x86-bench/{{commit}}-{{dispatch}}.jsonl
 
 js-bench:
     #!/bin/bash -e
