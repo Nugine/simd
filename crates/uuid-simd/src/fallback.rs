@@ -46,12 +46,9 @@ pub unsafe fn parse_hyphenated(src: *const u8, dst: *mut u8) -> Result<(), Error
 
 #[inline(always)]
 const fn char_lut(case: AsciiCase) -> &'static [u8; 16] {
-    const LOWER_TABLE: &[u8; 16] = b"0123456789abcdef";
-    const UPPER_TABLE: &[u8; 16] = b"0123456789ABCDEF";
-
     match case {
-        AsciiCase::Lower => LOWER_TABLE,
-        AsciiCase::Upper => UPPER_TABLE,
+        AsciiCase::Lower => vsimd::hex::LOWER_CHARSET,
+        AsciiCase::Upper => vsimd::hex::UPPER_CHARSET,
     }
 }
 

@@ -45,11 +45,8 @@ const fn full_table(table: &[u8; 16]) -> [u16; 256] {
     buf
 }
 
-const UPPER_TABLE: &[u8; 16] = b"0123456789ABCDEF";
-const LOWER_TABLE: &[u8; 16] = b"0123456789abcdef";
-
-pub const FULL_LOWER_TABLE: &[u16; 256] = &full_table(LOWER_TABLE);
-pub const FULL_UPPER_TABLE: &[u16; 256] = &full_table(UPPER_TABLE);
+pub const FULL_LOWER_TABLE: &[u16; 256] = &full_table(vsimd::hex::LOWER_CHARSET);
+pub const FULL_UPPER_TABLE: &[u16; 256] = &full_table(vsimd::hex::UPPER_CHARSET);
 
 #[inline(always)]
 unsafe fn encode_bits(src: *const u8, dst: *mut u8, table: *const u16) {

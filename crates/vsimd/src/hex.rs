@@ -4,6 +4,9 @@ use crate::mask::{u8x16_highbit_any, u8x32_highbit_any};
 use crate::vector::{V128, V256, V64};
 use crate::{Scalable, SIMD128, SIMD256};
 
+pub const UPPER_CHARSET: &[u8; 16] = b"0123456789ABCDEF";
+pub const LOWER_CHARSET: &[u8; 16] = b"0123456789abcdef";
+
 const fn parse_hex(x: u8) -> u8 {
     match x {
         b'0'..=b'9' => x - b'0',
@@ -29,22 +32,20 @@ pub const fn unhex(x: u8) -> u8 {
 }
 
 #[inline(always)]
-pub fn check_ascii_xn<S, V>(s: S, x: V) -> bool
+pub fn check_xn<S, V>(s: S, x: V) -> bool
 where
     S: Scalable<V>,
     V: Copy,
 {
-    let x1 = s.u8xn_sub(x, s.u8xn_splat(0xb0));
-    let x2 = s.and(x1, s.u8xn_splat(0xdf));
-    let x3 = s.u8xn_sub(x2, s.u8xn_splat(0x11));
-    let x4 = s.i8xn_lt(x1, s.i8xn_splat(-118));
-    let x5 = s.i8xn_lt(x3, s.i8xn_splat(-122));
-    let x6 = s.or(x4, x5);
-    s.mask8xn_all(x6)
+    let x1 = s.u8xn_sub(x, s.u8xn_splat(0x30 + 0x80));
+    let x2 = s.u8xn_sub(s.and(x, s.u8xn_splat(0xdf)), s.u8xn_splat(0x41 + 0x80));
+    let m1 = s.i8xn_lt(x1, s.i8xn_splat(-118));
+    let m2 = s.i8xn_lt(x2, s.i8xn_splat(-122));
+    s.mask8xn_all(s.or(m1, m2))
 }
 
-pub const ENCODE_UPPER_LUT: V256 = V256::double_bytes(*b"0123456789ABCDEF");
-pub const ENCODE_LOWER_LUT: V256 = V256::double_bytes(*b"0123456789abcdef");
+pub const ENCODE_UPPER_LUT: V256 = V256::double_bytes(*UPPER_CHARSET);
+pub const ENCODE_LOWER_LUT: V256 = V256::double_bytes(*LOWER_CHARSET);
 
 #[inline(always)]
 pub fn encode_bytes16<S: SIMD256>(s: S, x: V128, lut: V256) -> V256 {
@@ -225,13 +226,13 @@ mod algorithm {
 
         fn is_hex_v2(c: u8) -> bool {
             let x1 = c.wrapping_sub(0x30);
-            let x2 = (x1 & 0xdf).wrapping_sub(0x11);
+            let x2 = (c & 0xdf).wrapping_sub(0x41);
             x1 < 10 || x2 < 6
         }
 
         fn is_hex_v3(c: u8) -> bool {
-            let x1 = c.wrapping_sub(0xb0);
-            let x2 = (x1 & 0xdf).wrapping_sub(0x11);
+            let x1 = c.wrapping_sub(0x30 + 0x80);
+            let x2 = (c & 0xdf).wrapping_sub(0x41 + 0x80);
             ((x1 as i8) < -118) || ((x2 as i8) < -122)
         }
 
