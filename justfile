@@ -14,17 +14,41 @@ doc pkg="vsimd":
     cargo doc --no-deps --all-features
     cargo doc --open -p {{pkg}}
 
-x86-bench *ARGS:
+x86-bench dispatch *ARGS:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
     mkdir -p target/x86-bench
     COMMIT_HASH=`git rev-parse --short HEAD`
-    if [ -z "$FALLBACK" ]; then
-        export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1"
-    fi
-    time cargo criterion -p simd-benches --history-id $COMMIT_HASH --message-format json {{ARGS}} > target/x86-bench/$COMMIT_HASH.jsonl
-    just bench-analyze $COMMIT_HASH > target/x86-bench/$COMMIT_HASH.md
-    bat target/x86-bench/$COMMIT_HASH.md
+
+    case "{{dispatch}}" in
+        static)
+            export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1"
+            FEATURES=""
+            ;;
+        dynamic)
+            export RUSTFLAGS=""
+            FEATURES="detect"
+            ;;
+        fallback)
+            export RUSTFLAGS=""
+            FEATURES=""
+            ;;
+        *)
+            echo "Unknown dispatch: {{dispatch}}"
+            exit 1
+            ;;
+    esac
+
+    NAME=target/x86-bench/$COMMIT_HASH-{{dispatch}}
+
+    time cargo criterion -p simd-benches --history-id $COMMIT_HASH --message-format json --features "$FEATURES" {{ARGS}} > $NAME.jsonl
+    just bench-analyze $COMMIT_HASH > $NAME.md
+    bat $NAME.md
+
+bench-all:
+    just x86-bench static
+    just x86-bench dynamic
+    just x86-bench fallback
 
 bench-analyze commit:
     #!/bin/bash -ex
