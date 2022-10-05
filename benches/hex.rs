@@ -23,12 +23,8 @@ pub fn bench_check(c: &mut Criterion) {
         ("hex-simd/auto", |src: &[u8]| {
             assert!(hex_simd::check(src).is_ok()); //
         }),
-        #[cfg(target_feature = "sse4.1")]
-        ("faster-hex/sse4.1", |src: &[u8]| unsafe {
-            assert!(faster_hex::hex_check_sse(src))
-        }),
-        ("faster-hex/fallback", |src: &[u8]| {
-            assert!(faster_hex::hex_check_fallback(src))
+        ("faster-hex/auto", |src: &[u8]| {
+            assert!(simd_benches::faster_hex::hex_check(src))
         }),
     ];
 

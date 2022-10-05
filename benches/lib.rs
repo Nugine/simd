@@ -14,3 +14,21 @@ where
 {
     iter.into_iter().map(f).collect()
 }
+
+pub mod faster_hex {
+    #[inline]
+    pub fn hex_check(src: &[u8]) -> bool {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        {
+            if cfg!(target_feature = "sse4.1") {
+                return unsafe { ::faster_hex::hex_check_sse(src) };
+            }
+
+            #[cfg(feature = "detect")]
+            if is_x86_feature_detected!("sse4.1") {
+                return unsafe { ::faster_hex::hex_check_sse(src) };
+            }
+        }
+        ::faster_hex::hex_check_fallback(src)
+    }
+}
