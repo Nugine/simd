@@ -58,6 +58,9 @@ pub fn bench_decode(c: &mut Criterion) {
         ("faster-hex/auto", |src, dst| {
             faster_hex::hex_decode(src, dst).unwrap();
         }),
+        ("base16ct/fallback", |src, dst| {
+            base16ct::lower::decode(src, dst).unwrap();
+        }),
         ("faster-hex/fallback", |src, dst| {
             assert!(faster_hex::hex_check_fallback(src));
             faster_hex::hex_decode_fallback(src, dst);
@@ -99,6 +102,9 @@ pub fn bench_encode(c: &mut Criterion) {
         #[cfg(feature = "detect")]
         ("faster-hex/auto", |src, dst| {
             faster_hex::hex_encode(src, dst).unwrap();
+        }),
+        ("base16ct/fallback", |src, dst| {
+            base16ct::lower::encode(src, dst).unwrap();
         }),
         ("faster-hex/fallback", |src, dst| {
             faster_hex::hex_encode_fallback(src, dst);

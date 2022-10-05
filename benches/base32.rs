@@ -15,7 +15,11 @@ pub fn bench_encode(c: &mut Criterion) {
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("base32-simd/auto", |src, dst| {
             let _ = base32_simd::BASE32.encode(src, OutRef::from_slice(dst)); //
-        }), //
+        }),
+        ("base32ct/fallback", |src, dst| {
+            use base32ct::Encoding;
+            base32ct::Base32Upper::encode(src, dst).unwrap();
+        }),
     ];
 
     for &(name, f) in functions {
@@ -43,7 +47,11 @@ pub fn bench_decode(c: &mut Criterion) {
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("base32-simd/auto", |src, dst| {
             base32_simd::BASE32.decode(src, OutRef::from_slice(dst)).unwrap(); //
-        }), //
+        }),
+        ("base32ct/fallback", |src, dst| {
+            use base32ct::Encoding;
+            base32ct::Base32Upper::decode(src, dst).unwrap();
+        }),
     ];
 
     for &(name, f) in functions {

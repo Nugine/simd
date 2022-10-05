@@ -29,7 +29,7 @@ x86-bench *ARGS:
 bench-analyze commit:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    cargo run -p simd-benches --bin sb-analyze --features analyze -- target/x86-bench/{{commit}}.jsonl
+    cargo run -q -p simd-benches --bin sb-analyze --features analyze -- target/x86-bench/{{commit}}.jsonl
 
 js-bench:
     #!/bin/bash -e

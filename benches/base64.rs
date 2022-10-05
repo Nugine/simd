@@ -23,6 +23,10 @@ pub fn bench_encode(c: &mut Criterion) {
             let config = base64::STANDARD;
             base64::encode_config_slice(src, config, dst);
         }),
+        ("base64ct/fallback", |src, dst| {
+            use base64ct::Encoding;
+            base64ct::Base64::encode(src, dst).unwrap();
+        }),
     ];
 
     for &(name, f) in functions {
@@ -57,6 +61,10 @@ pub fn bench_decode(c: &mut Criterion) {
         ("base64/fallback", |src, dst| {
             let config = base64::STANDARD;
             base64::decode_config_slice(src, config, dst).unwrap();
+        }),
+        ("base64ct/fallback", |src, dst| {
+            use base64ct::Encoding;
+            base64ct::Base64::decode(src, dst).unwrap();
         }),
     ];
 
