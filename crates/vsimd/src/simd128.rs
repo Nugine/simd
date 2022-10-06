@@ -1818,12 +1818,15 @@ mod tests {
     fn u8x16_any_zero() {
         fn test(a: [u8; 16], expected: bool) {
             let a = V128::from_bytes(a);
+            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             if let Some(s) = SSE41::detect() {
                 assert_eq!(s.u8x16_any_zero(a), expected);
             }
+            #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
             if let Some(s) = NEON::detect() {
                 assert_eq!(s.u8x16_any_zero(a), expected);
             }
+            #[cfg(target_arch = "wasm32")]
             if let Some(s) = WASM128::detect() {
                 assert_eq!(s.u8x16_any_zero(a), expected);
             }
