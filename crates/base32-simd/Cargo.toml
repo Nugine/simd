@@ -7,7 +7,7 @@ license = "MIT"
 repository = "https://github.com/Nugine/simd"
 keywords = ["base32", "simd"]
 categories = ["no-std", "parser-implementations", "encoding"]
-readme = "../../README.md"
+readme = "README.md"
 rust-version = "1.63"
 
 [package.metadata.docs.rs]
