@@ -1,4 +1,4 @@
-use crate::isa::{AVX2, NEON, SSE2, SSE41, WASM128};
+use crate::isa::{NEON, SSE2, SSE41, WASM128};
 use crate::vector::V128;
 use crate::SIMD64;
 
@@ -1799,12 +1799,12 @@ pub unsafe trait SIMD128: SIMD64 {
         }
     }
 
-    /// T1: AVX2
+    /// T1: SSE41
     #[inline(always)]
-    fn u32x4_blend<const IMM4: i32>(self, a: V128, b: V128) -> V128 {
+    fn u16x8_blend<const IMM8: i32>(self, a: V128, b: V128) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm_blend_epi32::<IMM4>(t(a), t(b))) }; // FIXME: avx2
+        if is_subtype!(Self, SSE41) {
+            return unsafe { t(_mm_blend_epi16::<IMM8>(t(a), t(b))) };
         }
         if is_subtype!(Self, NEON | WASM128) {
             unimplemented!()
