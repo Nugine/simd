@@ -64,7 +64,7 @@ fn u32x8_blend_0x55<S: SIMD256>(s: S, a: V256, b: V256) -> V256 {
         return s.u32x8_blend::<0x55>(a, b);
     }
     if is_subtype!(S, SSE41) {
-        return simd256_vop!(s, S::u16x8_blend::<0x55>, a, b);
+        return simd256_vop!(s, S::u16x8_blend::<0x33>, a, b);
     }
     unreachable!()
 }

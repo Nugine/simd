@@ -4,8 +4,11 @@ pub mod x86 {
     use crate::Error;
 
     use vsimd::ascii::AsciiCase;
+    use vsimd::isa::InstructionSet;
+    use vsimd::isa::SSE2;
     use vsimd::tools::slice;
     use vsimd::tools::slice_parts;
+    use vsimd::SIMD128;
 
     #[cfg(target_arch = "x86")]
     use core::arch::x86::*;
@@ -119,21 +122,13 @@ pub mod x86 {
     #[inline]
     #[target_feature(enable = "sse2")]
     pub unsafe fn sse2_check(data: &[u8]) -> Result<(), Error> {
+        let s = SSE2::new();
         let (mut src, mut len) = slice_parts(data);
 
         let end = src.add(len / 16 * 16);
         while src < end {
-            let x = _mm_loadu_si128(src.cast());
-
-            let x1 = _mm_sub_epi8(x, _mm_set1_epu8(0x30 + 0x80));
-            let x2 = _mm_sub_epi8(_mm_and_si128(x, _mm_set1_epu8(0xdf)), _mm_set1_epu8(0x41 + 0x80));
-            let m1 = _mm_cmpgt_epi8(_mm_set1_epi8(9), x1);
-            let m2 = _mm_cmpgt_epi8(_mm_set1_epi8(6), x2);
-            let m = _mm_or_si128(m1, m2);
-
-            let flag = _mm_movemask_epi8(m) as u16;
-            ensure!(flag == u16::MAX);
-
+            let x = s.v128_load_unaligned(src);
+            ensure!(vsimd::hex::check_xn(s, x));
             src = src.add(16);
         }
         len %= 16;
