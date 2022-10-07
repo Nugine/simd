@@ -30,6 +30,7 @@ pub fn check_short(data: &[u8]) -> Result<(), Error> {
     }
 }
 
+#[inline(always)]
 fn check_short_sc(data: &[u8]) -> Result<(), Error> {
     for &x in data {
         ensure!(unhex(x) != 0xff);
@@ -37,6 +38,7 @@ fn check_short_sc(data: &[u8]) -> Result<(), Error> {
     Ok(())
 }
 
+#[inline(always)]
 fn check_short_ct(data: &[u8]) -> Result<(), Error> {
     let mut flag = 0;
     for &x in data {
