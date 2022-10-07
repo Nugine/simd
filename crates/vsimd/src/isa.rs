@@ -79,8 +79,8 @@ unsafe impl InstructionSet for SSE2 {
 }
 
 unsafe impl SIMD64 for SSE2 {}
-unsafe impl SIMD128 for SSE2 {} // TODO
-// unsafe impl SIMD256 for SSE2 {} // TODO
+unsafe impl SIMD128 for SSE2 {}
+unsafe impl SIMD256 for SSE2 {}
 
 #[derive(Debug, Clone, Copy)]
 pub struct SSE41(());

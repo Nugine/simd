@@ -1,4 +1,4 @@
-use crate::isa::{AVX2, NEON, SSE41, WASM128};
+use crate::isa::{AVX2, NEON, SSE2, WASM128};
 use crate::vector::{V128, V256};
 use crate::SIMD128;
 
@@ -770,7 +770,7 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn u8x32_swizzle(self, a: V256, b: V256) -> V256 {
-        if is_subtype!(Self, SSE41 | WASM128) {
+        if is_subtype!(Self, SSE2 | WASM128) {
             let _ = (a, b);
             unimplemented!()
         }
@@ -851,7 +851,7 @@ pub unsafe trait SIMD256: SIMD128 {
             return unsafe { t(_mm256_cvtepu8_epi16(t(a))) };
         }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, SSE41) {
+        if is_subtype!(Self, SSE2) {
             let zero = self.v128_create_zero();
             let lo = self.u8x16_zip_lo(a, zero);
             let hi = self.u8x16_zip_hi(a, zero);
@@ -975,7 +975,7 @@ pub unsafe trait SIMD256: SIMD128 {
         if is_subtype!(Self, AVX2) {
             return unsafe { t(_mm256_permute2x128_si256::<0b0010_0000>(t(a), t(b))) };
         }
-        if is_subtype!(Self, SSE41 | NEON | WASM128) {
+        if is_subtype!(Self, SSE2 | NEON | WASM128) {
             let ((a, _), (c, _)) = (a.to_v128x2(), b.to_v128x2());
             return V256::from_v128x2((a, c));
         }
@@ -990,7 +990,7 @@ pub unsafe trait SIMD256: SIMD128 {
         if is_subtype!(Self, AVX2) {
             return unsafe { t(_mm256_permute2x128_si256::<0b0011_0001>(t(a), t(b))) };
         }
-        if is_subtype!(Self, SSE41 | NEON | WASM128) {
+        if is_subtype!(Self, SSE2 | NEON | WASM128) {
             let ((_, b), (_, d)) = (a.to_v128x2(), b.to_v128x2());
             return V256::from_v128x2((b, d));
         }
@@ -1005,7 +1005,7 @@ pub unsafe trait SIMD256: SIMD128 {
         if is_subtype!(Self, AVX2) {
             return unsafe { t(_mm256_permute4x64_epi64::<IMM8>(t(a))) };
         }
-        if is_subtype!(Self, SSE41 | NEON | WASM128) {
+        if is_subtype!(Self, SSE2 | NEON | WASM128) {
             let _ = a;
             unimplemented!()
         }
@@ -1017,7 +1017,7 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn u8x32_unzip_even(self, a: V256, b: V256) -> V256 {
-        if is_subtype!(Self, SSE41) {
+        if is_subtype!(Self, SSE2) {
             unimplemented!()
         }
         {
@@ -1030,7 +1030,7 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn u8x32_unzip_odd(self, a: V256, b: V256) -> V256 {
-        if is_subtype!(Self, SSE41) {
+        if is_subtype!(Self, SSE2) {
             unimplemented!()
         }
         {
