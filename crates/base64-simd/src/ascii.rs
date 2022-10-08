@@ -66,6 +66,6 @@ fn test_remove_ascii_whitespace() {
             v
         };
         let ans = remove_ascii_whitespace_inplace(&mut buf);
-        assert_eq!(ans, &*expected, "case = {:?}", case);
+        assert_eq!(ans, &*expected, "case = {case:?}");
     }
 }

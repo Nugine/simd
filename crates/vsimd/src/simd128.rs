@@ -365,7 +365,7 @@ pub unsafe trait SIMD128: SIMD64 {
     fn i8x16_splat(self, x: i8) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
-            return unsafe { t(_mm_set1_epi8(x as i8)) };
+            return unsafe { t(_mm_set1_epi8(x)) };
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
@@ -386,7 +386,7 @@ pub unsafe trait SIMD128: SIMD64 {
     fn i16x8_splat(self, x: i16) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
-            return unsafe { t(_mm_set1_epi16(x as i16)) };
+            return unsafe { t(_mm_set1_epi16(x)) };
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
@@ -407,7 +407,7 @@ pub unsafe trait SIMD128: SIMD64 {
     fn i32x4_splat(self, x: i32) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
-            return unsafe { t(_mm_set1_epi32(x as i32)) };
+            return unsafe { t(_mm_set1_epi32(x)) };
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {
@@ -428,7 +428,7 @@ pub unsafe trait SIMD128: SIMD64 {
     fn i64x2_splat(self, x: i64) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
-            return unsafe { t(_mm_set1_epi64x(x as i64)) };
+            return unsafe { t(_mm_set1_epi64x(x)) };
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {

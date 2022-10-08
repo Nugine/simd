@@ -22,11 +22,11 @@ pub fn print_fn_table(is_primary: impl Fn(u8) -> bool, f: impl Fn(u8) -> u8) {
         }
 
         if is_primary(c) {
-            print!("\x1b[1;31m{:0>2X}\x1b[0m  ", val);
+            print!("\x1b[1;31m{val:0>2X}\x1b[0m  ");
         } else if val >= 0x80 {
-            print!("\x1b[1;36m{:0>2X}\x1b[0m  ", val);
+            print!("\x1b[1;36m{val:0>2X}\x1b[0m  ");
         } else {
-            print!("\x1b[1;32m{:0>2X}\x1b[0m  ", val);
+            print!("\x1b[1;32m{val:0>2X}\x1b[0m  ");
         }
     }
     println!();
