@@ -22,7 +22,7 @@ x86-bench dispatch *ARGS:
 
     case "{{dispatch}}" in
         static)
-            export RUSTFLAGS="-C target-feature=+avx2 -C target-feature=+sse4.1"
+            export RUSTFLAGS="-C target-cpu=native"
             FEATURES=""
             ;;
         dynamic)
