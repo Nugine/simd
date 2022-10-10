@@ -1913,7 +1913,7 @@ pub unsafe trait SIMD128: SIMD64 {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(miri)))]
 mod tests {
     use super::*;
 
@@ -1921,7 +1921,8 @@ mod tests {
 
     use const_str::hex;
 
-    #[test]
+    #[cfg_attr(not(target_arch = "wasm32"), test)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn u8x16_any_zero() {
         fn test(a: [u8; 16], expected: bool) {
             let a = V128::from_bytes(a);

@@ -22,3 +22,8 @@ unstable = []
 
 [dev-dependencies]
 const-str = "0.5.1"
+rand = "0.8.5"
+
+[target.'cfg(target_arch="wasm32")'.dev-dependencies]
+getrandom = { version = "0.2.7", features = ["js"] }
+wasm-bindgen-test = "0.3.33"

@@ -41,7 +41,9 @@ extern crate alloc;
 #[macro_use]
 mod macros;
 
+#[macro_use]
 pub mod isa;
+
 pub mod vector;
 
 mod simd64;
@@ -72,4 +74,5 @@ pub mod base64;
 pub mod bswap;
 pub mod hex;
 pub mod mask;
+pub mod native;
 pub mod table;
