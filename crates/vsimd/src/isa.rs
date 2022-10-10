@@ -15,6 +15,26 @@ pub unsafe trait InstructionSet: Copy + 'static {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct Fallback(());
+
+unsafe impl InstructionSet for Fallback {
+    #[inline(always)]
+    unsafe fn new() -> Self {
+        Self(())
+    }
+
+    #[inline(always)]
+    fn is_enabled() -> bool {
+        true
+    }
+
+    #[inline(always)]
+    fn is_subtype_of<T: InstructionSet>() -> bool {
+        is_same_type::<Self, T>()
+    }
+}
+
 #[allow(unused_macros)]
 macro_rules! is_feature_detected {
     ($feature:tt) => {{
@@ -27,20 +47,31 @@ macro_rules! is_feature_detected {
             #[cfg(feature = "detect")]
             {
                 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-                if std::arch::is_x86_feature_detected!($feature) {
-                    return true;
+                {
+                    std::arch::is_x86_feature_detected!($feature)
                 }
                 #[cfg(target_arch = "arm")]
-                if std::arch::is_arm_feature_detected!($feature) {
-                    return true;
+                {
+                    std::arch::is_arm_feature_detected!($feature)
                 }
                 #[cfg(target_arch = "aarch64")]
-                if std::arch::is_aarch64_feature_detected!($feature) {
-                    return true;
+                {
+                    std::arch::is_aarch64_feature_detected!($feature)
+                }
+                #[cfg(not(any(
+                    target_arch = "x86",
+                    target_arch = "x86_64",
+                    target_arch = "arm",
+                    target_arch = "aarch64"
+                )))]
+                {
+                    false
                 }
             }
-
-            false
+            #[cfg(not(feature = "detect"))]
+            {
+                false
+            }
         }
     }};
 }
@@ -74,7 +105,7 @@ unsafe impl InstructionSet for SSE2 {
 
     #[inline(always)]
     fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>()
+        is_same_type::<Self, T>() || Fallback::is_subtype_of::<T>()
     }
 }
 
@@ -161,7 +192,7 @@ unsafe impl InstructionSet for NEON {
 
     #[inline(always)]
     fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>()
+        is_same_type::<Self, T>() || Fallback::is_subtype_of::<T>()
     }
 }
 
@@ -192,7 +223,7 @@ unsafe impl InstructionSet for WASM128 {
 
     #[inline(always)]
     fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>()
+        is_same_type::<Self, T>() || Fallback::is_subtype_of::<T>()
     }
 }
 
