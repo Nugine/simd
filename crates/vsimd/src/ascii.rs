@@ -1,6 +1,5 @@
 use crate::mask::{mask8x32_any, u8x32_highbit_any};
-use crate::pod::align;
-use crate::tools::{read, slice, slice_parts, unroll};
+use crate::tools::{read, slice, slice_parts};
 use crate::vector::V256;
 use crate::{Scalable, SIMD256};
 
@@ -40,23 +39,36 @@ pub enum AsciiCase {
 #[inline(always)]
 #[must_use]
 pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
-    let mut ans = 0;
-    unroll(data, 8, |&x| ans |= x);
-    ans < 0x80
+    unsafe {
+        let mut ans = 0;
+        let (mut src, len) = slice_parts(data);
+        let end = src.add(len);
+        while src < end {
+            ans |= src.read();
+            src = src.add(1);
+        }
+        ans < 0x80
+    }
 }
 
 #[inline(always)]
 pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
-    let (prefix, middle, suffix) = align::<_, V256>(data);
+    unsafe {
+        let (mut src, mut len) = slice_parts(data);
 
-    let mut ans = is_ascii_ct_fallback(prefix);
+        let end = src.add(len / 32 * 32);
+        let mut y = s.v256_create_zero();
+        while src < end {
+            let x = s.v256_load_unaligned(src);
+            y = s.v256_or(y, x);
+            src = src.add(32);
+        }
+        len %= 32;
 
-    let mut mask = s.v256_create_zero();
-    unroll(middle, 8, |&chunk| mask = s.v256_or(mask, chunk));
-    ans &= u8x32_highbit_any(s, mask).not();
-
-    ans &= is_ascii_ct_fallback(suffix);
-    ans
+        let mut ans = u8x32_highbit_any(s, y).not();
+        ans &= is_ascii_ct_fallback(slice(src, len));
+        ans
+    }
 }
 
 #[inline(always)]
