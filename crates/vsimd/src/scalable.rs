@@ -36,6 +36,10 @@ pub unsafe trait Scalable<V: Copy>: InstructionSet {
 
     fn u8xn_highbit_all(self, a: V) -> bool;
     fn u8xn_highbit_any(self, a: V) -> bool;
+
+    fn u16xn_bswap(self, a: V) -> V;
+    fn u32xn_bswap(self, a: V) -> V;
+    fn u64xn_bswap(self, a: V) -> V;
 }
 
 unsafe impl<S> Scalable<V128> for S
@@ -141,6 +145,21 @@ where
     fn u8xn_highbit_any(self, a: V128) -> bool {
         u8x16_highbit_any(self, a)
     }
+
+    #[inline(always)]
+    fn u16xn_bswap(self, a: V128) -> V128 {
+        self.u16x8_bswap(a)
+    }
+
+    #[inline(always)]
+    fn u32xn_bswap(self, a: V128) -> V128 {
+        self.u32x4_bswap(a)
+    }
+
+    #[inline(always)]
+    fn u64xn_bswap(self, a: V128) -> V128 {
+        self.u64x2_bswap(a)
+    }
 }
 
 unsafe impl<S> Scalable<V256> for S
@@ -245,5 +264,20 @@ where
     #[inline(always)]
     fn u8xn_highbit_any(self, a: V256) -> bool {
         u8x32_highbit_any(self, a)
+    }
+
+    #[inline(always)]
+    fn u16xn_bswap(self, a: V256) -> V256 {
+        self.u16x16_bswap(a)
+    }
+
+    #[inline(always)]
+    fn u32xn_bswap(self, a: V256) -> V256 {
+        self.u32x8_bswap(a)
+    }
+
+    #[inline(always)]
+    fn u64xn_bswap(self, a: V256) -> V256 {
+        self.u64x4_bswap(a)
     }
 }
