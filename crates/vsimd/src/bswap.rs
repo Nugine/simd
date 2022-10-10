@@ -1,5 +1,4 @@
-use crate::pod::{align, POD};
-use crate::tools::slice;
+use crate::pod::POD;
 use crate::vector::{V128, V256};
 use crate::SIMD256;
 
@@ -24,12 +23,15 @@ pub(crate) const SHUFFLE_U32X8: V256 = SHUFFLE_U32X4.x2();
 
 pub(crate) const SHUFFLE_U64X4: V256 = SHUFFLE_U64X2.x2();
 
-pub unsafe trait BSwapExt: POD {
+pub unsafe trait BSwap: POD {
+    const LANES: usize;
     fn swap_single(x: Self) -> Self;
     fn swap_simd<S: SIMD256>(s: S, a: V256) -> V256;
 }
 
-unsafe impl BSwapExt for u16 {
+unsafe impl BSwap for u16 {
+    const LANES: usize = 16;
+
     #[inline(always)]
     fn swap_single(x: Self) -> Self {
         x.swap_bytes()
@@ -41,7 +43,9 @@ unsafe impl BSwapExt for u16 {
     }
 }
 
-unsafe impl BSwapExt for u32 {
+unsafe impl BSwap for u32 {
+    const LANES: usize = 8;
+
     #[inline(always)]
     fn swap_single(x: Self) -> Self {
         x.swap_bytes()
@@ -53,7 +57,9 @@ unsafe impl BSwapExt for u32 {
     }
 }
 
-unsafe impl BSwapExt for u64 {
+unsafe impl BSwap for u64 {
+    const LANES: usize = 4;
+
     #[inline(always)]
     fn swap_single(x: Self) -> Self {
         x.swap_bytes()
@@ -66,72 +72,34 @@ unsafe impl BSwapExt for u64 {
 }
 
 #[inline(always)]
-unsafe fn unroll_ptr<T>(mut src: *const T, len: usize, chunk_size: usize, mut f: impl FnMut(*const T)) {
-    let chunks_end = src.add(len / chunk_size * chunk_size);
+pub unsafe fn bswap_fallback<T>(mut src: *const T, len: usize, mut dst: *mut T)
+where
+    T: BSwap,
+{
     let end = src.add(len);
-
-    while src < chunks_end {
-        for _ in 0..chunk_size {
-            f(src);
-            src = src.add(1);
-        }
-    }
-
     while src < end {
-        f(src);
-        src = src.add(1);
-    }
-}
-
-type SliceRawParts<T> = (*const T, usize);
-
-#[inline(always)]
-fn raw_align32<T: POD>(slice: &[T]) -> (SliceRawParts<T>, SliceRawParts<V256>, SliceRawParts<T>) {
-    let (p, m, s) = align::<_, V256>(slice);
-    let p = (p.as_ptr(), p.len());
-    let m = (m.as_ptr(), m.len());
-    let s = (s.as_ptr(), s.len());
-    (p, m, s)
-}
-
-#[inline(always)]
-pub unsafe fn bswap_fallback<T>(src: *const T, len: usize, mut dst: *mut T)
-where
-    T: BSwapExt,
-{
-    unroll_ptr(src, len, 8, |src| {
         let x = src.read();
-        let y = BSwapExt::swap_single(x);
+        let y = <T as BSwap>::swap_single(x);
         dst.write(y);
+        src = src.add(1);
         dst = dst.add(1);
-    });
+    }
 }
 
 #[inline(always)]
-pub unsafe fn bswap_simd<S: SIMD256, T>(s: S, src: *const T, len: usize, mut dst: *mut T)
+pub unsafe fn bswap_simd<S: SIMD256, T>(s: S, mut src: *const T, mut len: usize, mut dst: *mut T)
 where
-    T: BSwapExt,
+    T: BSwap,
 {
-    let (prefix, middle, suffix) = raw_align32(slice(src, len));
-
-    {
-        let (src, len) = prefix;
-        bswap_fallback(src, len, dst);
-        dst = dst.add(len);
+    let end = src.add(len / T::LANES * T::LANES);
+    while src < end {
+        let x = s.v256_load_unaligned(src.cast());
+        let y = <T as BSwap>::swap_simd(s, x);
+        s.v256_store_unaligned(dst.cast(), y);
+        src = src.add(T::LANES);
+        dst = dst.add(T::LANES);
     }
+    len %= T::LANES;
 
-    {
-        let (src, len) = middle;
-        unroll_ptr(src, len, 8, |src| {
-            let x = s.v256_load(src.cast());
-            let y = <T as BSwapExt>::swap_simd(s, x);
-            s.v256_store_unaligned(dst.cast(), y);
-            dst = dst.add(8);
-        });
-    }
-
-    {
-        let (src, len) = suffix;
-        bswap_fallback(src, len, dst);
-    }
+    bswap_fallback(src, len, dst);
 }
