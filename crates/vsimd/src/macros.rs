@@ -105,49 +105,56 @@ macro_rules! simd_dispatch {
                 }
             }
 
-            #[inline(always)]
-            fn resolve() -> $(for<$($lifetime),+>)? unsafe fn($($arg_type),*) -> $ret {
-                #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-                if $crate::isa::AVX2::is_enabled() {
-                    return avx2;
+            #[cfg(any(
+                any(target_arch = "x86", target_arch = "x86_64"),
+                all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")),
+                target_arch = "wasm32"
+            ))]
+            $crate::item_group!{
+                #[inline(always)]
+                fn resolve() -> $(for<$($lifetime),+>)? unsafe fn($($arg_type),*) -> $ret {
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+                    if $crate::isa::AVX2::is_enabled() {
+                        return avx2;
+                    }
+                    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+                    if $crate::isa::SSE41::is_enabled() {
+                        return sse41;
+                    }
+                    #[cfg(all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")))]
+                    if $crate::isa::NEON::is_enabled() {
+                        return neon;
+                    }
+                    #[cfg(target_arch = "wasm32")]
+                    if $crate::isa::WASM128::is_enabled() {
+                        return simd128;
+                    }
+                    $($fallback_fn)+
                 }
-                #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-                if $crate::isa::SSE41::is_enabled() {
-                    return sse41;
+
+                use core::sync::atomic::{AtomicPtr, Ordering::Relaxed};
+
+                static IFUNC: AtomicPtr<()> = AtomicPtr::new(init_ifunc as *mut ());
+
+                $($unsafe)? fn init_ifunc$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+                    let f = resolve();
+                    IFUNC.store(f as *mut (), Relaxed);
+                    unsafe { f($($arg_name),*) }
                 }
-                #[cfg(all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")))]
-                if $crate::isa::NEON::is_enabled() {
-                    return neon;
+
+                #[inline(always)]
+                $vis $($unsafe)? fn auto_indirect$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+                    unsafe {
+                        let f: unsafe fn($($arg_type),*) -> $ret = core::mem::transmute(IFUNC.load(Relaxed));
+                        f($($arg_name),*)
+                    }
                 }
-                #[cfg(target_arch = "wasm32")]
-                if $crate::isa::WASM128::is_enabled() {
-                    return simd128;
+
+                #[inline(always)]
+                $vis $($unsafe)? fn auto_direct$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
+                    let f = resolve();
+                    unsafe { f($($arg_name),*) }
                 }
-                $($fallback_fn)+
-            }
-
-            use core::sync::atomic::{AtomicPtr, Ordering::Relaxed};
-
-            static IFUNC: AtomicPtr<()> = AtomicPtr::new(init_ifunc as *mut ());
-
-            $($unsafe)? fn init_ifunc$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
-                let f = resolve();
-                IFUNC.store(f as *mut (), Relaxed);
-                unsafe { f($($arg_name),*) }
-            }
-
-            #[inline(always)]
-            $vis $($unsafe)? fn auto_indirect$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
-                unsafe {
-                    let f: unsafe fn($($arg_type),*) -> $ret = core::mem::transmute(IFUNC.load(Relaxed));
-                    f($($arg_name),*)
-                }
-            }
-
-            #[inline(always)]
-            $vis $($unsafe)? fn auto_direct$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
-                let f = resolve();
-                unsafe { f($($arg_name),*) }
             }
 
             #[inline(always)]
@@ -167,13 +174,28 @@ macro_rules! simd_dispatch {
                     return unsafe { simd128($($arg_name),*) }
                 }
 
-                #[cfg(feature = "detect")]
+                #[cfg(any(
+                    any(target_arch = "x86", target_arch = "x86_64"),
+                    all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")),
+                    target_arch = "wasm32"
+                ))]
                 {
-                    auto_indirect($($arg_name),*)
+                    #[cfg(feature = "detect")]
+                    {
+                        auto_indirect($($arg_name),*)
+                    }
+                    #[cfg(not(feature = "detect"))]
+                    {
+                        auto_direct($($arg_name),*)
+                    }
                 }
-                #[cfg(not(feature = "detect"))]
+                #[cfg(not(any(
+                    any(target_arch = "x86", target_arch = "x86_64"),
+                    all(feature = "unstable", any(target_arch = "arm",target_arch = "aarch64")),
+                    target_arch = "wasm32"
+                )))]
                 {
-                    auto_direct($($arg_name),*)
+                    $($fallback_fn)+($($arg_name),*)
                 }
             }
         }
