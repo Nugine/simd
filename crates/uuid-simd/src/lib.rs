@@ -20,6 +20,7 @@
 #![cfg_attr(feature = "unstable", feature(stdsimd))]
 #![cfg_attr(feature = "unstable", feature(arm_target_feature))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(test, deny(warnings))]
 //
 #![deny(
     missing_debug_implementations,
