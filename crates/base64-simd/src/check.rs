@@ -1,9 +1,11 @@
+use crate::alsw::{STANDARD_ALSW_CHECK_X2, URL_SAFE_ALSW_CHECK_X2};
 use crate::decode::{decode_ascii4, decode_ascii8, decode_extra};
 use crate::decode::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
 use crate::{Config, Error, Kind};
 
-use vsimd::base64::{STANDARD_ALSW_CHECK_X2, URL_SAFE_ALSW_CHECK_X2};
+use vsimd::alsw::AlswLut;
 use vsimd::tools::slice;
+use vsimd::vector::V256;
 use vsimd::SIMD256;
 
 use core::ptr::null_mut;
@@ -51,7 +53,7 @@ pub(crate) fn check_simd<S: SIMD256>(s: S, src: &[u8], config: Config) -> Result
         // n*3/4 >= 24+4
         while n >= 38 {
             let x = s.v256_load_unaligned(src);
-            let is_valid = vsimd::base64::check_ascii32(s, x, check_lut);
+            let is_valid = check_ascii32(s, x, check_lut);
             ensure!(is_valid);
             src = src.add(32);
             n -= 32;
@@ -59,4 +61,9 @@ pub(crate) fn check_simd<S: SIMD256>(s: S, src: &[u8], config: Config) -> Result
 
         check_fallback(slice(src, n), config)
     }
+}
+
+#[inline(always)]
+fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>) -> bool {
+    vsimd::alsw::check_ascii_xn(s, x, check)
 }

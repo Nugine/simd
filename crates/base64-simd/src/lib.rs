@@ -51,6 +51,7 @@ extern crate alloc;
 mod error;
 pub use self::error::Error;
 
+mod alsw;
 mod ascii;
 mod check;
 mod decode;
@@ -74,14 +75,21 @@ pub use outref::OutRef;
 use crate::decode::decoded_length;
 use crate::encode::encoded_length_unchecked;
 
-use vsimd::base64::Kind;
-use vsimd::base64::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 use vsimd::tools::slice_mut;
+
+const STANDARD_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const URL_SAFE_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 /// Base64 variant
 #[derive(Debug)]
 pub struct Base64 {
     config: Config,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum Kind {
+    Standard,
+    UrlSafe,
 }
 
 #[derive(Debug, Clone, Copy)]

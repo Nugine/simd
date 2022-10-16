@@ -73,6 +73,7 @@ pub fn decode_ascii_xn<S: Scalable<V>, V: Copy>(s: S, x: V, check: AlswLut<V>, d
     (c1, c2)
 }
 
+#[macro_export]
 macro_rules! impl_alsw {
     ($spec:ty) => {
         impl $spec {
@@ -150,16 +151,10 @@ macro_rules! impl_alsw {
                 let hash = &Self::CHECK_HASH;
                 let offset = &Self::CHECK_OFFSET;
 
-                let is_primary = |c: u8| Self::decode(c) != 0xff;
-
-                let h = |c: u8| $crate::alsw::hash(hash, c);
                 let check = |c: u8| $crate::alsw::check(hash, offset, c);
 
-                $crate::algorithm::print_fn_table(is_primary, h);
-                $crate::algorithm::print_fn_table(is_primary, check);
-
                 for c in 0..=255u8 {
-                    assert_eq!(check(c) < 0x80, is_primary(c));
+                    assert_eq!(check(c) < 0x80, Self::decode(c) != 0xff);
                 }
             }
 
@@ -168,13 +163,7 @@ macro_rules! impl_alsw {
                 let hash = &Self::DECODE_HASH;
                 let offset = &Self::DECODE_OFFSET;
 
-                let is_primary = |c: u8| Self::decode(c) != 0xff;
-
-                let h = |c: u8| $crate::alsw::hash(hash, c);
                 let decode = |c: u8| $crate::alsw::decode(hash, offset, c);
-
-                $crate::algorithm::print_fn_table(is_primary, h);
-                $crate::algorithm::print_fn_table(is_primary, decode);
 
                 for c in 0..=255u8 {
                     let idx = Self::decode(c);
