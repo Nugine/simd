@@ -45,10 +45,10 @@
 mod error;
 pub use self::error::Error;
 
-mod fallback;
-
-mod simd;
 mod spec;
+
+mod format;
+mod parse;
 
 mod multiversion;
 
