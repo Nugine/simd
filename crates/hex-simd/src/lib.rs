@@ -38,7 +38,8 @@
     clippy::wildcard_imports,
     clippy::cast_possible_wrap,
     clippy::cast_possible_truncation,
-    clippy::cast_sign_loss
+    clippy::cast_sign_loss,
+    clippy::module_name_repetitions
 )]
 
 #[cfg(feature = "alloc")]
@@ -48,11 +49,9 @@ extern crate alloc;
 mod error;
 pub use self::error::Error;
 
-mod fallback;
-
-mod simd;
-
-mod spec;
+mod check;
+mod decode;
+mod encode;
 
 mod multiversion;
 
