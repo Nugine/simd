@@ -52,11 +52,19 @@ macro_rules! simd_dispatch {
             ))]
             use $crate::isa::InstructionSet;
 
+            use $crate::SIMD256;
+
             const _: $(for<$($lifetime),+>)? $($unsafe)? fn($($arg_type),*) -> $ret = $($fallback_fn)+;
 
             #[inline]
             $vis $($unsafe)? fn fallback$(<$($lifetime),+>)?($($arg_name:$arg_type),*) -> $ret {
                 $($fallback_fn)+($($arg_name),*)
+            }
+
+            #[allow(dead_code)]
+            #[inline]
+            $vis $($unsafe)? fn simd<$($($lifetime,)+)? S: SIMD256>(s: S, $($arg_name:$arg_type),*) -> $ret {
+                $($simd_fn)+(s, $($arg_name),*)
             }
 
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]

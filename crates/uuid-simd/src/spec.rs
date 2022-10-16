@@ -1,5 +1,15 @@
 use vsimd::vector::{V128, V256};
-use vsimd::{is_subtype, SIMD128, SIMD256};
+use vsimd::{SIMD128, SIMD256};
+
+#[cfg(any(
+    any(target_arch = "x86", target_arch = "x86_64"),
+    all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")),
+    target_arch = "wasm32"
+))]
+vsimd::item_group! {
+    use vsimd::is_subtype;
+    use core::mem::transmute as t;
+}
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 use vsimd::isa::{AVX2, SSE41};
@@ -9,8 +19,6 @@ use vsimd::isa::NEON;
 
 #[cfg(target_arch = "wasm32")]
 use vsimd::isa::WASM128;
-
-use core::mem::transmute as t;
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
