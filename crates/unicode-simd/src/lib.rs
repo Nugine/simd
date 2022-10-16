@@ -21,20 +21,9 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-mod fallback {
-    pub mod utf16;
-    pub mod utf32;
-}
-
-#[cfg(any(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")),
-    target_arch = "wasm32"
-))]
-mod simd {
-    pub mod utf16;
-    pub mod utf32;
-}
+mod ascii;
+mod utf16;
+mod utf32;
 
 mod multiversion;
 
@@ -54,7 +43,7 @@ use vsimd::tools::slice_mut;
 #[inline]
 #[must_use]
 pub fn is_ascii_ct(data: &[u8]) -> bool {
-    vsimd::ascii::multiversion::is_ascii_ct::auto(data)
+    crate::multiversion::is_ascii_ct::auto(data)
 }
 
 /// TODO: test, bench

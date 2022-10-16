@@ -1,21 +1,10 @@
-use crate::mask::{mask8x32_any, u8x32_highbit_any};
+use crate::mask::mask8x32_any;
 use crate::tools::{read, slice, slice_parts};
 use crate::vector::V256;
 use crate::{Scalable, SIMD256};
 
-use core::ops::Not;
-
 pub mod multiversion {
     use super::*;
-
-    crate::simd_dispatch! (
-        name        = is_ascii_ct,
-        signature   = fn(data: &[u8]) -> bool,
-        fallback    = {is_ascii_ct_fallback},
-        simd        = {is_ascii_ct_simd},
-        safety      = {},
-        visibility  = {pub},
-    );
 
     crate::simd_dispatch!(
         name        = find_non_ascii_whitespace,
@@ -34,41 +23,6 @@ pub enum AsciiCase {
     Lower,
     /// A-Z are upper case letters.
     Upper,
-}
-
-#[inline(always)]
-#[must_use]
-pub fn is_ascii_ct_fallback(data: &[u8]) -> bool {
-    unsafe {
-        let mut ans = 0;
-        let (mut src, len) = slice_parts(data);
-        let end = src.add(len);
-        while src < end {
-            ans |= src.read();
-            src = src.add(1);
-        }
-        ans < 0x80
-    }
-}
-
-#[inline(always)]
-pub fn is_ascii_ct_simd<S: SIMD256>(s: S, data: &[u8]) -> bool {
-    unsafe {
-        let (mut src, mut len) = slice_parts(data);
-
-        let end = src.add(len / 32 * 32);
-        let mut y = s.v256_create_zero();
-        while src < end {
-            let x = s.v256_load_unaligned(src);
-            y = s.v256_or(y, x);
-            src = src.add(32);
-        }
-        len %= 32;
-
-        let mut ans = u8x32_highbit_any(s, y).not();
-        ans &= is_ascii_ct_fallback(slice(src, len));
-        ans
-    }
 }
 
 #[inline(always)]

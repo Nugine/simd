@@ -2,11 +2,20 @@
 
 use vsimd::simd_dispatch;
 
+simd_dispatch! (
+    name        = is_ascii_ct,
+    signature   = fn(data: &[u8]) -> bool,
+    fallback    = {crate::ascii::is_ascii_ct_fallback},
+    simd        = {crate::ascii::is_ascii_ct_simd},
+    safety      = {},
+    visibility  = {pub},
+);
+
 simd_dispatch!(
     name        = is_utf32le_ct,
     signature   = fn(data: &[u32]) -> bool,
-    fallback    = {crate::fallback::utf32::is_utf32le_ct},
-    simd        = {crate::simd::utf32::is_utf32le_ct},
+    fallback    = {crate::utf32::is_utf32le_ct_fallback},
+    simd        = {crate::utf32::is_utf32le_ct_simd},
     safety      = {},
     visibility  = {pub},
 );
@@ -14,8 +23,8 @@ simd_dispatch!(
 simd_dispatch!(
     name        = utf32_swap_endianness,
     signature   = fn(src: *const u32, len: usize, dst: *mut u32) -> (),
-    fallback    = {crate::fallback::utf32::swap_endianness},
-    simd        = {crate::simd::utf32::swap_endianness},
+    fallback    = {crate::utf32::swap_endianness_fallback},
+    simd        = {crate::utf32::swap_endianness_simd},
     safety      = {unsafe},
     visibility  = {pub},
 );
@@ -23,8 +32,8 @@ simd_dispatch!(
 simd_dispatch!(
     name        = utf16_swap_endianness,
     signature   = fn(src: *const u16, len: usize, dst: *mut u16) -> (),
-    fallback    = {crate::fallback::utf16::swap_endianness},
-    simd        = {crate::simd::utf16::swap_endianness},
+    fallback    = {crate::utf16::swap_endianness_fallback},
+    simd        = {crate::utf16::swap_endianness_simd},
     safety      = {unsafe},
     visibility  = {pub},
 );
