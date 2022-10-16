@@ -51,9 +51,9 @@ extern crate alloc;
 mod error;
 pub use self::error::Error;
 
-mod fallback;
-
-mod simd;
+mod check;
+mod decode;
+mod encode;
 
 mod multiversion;
 
@@ -67,8 +67,8 @@ pub use outref::OutRef;
 
 // -----------------------------------------------------------------------------
 
-use crate::fallback::decoded_length;
-use crate::fallback::encoded_length_unchecked;
+use crate::decode::decoded_length;
+use crate::encode::encoded_length_unchecked;
 
 use vsimd::base32::Kind;
 use vsimd::base32::{BASE32HEX_CHARSET, BASE32_CHARSET};
