@@ -1,4 +1,4 @@
-use crate::decode::decode_bits;
+use crate::decode::{decode_bits, decode_extra};
 use crate::decode::{BASE32HEX_TABLE, BASE32_TABLE};
 use crate::Error;
 
@@ -6,30 +6,7 @@ use vsimd::base32::{Kind, BASE32HEX_ALSW_CHECK_X2, BASE32_ALSW_CHECK_X2};
 use vsimd::tools::{slice, slice_parts};
 use vsimd::SIMD256;
 
-#[inline(always)]
-unsafe fn check_extra(src: *const u8, extra: usize, table: *const u8) -> Result<(), Error> {
-    match extra {
-        0 => {}
-        2 => {
-            let (u10, flag) = decode_bits::<2>(src, table);
-            ensure!(flag != 0xff && u10 & 0b11 == 0);
-        }
-        4 => {
-            let (u20, flag) = decode_bits::<4>(src, table);
-            ensure!(flag != 0xff && u20 & 0b1111 == 0);
-        }
-        5 => {
-            let (u25, flag) = decode_bits::<5>(src, table);
-            ensure!(flag != 0xff && u25 & 0b1 == 0);
-        }
-        7 => {
-            let (u35, flag) = decode_bits::<7>(src, table);
-            ensure!(flag != 0xff && u35 & 0b111 == 0);
-        }
-        _ => core::hint::unreachable_unchecked(),
-    }
-    Ok(())
-}
+use core::ptr::null_mut;
 
 #[inline(always)]
 pub fn check_fallback(src: &[u8], kind: Kind) -> Result<(), Error> {
@@ -49,7 +26,7 @@ pub fn check_fallback(src: &[u8], kind: Kind) -> Result<(), Error> {
         }
         len %= 8;
 
-        check_extra(src, len, table)
+        decode_extra::<false>(src, len, null_mut(), table)
     }
 }
 

@@ -89,28 +89,41 @@ unsafe fn write_be_bytes<const N: usize>(dst: *mut u8, x: u64) {
 }
 
 #[inline(always)]
-unsafe fn decode_extra(src: *const u8, extra: usize, dst: *mut u8, table: *const u8) -> Result<(), Error> {
+pub unsafe fn decode_extra<const WRITE: bool>(
+    src: *const u8,
+    extra: usize,
+    dst: *mut u8,
+    table: *const u8,
+) -> Result<(), Error> {
     match extra {
         0 => {}
         2 => {
             let (u10, flag) = decode_bits::<2>(src, table);
             ensure!(flag != 0xff && u10 & 0b11 == 0);
-            write_be_bytes::<1>(dst, u10 >> 2);
+            if WRITE {
+                write_be_bytes::<1>(dst, u10 >> 2);
+            }
         }
         4 => {
             let (u20, flag) = decode_bits::<4>(src, table);
             ensure!(flag != 0xff && u20 & 0b1111 == 0);
-            write_be_bytes::<2>(dst, u20 >> 4);
+            if WRITE {
+                write_be_bytes::<2>(dst, u20 >> 4);
+            }
         }
         5 => {
             let (u25, flag) = decode_bits::<5>(src, table);
             ensure!(flag != 0xff && u25 & 0b1 == 0);
-            write_be_bytes::<3>(dst, u25 >> 1);
+            if WRITE {
+                write_be_bytes::<3>(dst, u25 >> 1);
+            }
         }
         7 => {
             let (u35, flag) = decode_bits::<7>(src, table);
             ensure!(flag != 0xff && u35 & 0b111 == 0);
-            write_be_bytes::<4>(dst, u35 >> 3);
+            if WRITE {
+                write_be_bytes::<4>(dst, u35 >> 3);
+            }
         }
         _ => core::hint::unreachable_unchecked(),
     }
@@ -134,7 +147,7 @@ pub unsafe fn decode_fallback(mut src: *const u8, mut n: usize, mut dst: *mut u8
     }
     n %= 8;
 
-    decode_extra(src, n, dst, table)
+    decode_extra::<true>(src, n, dst, table)
 }
 
 #[inline(always)]
