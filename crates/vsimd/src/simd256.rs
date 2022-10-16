@@ -24,6 +24,7 @@ use core::arch::aarch64::*;
 #[cfg(target_arch = "wasm32")]
 use core::arch::wasm32::*;
 
+#[macro_export]
 macro_rules! simd256_vop {
     ($s:expr, $f:expr, $a:expr) => {{
         let s = $s;

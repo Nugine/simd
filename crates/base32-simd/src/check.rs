@@ -1,15 +1,18 @@
+use crate::alsw::{BASE32HEX_ALSW_CHECK_X2, BASE32_ALSW_CHECK_X2};
 use crate::decode::{decode_bits, decode_extra};
 use crate::decode::{BASE32HEX_TABLE, BASE32_TABLE};
 use crate::Error;
+use crate::Kind;
 
-use vsimd::base32::{Kind, BASE32HEX_ALSW_CHECK_X2, BASE32_ALSW_CHECK_X2};
+use vsimd::alsw::AlswLut;
 use vsimd::tools::{slice, slice_parts};
+use vsimd::vector::V256;
 use vsimd::SIMD256;
 
 use core::ptr::null_mut;
 
 #[inline(always)]
-pub fn check_fallback(src: &[u8], kind: Kind) -> Result<(), Error> {
+pub(crate) fn check_fallback(src: &[u8], kind: Kind) -> Result<(), Error> {
     let table = match kind {
         Kind::Base32 => BASE32_TABLE.as_ptr(),
         Kind::Base32Hex => BASE32HEX_TABLE.as_ptr(),
@@ -31,7 +34,7 @@ pub fn check_fallback(src: &[u8], kind: Kind) -> Result<(), Error> {
 }
 
 #[inline(always)]
-pub fn check_simd<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error> {
+pub(crate) fn check_simd<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error> {
     let check_lut = match kind {
         Kind::Base32 => BASE32_ALSW_CHECK_X2,
         Kind::Base32Hex => BASE32HEX_ALSW_CHECK_X2,
@@ -44,7 +47,7 @@ pub fn check_simd<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error>
         while src < end {
             let x = s.v256_load_unaligned(src);
 
-            let is_valid = vsimd::base32::check_ascii32(s, x, check_lut);
+            let is_valid = check_ascii32(s, x, check_lut);
             ensure!(is_valid);
 
             src = src.add(32);
@@ -53,4 +56,9 @@ pub fn check_simd<S: SIMD256>(s: S, src: &[u8], kind: Kind) -> Result<(), Error>
 
         check_fallback(slice(src, len), kind)
     }
+}
+
+#[inline(always)]
+fn check_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>) -> bool {
+    vsimd::alsw::check_ascii_xn(s, x, check)
 }

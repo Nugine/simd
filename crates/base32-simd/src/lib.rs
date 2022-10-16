@@ -51,6 +51,7 @@ extern crate alloc;
 mod error;
 pub use self::error::Error;
 
+mod alsw;
 mod check;
 mod decode;
 mod encode;
@@ -70,15 +71,27 @@ pub use outref::OutRef;
 use crate::decode::decoded_length;
 use crate::encode::encoded_length_unchecked;
 
-use vsimd::base32::Kind;
-use vsimd::base32::{BASE32HEX_CHARSET, BASE32_CHARSET};
 use vsimd::tools::slice_mut;
+
+const BASE32_CHARSET: &[u8; 32] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+const BASE32HEX_CHARSET: &[u8; 32] = b"0123456789ABCDEFGHIJKLMNOPQRSTUV";
+
+#[inline(always)]
+const fn u16x4_to_u64(x: [u16; 4]) -> u64 {
+    unsafe { core::mem::transmute(x) }
+}
 
 /// Base32 variant
 #[derive(Debug)]
 pub struct Base32 {
     kind: Kind,
     padding: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum Kind {
+    Base32,
+    Base32Hex,
 }
 
 /// `Base32` charset with padding.

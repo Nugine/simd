@@ -1,9 +1,10 @@
-use crate::Kind;
+use crate::{u16x4_to_u64, Kind};
+use crate::{BASE32HEX_CHARSET, BASE32_CHARSET};
 
-use vsimd::base32::{BASE32HEX_CHARSET, BASE32_CHARSET};
-use vsimd::base32::{BASE32HEX_ENCODING_LUT, BASE32_ENCODING_LUT};
+use vsimd::isa::{NEON, SSE41, WASM128};
 use vsimd::tools::{read, slice, slice_parts, write};
-use vsimd::SIMD256;
+use vsimd::vector::V256;
+use vsimd::{is_subtype, SIMD256};
 
 pub const fn encoded_length_unchecked(len: usize, padding: bool) -> usize {
     let l = len / 5 * 8;
@@ -110,7 +111,7 @@ unsafe fn encode_extra(src: *const u8, extra: usize, dst: *mut u8, charset: *con
 }
 
 #[inline(always)]
-pub unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
+pub(crate) unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
     let charset: *const u8 = match kind {
         Kind::Base32 => BASE32_CHARSET.as_ptr(),
         Kind::Base32Hex => BASE32HEX_CHARSET.as_ptr(),
@@ -131,7 +132,7 @@ pub unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, kind: Kind, padding:
 }
 
 #[inline(always)]
-pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
+pub(crate) unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
     let (charset, encoding_lut) = match kind {
         Kind::Base32 => (BASE32_CHARSET.as_ptr(), BASE32_ENCODING_LUT),
         Kind::Base32Hex => (BASE32HEX_CHARSET.as_ptr(), BASE32HEX_ENCODING_LUT),
@@ -156,7 +157,7 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: 
 
         while len >= (20 + 6) {
             let x = s.v256_load_unaligned(src.sub(6));
-            let y = vsimd::base32::encode_bytes20(s, x, encoding_lut);
+            let y = encode_bytes20(s, x, encoding_lut);
             s.v256_store_unaligned(dst, y);
             src = src.add(20);
             dst = dst.add(32);
@@ -165,4 +166,97 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: 
     }
 
     encode_fallback(slice(src, len), dst, kind, padding);
+}
+
+#[inline(always)]
+fn split_bits<S: SIMD256>(s: S, x: V256) -> V256 {
+    const SPLIT_SHUFFLE: V256 = V256::from_bytes([
+        0x07, 0x06, 0x08, 0x07, 0x09, 0x08, 0x0A, 0x09, //
+        0x0C, 0x0B, 0x0D, 0x0C, 0x0E, 0x0D, 0x0F, 0x0E, //
+        0x01, 0x00, 0x02, 0x01, 0x03, 0x02, 0x04, 0x03, //
+        0x06, 0x05, 0x07, 0x06, 0x08, 0x07, 0x09, 0x08, //
+    ]);
+
+    if is_subtype!(S, SSE41) {
+        const SPLIT_M1: u64 = u16x4_to_u64([1 << 5, 1 << 7, 1 << 9, 1 << 11]);
+        const SPLIT_M2: u64 = u16x4_to_u64([1 << 2, 1 << 4, 1 << 6, 1 << 8]);
+
+        let x1 = s.u8x16x2_swizzle(x, SPLIT_SHUFFLE);
+        let x2 = s.u16x16_mul_hi(x1, s.u64x4_splat(SPLIT_M1));
+        let x3 = s.i16x16_mul_lo(x1, s.u64x4_splat(SPLIT_M2));
+        let x4 = s.v256_and(x2, s.u16x16_splat(u16::from_le_bytes([0x1f, 0x00])));
+        let x5 = s.v256_and(x3, s.u16x16_splat(u16::from_le_bytes([0x00, 0x1f])));
+        return s.v256_or(x4, x5);
+    }
+
+    if is_subtype!(S, NEON | WASM128) {
+        const SPLIT_M1: u64 = u16x4_to_u64([1 << 1, 1 << 3, 1 << 5, 1 << 7]);
+        const SPLIT_M2: u64 = u16x4_to_u64([1 << 2, 1 << 4, 1 << 6, 1 << 8]);
+        const SPLIT_M3: u16 = u16::from_le_bytes([0x00, 0x1f]);
+
+        let x1 = s.u8x16x2_swizzle(x, SPLIT_SHUFFLE);
+        let x2 = s.u16x16_shr::<4>(x1);
+        let x3 = s.i16x16_mul_lo(x2, s.u64x4_splat(SPLIT_M1));
+        let x4 = s.i16x16_mul_lo(x1, s.u64x4_splat(SPLIT_M2));
+        let m3 = s.u16x16_splat(SPLIT_M3);
+        let x5 = s.v256_and(x3, m3);
+        let x6 = s.v256_and(x4, m3);
+        let x7 = s.u16x16_shr::<8>(x5);
+        return s.v256_or(x6, x7);
+    }
+
+    unreachable!()
+}
+
+#[derive(Debug, Clone, Copy)]
+struct EncodingLutX2 {
+    low: V256,
+    high: V256,
+    full: V256,
+}
+
+impl EncodingLutX2 {
+    const fn new(charset: &[u8; 32]) -> Self {
+        let full = V256::from_bytes(*charset);
+        let charset: &[[u8; 16]; 2] = unsafe { core::mem::transmute(charset) };
+        let low = V256::double_bytes(charset[0]);
+        let high = V256::double_bytes(charset[1]);
+        Self { low, high, full }
+    }
+}
+
+const BASE32_ENCODING_LUT: EncodingLutX2 = EncodingLutX2::new(BASE32_CHARSET);
+const BASE32HEX_ENCODING_LUT: EncodingLutX2 = EncodingLutX2::new(BASE32HEX_CHARSET);
+
+#[inline(always)]
+fn encode_values<S: SIMD256>(s: S, x: V256, lut: EncodingLutX2) -> V256 {
+    if is_subtype!(S, SSE41) {
+        let x1 = s.u8x16x2_swizzle(lut.low, x);
+        let x2 = s.u8x16x2_swizzle(lut.high, x);
+        let x3 = s.u8x32_lt(s.u8x32_splat(0x0f), x);
+        return s.u8x32_blendv(x1, x2, x3);
+    }
+    if is_subtype!(S, NEON) && cfg!(target_arch = "aarch64") {
+        return s.u8x32_swizzle(lut.full, x);
+    }
+    if is_subtype!(S, NEON | WASM128) {
+        let m = s.u8x32_splat(0x0f);
+        let x1 = s.v256_and(x, m);
+        let x2 = s.u8x16x2_swizzle(lut.low, x1);
+        let x3 = s.u8x16x2_swizzle(lut.high, x1);
+        let x4 = s.u8x32_lt(m, x);
+        return s.v256_bsl(x4, x3, x2);
+    }
+    unreachable!()
+}
+
+#[inline(always)]
+fn encode_bytes20<S: SIMD256>(s: S, x: V256, lut: EncodingLutX2) -> V256 {
+    // x: {????|??AA|AAAB|BBBB|CCCC|CDDD|DD??|????}
+
+    let values = split_bits(s, x);
+    // values: {000xyyyy}x32
+
+    encode_values(s, values, lut)
+    // {{ascii}}x32
 }

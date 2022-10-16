@@ -1,10 +1,14 @@
-use crate::{Error, Kind};
+use crate::alsw::{BASE32HEX_ALSW_CHECK_X2, BASE32HEX_ALSW_DECODE_X2};
+use crate::alsw::{BASE32_ALSW_CHECK_X2, BASE32_ALSW_DECODE_X2};
+use crate::{u16x4_to_u64, Error, Kind};
+use crate::{BASE32HEX_CHARSET, BASE32_CHARSET};
 
-use vsimd::base32::{BASE32HEX_ALSW_CHECK_X2, BASE32HEX_ALSW_DECODE_X2};
-use vsimd::base32::{BASE32HEX_CHARSET, BASE32_CHARSET};
-use vsimd::base32::{BASE32_ALSW_CHECK_X2, BASE32_ALSW_DECODE_X2};
+use vsimd::alsw::AlswLut;
+use vsimd::isa::{AVX2, NEON, SSE41, WASM128};
+use vsimd::mask::u8x32_highbit_any;
 use vsimd::tools::{read, write};
-use vsimd::SIMD256;
+use vsimd::vector::V256;
+use vsimd::{is_subtype, simd256_vop, SIMD256};
 
 #[inline]
 const fn decoding_table(charset: &[u8; 32]) -> [u8; 256] {
@@ -131,7 +135,12 @@ pub unsafe fn decode_extra<const WRITE: bool>(
 }
 
 #[inline(always)]
-pub unsafe fn decode_fallback(mut src: *const u8, mut n: usize, mut dst: *mut u8, kind: Kind) -> Result<(), Error> {
+pub(crate) unsafe fn decode_fallback(
+    mut src: *const u8,
+    mut n: usize,
+    mut dst: *mut u8,
+    kind: Kind,
+) -> Result<(), Error> {
     let table = match kind {
         Kind::Base32 => BASE32_TABLE.as_ptr(),
         Kind::Base32Hex => BASE32HEX_TABLE.as_ptr(),
@@ -151,7 +160,7 @@ pub unsafe fn decode_fallback(mut src: *const u8, mut n: usize, mut dst: *mut u8
 }
 
 #[inline(always)]
-pub unsafe fn decode_simd<S: SIMD256>(
+pub(crate) unsafe fn decode_simd<S: SIMD256>(
     s: S,
     mut src: *const u8,
     mut n: usize,
@@ -166,7 +175,7 @@ pub unsafe fn decode_simd<S: SIMD256>(
     // n*5/8 >= 10+10+6
     while n >= 42 {
         let x = s.v256_load_unaligned(src);
-        let y = try_!(vsimd::base32::decode_ascii32(s, x, check_lut, decode_lut));
+        let y = try_!(decode_ascii32(s, x, check_lut, decode_lut));
 
         let (y1, y2) = y.to_v128x2();
         s.v128_store_unaligned(dst, y1);
@@ -178,4 +187,91 @@ pub unsafe fn decode_simd<S: SIMD256>(
     }
 
     decode_fallback(src, n, dst, kind)
+}
+
+#[inline(always)]
+fn u32x8_blend_0x55<S: SIMD256>(s: S, a: V256, b: V256) -> V256 {
+    if is_subtype!(S, AVX2) {
+        return s.u32x8_blend::<0x55>(a, b);
+    }
+    if is_subtype!(S, SSE41) {
+        return simd256_vop!(s, S::u16x8_blend::<0x33>, a, b);
+    }
+    unreachable!()
+}
+
+#[inline(always)]
+fn merge_bits<S: SIMD256>(s: S, x: V256) -> V256 {
+    if is_subtype!(S, SSE41) {
+        const MERGE_M1: u32 = u32::from_le_bytes([1 << 7, 1 << 2, 1 << 5, 1 << 0]);
+        const MERGE_S1: V256 = V256::double_bytes([
+            0x01, 0x00, 0x02, 0x04, 0x06, //
+            0x09, 0x08, 0x0A, 0x0C, 0x0E, //
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, //
+        ]);
+        const MERGE_S2: V256 = V256::double_bytes([
+            0x80, 0x03, 0x05, 0x07, 0x80, //
+            0x80, 0x0B, 0x0D, 0x0F, 0x80, //
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, //
+        ]);
+
+        let x1 = s.i16x16_maddubs(s.u32x8_splat(MERGE_M1), x);
+        let x2 = s.u32x8_shl::<4>(x1);
+        let x3 = u32x8_blend_0x55(s, x1, x2);
+        let x4 = s.u8x16x2_swizzle(x3, MERGE_S1);
+        let x5 = s.u8x16x2_swizzle(x3, MERGE_S2);
+        return s.v256_or(x4, x5);
+    }
+
+    if is_subtype!(S, NEON | WASM128) {
+        const MERGE_M1: u16 = u16::from_le_bytes([0x1f, 0x00]);
+        const MERGE_M2: u64 = u16x4_to_u64([1 << 3, 1 << 1, 1 << 7, 1 << 5]);
+        const MERGE_M3: u64 = u16x4_to_u64([1 << 6, 1 << 4, 1 << 2, 1 << 0]);
+
+        const MERGE_S1: V256 = V256::double_bytes([
+            0x00, 0x02, 0x05, 0x07, 0x06, 0x80, 0x80, 0x04, //
+            0x08, 0x0A, 0x0D, 0x0F, 0x0E, 0x80, 0x80, 0x0C, //
+        ]);
+        const MERGE_S2: V256 = V256::double_bytes([
+            0x01, 0x00, 0x02, 0x04, 0x06, 0x03, 0x80, 0x80, //
+            0x09, 0x08, 0x0A, 0x0C, 0x0E, 0x0B, 0x80, 0x80, //
+        ]);
+        const MERGE_S3: V256 = V256::double_bytes([
+            0x00, 0x01, 0x02, 0x03, 0x04, //
+            0x08, 0x09, 0x0A, 0x0B, 0x0C, //
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, //
+        ]);
+        const MERGE_S4: V256 = V256::double_bytes([
+            0x80, 0x05, 0x80, 0x07, 0x80, //
+            0x80, 0x0D, 0x80, 0x0F, 0x80, //
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, //
+        ]);
+
+        let x1 = s.v256_and(x, s.u16x16_splat(MERGE_M1));
+        let x2 = s.i16x16_mul_lo(x1, s.u64x4_splat(MERGE_M2));
+        let x3 = s.u16x16_shr::<8>(x);
+        let x4 = s.i16x16_mul_lo(x3, s.u64x4_splat(MERGE_M3));
+        let x5 = s.u8x16x2_swizzle(x2, MERGE_S1);
+        let x6 = s.u8x16x2_swizzle(x4, MERGE_S2);
+        let x7 = s.v256_or(x5, x6);
+        let x8 = s.u8x16x2_swizzle(x7, MERGE_S3);
+        let x9 = s.u8x16x2_swizzle(x7, MERGE_S4);
+        return s.v256_or(x8, x9);
+    }
+
+    unreachable!()
+}
+
+#[allow(clippy::result_unit_err)]
+#[inline(always)]
+fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>, decode: AlswLut<V256>) -> Result<V256, ()> {
+    let (c1, c2) = vsimd::alsw::decode_ascii_xn(s, x, check, decode);
+
+    let y = merge_bits(s, c2);
+
+    if u8x32_highbit_any(s, c1) {
+        Err(())
+    } else {
+        Ok(y)
+    }
 }
