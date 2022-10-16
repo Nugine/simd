@@ -132,6 +132,8 @@ macro_rules! impl_alsw {
                 arr
             };
 
+            #[inline]
+            #[must_use]
             const fn check_lut() -> AlswLut<V128> {
                 AlswLut {
                     hash: V128::from_bytes(Self::CHECK_HASH),
@@ -139,6 +141,8 @@ macro_rules! impl_alsw {
                 }
             }
 
+            #[inline]
+            #[must_use]
             const fn decode_lut() -> AlswLut<V128> {
                 AlswLut {
                     hash: V128::from_bytes(Self::DECODE_HASH),
