@@ -1,119 +1,10 @@
-use core::ptr::null_mut;
-
 use crate::{Config, Error, Extra, Kind};
 
+use vsimd::base64::{STANDARD_ALSW_CHECK_X2, URL_SAFE_ALSW_CHECK_X2};
+use vsimd::base64::{STANDARD_ALSW_DECODE_X2, URL_SAFE_ALSW_DECODE_X2};
 use vsimd::base64::{STANDARD_CHARSET, URL_SAFE_CHARSET};
-
-use vsimd::tools::{read, slice_parts, write};
-
-#[inline(always)]
-pub(crate) const fn encoded_length_unchecked(len: usize, config: Config) -> usize {
-    let extra = len % 3;
-    if extra == 0 {
-        len / 3 * 4
-    } else if config.extra.padding() {
-        len / 3 * 4 + 4
-    } else {
-        len / 3 * 4 + extra + 1
-    }
-}
-
-#[inline(always)]
-pub unsafe fn encode_bits24(src: *const u8, dst: *mut u8, charset: *const u8) {
-    let x = u32::from_be_bytes([0, read(src, 0), read(src, 1), read(src, 2)]);
-    let mut i = 0;
-    while i < 4 {
-        let bits = (x >> (18 - i * 6)) & 0x3f;
-        let y = read(charset, bits as usize);
-        write(dst, i, y);
-        i += 1;
-    }
-}
-
-#[inline(always)]
-unsafe fn encode_bits48(src: *const u8, dst: *mut u8, charset: *const u8) {
-    let x = u64::from_be_bytes(src.cast::<[u8; 8]>().read());
-    let mut i = 0;
-    while i < 8 {
-        let bits = (x >> (58 - i * 6)) & 0x3f;
-        let y = read(charset, bits as usize);
-        write(dst, i, y);
-        i += 1;
-    }
-}
-
-#[inline(always)]
-unsafe fn encode_extra(extra: usize, src: *const u8, dst: *mut u8, charset: *const u8, padding: bool) {
-    match extra {
-        0 => {}
-        1 => {
-            let x = read(src, 0);
-            let y1 = read(charset, (x >> 2) as usize);
-            let y2 = read(charset, ((x << 6) >> 2) as usize);
-            write(dst, 0, y1);
-            write(dst, 1, y2);
-            if padding {
-                write(dst, 2, b'=');
-                write(dst, 3, b'=');
-            }
-        }
-        2 => {
-            let x1 = read(src, 0);
-            let x2 = read(src, 1);
-            let y1 = read(charset, (x1 >> 2) as usize);
-            let y2 = read(charset, (((x1 << 6) >> 2) | (x2 >> 4)) as usize);
-            let y3 = read(charset, ((x2 << 4) >> 2) as usize);
-            write(dst, 0, y1);
-            write(dst, 1, y2);
-            write(dst, 2, y3);
-            if padding {
-                write(dst, 3, b'=');
-            }
-        }
-        _ => core::hint::unreachable_unchecked(),
-    }
-}
-
-pub(crate) unsafe fn encode(src: &[u8], mut dst: *mut u8, config: Config) {
-    let kind = config.kind;
-    let padding = config.extra.padding();
-
-    let charset = match kind {
-        Kind::Standard => STANDARD_CHARSET.as_ptr(),
-        Kind::UrlSafe => URL_SAFE_CHARSET.as_ptr(),
-    };
-
-    let (mut src, mut len) = slice_parts(src);
-
-    const L: usize = 4;
-    while len >= L * 6 + 2 {
-        let mut i = 0;
-        while i < L {
-            encode_bits48(src, dst, charset);
-            src = src.add(6);
-            dst = dst.add(8);
-            i += 1;
-        }
-        len -= L * 6;
-    }
-
-    while len >= 6 + 2 {
-        encode_bits48(src, dst, charset);
-        src = src.add(6);
-        dst = dst.add(8);
-        len -= 6;
-    }
-
-    let end = src.add(len / 3 * 3);
-    while src < end {
-        encode_bits24(src, dst, charset);
-        src = src.add(3);
-        dst = dst.add(4);
-    }
-    len %= 3;
-
-    encode_extra(len, src, dst, charset, padding);
-}
+use vsimd::tools::{read, write};
+use vsimd::SIMD256;
 
 const fn decode_table(charset: &'static [u8; 64]) -> [u8; 256] {
     let mut table = [0xff; 256];
@@ -179,7 +70,7 @@ pub(crate) fn decoded_length(src: &[u8], config: Config) -> Result<(usize, usize
 }
 
 #[inline(always)]
-unsafe fn decode_ascii8<const WRITE: bool>(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
+pub unsafe fn decode_ascii8<const WRITE: bool>(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
     let mut y: u64 = 0;
     let mut flag = 0;
 
@@ -205,7 +96,7 @@ unsafe fn decode_ascii8<const WRITE: bool>(src: *const u8, dst: *mut u8, table: 
 }
 
 #[inline(always)]
-unsafe fn decode_ascii4<const WRITE: bool>(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
+pub unsafe fn decode_ascii4<const WRITE: bool>(src: *const u8, dst: *mut u8, table: *const u8) -> Result<(), Error> {
     let mut y: u32 = 0;
     let mut flag = 0;
 
@@ -234,7 +125,7 @@ unsafe fn decode_ascii4<const WRITE: bool>(src: *const u8, dst: *mut u8, table: 
 }
 
 #[inline(always)]
-unsafe fn decode_extra<const WRITE: bool>(
+pub unsafe fn decode_extra<const WRITE: bool>(
     extra: usize,
     src: *const u8,
     dst: *mut u8,
@@ -273,7 +164,12 @@ unsafe fn decode_extra<const WRITE: bool>(
     Ok(())
 }
 
-pub(crate) unsafe fn decode(mut src: *const u8, mut dst: *mut u8, mut n: usize, config: Config) -> Result<(), Error> {
+pub(crate) unsafe fn decode_fallback(
+    mut src: *const u8,
+    mut dst: *mut u8,
+    mut n: usize,
+    config: Config,
+) -> Result<(), Error> {
     let kind = config.kind;
     let forgiving = config.extra.forgiving();
 
@@ -301,31 +197,33 @@ pub(crate) unsafe fn decode(mut src: *const u8, mut dst: *mut u8, mut n: usize, 
     decode_extra::<true>(n, src, dst, table, forgiving)
 }
 
-pub(crate) fn check(src: &[u8], config: Config) -> Result<(), Error> {
+pub(crate) unsafe fn decode_simd<S: SIMD256>(
+    s: S,
+    mut src: *const u8,
+    mut dst: *mut u8,
+    mut n: usize,
+    config: Config,
+) -> Result<(), Error> {
     let kind = config.kind;
-    let forgiving = config.extra.forgiving();
 
-    let (mut src, mut n) = (src.as_ptr(), src.len());
-
-    let table = match kind {
-        Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
-        Kind::UrlSafe => URL_SAFE_DECODE_TABLE.as_ptr(),
+    let (check_lut, decode_lut) = match kind {
+        Kind::Standard => (STANDARD_ALSW_CHECK_X2, STANDARD_ALSW_DECODE_X2),
+        Kind::UrlSafe => (URL_SAFE_ALSW_CHECK_X2, URL_SAFE_ALSW_DECODE_X2),
     };
 
-    unsafe {
-        // n*3/4 >= 6+2
-        while n >= 11 {
-            decode_ascii8::<false>(src, null_mut(), table)?;
-            src = src.add(8);
-            n -= 8;
-        }
+    // n*3/4 >= 24+4
+    while n >= 38 {
+        let x = s.v256_load_unaligned(src);
+        let y = try_!(vsimd::base64::decode_ascii32(s, x, check_lut, decode_lut));
 
-        while n >= 4 {
-            decode_ascii4::<false>(src, null_mut(), table)?;
-            src = src.add(4);
-            n -= 4;
-        }
+        let (y1, y2) = y.to_v128x2();
+        s.v128_store_unaligned(dst, y1);
+        s.v128_store_unaligned(dst.add(12), y2);
 
-        decode_extra::<false>(n, src, null_mut(), table, forgiving)
+        src = src.add(32);
+        dst = dst.add(24);
+        n -= 32;
     }
+
+    decode_fallback(src, dst, n, config)
 }

@@ -5,8 +5,8 @@ use vsimd::simd_dispatch;
 simd_dispatch!(
     name        = encode,
     signature   = fn(src: &[u8], dst: *mut u8, config: Config) -> (),
-    fallback    = {crate::fallback::encode},
-    simd        = {crate::simd::encode},
+    fallback    = {crate::encode::encode_fallback},
+    simd        = {crate::encode::encode_simd},
     safety      = {unsafe},
     visibility  = {pub(crate)},
 );
@@ -14,8 +14,8 @@ simd_dispatch!(
 simd_dispatch!(
     name        = decode,
     signature   = fn(src: *const u8, dst: *mut u8, n: usize, config: Config) -> Result<(), Error>,
-    fallback    = {crate::fallback::decode},
-    simd        = {crate::simd::decode},
+    fallback    = {crate::decode::decode_fallback},
+    simd        = {crate::decode::decode_simd},
     safety      = {unsafe},
     visibility  = {pub(crate)},
 );
@@ -23,8 +23,17 @@ simd_dispatch!(
 simd_dispatch!(
     name        = check,
     signature   = fn(src: &[u8], config: Config) -> Result<(), Error>,
-    fallback    = {crate::fallback::check},
-    simd        = {crate::simd::check},
+    fallback    = {crate::check::check_fallback},
+    simd        = {crate::check::check_simd},
     safety      = {},
     visibility  = {pub(crate)},
+);
+
+simd_dispatch!(
+    name        = find_non_ascii_whitespace,
+    signature   = fn(data: &[u8]) -> usize,
+    fallback    = {crate::ascii::find_non_ascii_whitespace_fallback},
+    simd        = {crate::ascii::find_non_ascii_whitespace_simd},
+    safety      = {},
+    visibility  = {pub},
 );
