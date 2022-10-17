@@ -121,48 +121,33 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: 
 mod sse2 {
     use super::*;
 
-    #[cfg(target_arch = "x86")]
-    use core::arch::x86::*;
-
-    #[cfg(target_arch = "x86_64")]
-    use core::arch::x86_64::*;
+    use vsimd::hex::sse2::*;
+    use vsimd::isa::{InstructionSet, SSE2};
+    use vsimd::SIMD128;
 
     #[inline]
     #[target_feature(enable = "sse2")]
     pub unsafe fn encode(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
+        let s = SSE2::new();
+
         let (mut src, mut len) = slice_parts(src);
 
         let offset = match case {
-            AsciiCase::Lower => _mm_set1_epi8(0x27),
-            AsciiCase::Upper => _mm_set1_epi8(0x07),
-        };
-
-        let encode_bytes16 = |x: __m128i, o: __m128i| {
-            let t = _mm_add_epi8(x, _mm_set1_epi8(0x30));
-            let cmp = _mm_cmplt_epi8(_mm_set1_epi8(0x39), t);
-            let offset = _mm_and_si128(cmp, o);
-            _mm_add_epi8(t, offset)
+            AsciiCase::Lower => LOWER_OFFSET,
+            AsciiCase::Upper => UPPER_OFFSET,
         };
 
         let end = src.add(len / 16 * 16);
         while src < end {
-            let x = _mm_loadu_si128(src.cast());
+            let x = s.v128_load_unaligned(src);
             src = src.add(16);
 
-            let m = _mm_set1_epi8(0x0f);
-            let hi = _mm_and_si128(_mm_srli_epi16::<4>(x), m);
-            let lo = _mm_and_si128(x, m);
+            let (y1, y2) = encode16(s, x, offset);
 
-            let hi = encode_bytes16(hi, offset);
-            let lo = encode_bytes16(lo, offset);
-
-            let y1 = _mm_unpacklo_epi8(hi, lo);
-            let y2 = _mm_unpackhi_epi8(hi, lo);
-
-            _mm_storeu_si128(dst.cast(), y1);
+            s.v128_store_unaligned(dst, y1);
             dst = dst.add(16);
 
-            _mm_storeu_si128(dst.cast(), y2);
+            s.v128_store_unaligned(dst, y2);
             dst = dst.add(16);
         }
         len %= 16;

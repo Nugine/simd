@@ -127,24 +127,24 @@ pub unsafe fn decode_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, 
 mod sse2 {
     use super::*;
 
-    #[cfg(target_arch = "x86")]
-    use core::arch::x86::*;
-
-    #[cfg(target_arch = "x86_64")]
-    use core::arch::x86_64::*;
+    use vsimd::hex::sse2::*;
+    use vsimd::isa::{InstructionSet, SSE2};
+    use vsimd::SIMD128;
 
     #[inline]
     #[target_feature(enable = "sse2")]
     pub unsafe fn decode(mut src: *const u8, mut len: usize, mut dst: *mut u8) -> Result<(), Error> {
+        let s = SSE2::new();
+
         let end = src.add(len / 16 * 16);
         while src < end {
-            let x = _mm_loadu_si128(src.cast());
+            let x = s.v128_load_unaligned(src);
 
-            let (nibbles, flag) = decode_nibbles(x);
-            ensure!(_mm_movemask_epi8(flag) == 0);
+            let (nibbles, flag) = decode_nibbles(s, x);
+            ensure!(s.u8x16_bitmask(flag) == 0);
 
-            let ans = merge_bits(nibbles);
-            dst.cast::<u64>().write_unaligned(ans);
+            let ans = merge_bits(s, nibbles);
+            dst.cast::<V64>().write_unaligned(ans);
 
             src = src.add(16);
             dst = dst.add(8);
@@ -156,37 +156,5 @@ mod sse2 {
         }
 
         Ok(())
-    }
-
-    #[inline(always)]
-    unsafe fn _mm_set1_epu8(x: u8) -> __m128i {
-        _mm_set1_epi8(x as i8)
-    }
-
-    #[inline(always)]
-    unsafe fn decode_nibbles(x: __m128i) -> (__m128i, __m128i) {
-        // http://0x80.pl/notesen/2022-01-17-validating-hex-parse.html
-        // Algorithm 3
-
-        let t1 = _mm_add_epi8(x, _mm_set1_epu8(0xff - b'9'));
-        let t2 = _mm_subs_epu8(t1, _mm_set1_epi8(6));
-        let t3 = _mm_sub_epi8(t2, _mm_set1_epu8(0xf0));
-        let t4 = _mm_and_si128(x, _mm_set1_epu8(0xdf));
-        let t5 = _mm_sub_epi8(t4, _mm_set1_epi8(0x41));
-        let t6 = _mm_adds_epu8(t5, _mm_set1_epi8(10));
-        let t7 = _mm_min_epu8(t3, t6);
-        let t8 = _mm_adds_epu8(t7, _mm_set1_epi8(127 - 15));
-        (t7, t8)
-    }
-
-    #[inline(always)]
-    unsafe fn merge_bits(x: __m128i) -> u64 {
-        let lo = _mm_srli_epi16::<8>(x);
-        let hi = _mm_slli_epi16::<4>(x);
-        let t1 = _mm_or_si128(lo, hi);
-        let t2 = _mm_and_si128(t1, _mm_set1_epi16(0xff));
-        let t3 = _mm_packus_epi16(t2, _mm_setzero_si128());
-        let [ans, _]: [u64; 2] = core::mem::transmute(t3);
-        ans
     }
 }

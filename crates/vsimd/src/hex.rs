@@ -213,6 +213,67 @@ pub fn decode_ascii32x2<S: SIMD256>(s: S, x: (V256, V256)) -> Result<V256, ()> {
     }
 }
 
+pub mod sse2 {
+    use crate::isa::SSE2;
+    use crate::vector::{V128, V64};
+    use crate::SIMD128;
+
+    #[inline(always)]
+    #[must_use]
+    pub fn decode_nibbles(s: SSE2, x: V128) -> (V128, V128) {
+        // http://0x80.pl/notesen/2022-01-17-validating-hex-parse.html
+        // Algorithm 3
+
+        let t1 = s.u8x16_add(x, s.u8x16_splat(0xff - b'9'));
+        let t2 = s.u8x16_sub_sat(t1, s.u8x16_splat(6));
+        let t3 = s.u8x16_sub(t2, s.u8x16_splat(0xf0));
+        let t4 = s.v128_and(x, s.u8x16_splat(0xdf));
+        let t5 = s.u8x16_sub(t4, s.u8x16_splat(0x41));
+        let t6 = s.u8x16_add_sat(t5, s.u8x16_splat(10));
+        let t7 = s.u8x16_min(t3, t6);
+        let t8 = s.u8x16_add_sat(t7, s.u8x16_splat(127 - 15));
+        (t7, t8)
+    }
+
+    #[inline(always)]
+    #[must_use]
+    pub fn merge_bits(s: SSE2, x: V128) -> V64 {
+        let lo = s.u16x8_shr::<8>(x);
+        let hi = s.u16x8_shl::<4>(x);
+        let t1 = s.v128_or(lo, hi);
+        let t2 = s.v128_and(t1, s.u16x8_splat(0x00ff));
+        let t3 = s.u16x8_packus(t2, s.v128_create_zero());
+        t3.to_v64x2().0
+    }
+
+    pub const LOWER_OFFSET: V128 = V128::from_bytes([0x27; 16]);
+    pub const UPPER_OFFSET: V128 = V128::from_bytes([0x07; 16]);
+
+    #[inline(always)]
+    #[must_use]
+    pub fn encode16(s: SSE2, x: V128, offset: V128) -> (V128, V128) {
+        let m = s.u8x16_splat(0x0f);
+        let hi = s.v128_and(s.u16x8_shr::<4>(x), m);
+        let lo = s.v128_and(x, m);
+
+        let c1 = s.u8x16_splat(0x30);
+        let h1 = s.u8x16_add(hi, c1);
+        let l1 = s.u8x16_add(lo, c1);
+
+        let c2 = s.u8x16_splat(0x39);
+        let h2 = s.v128_and(s.u8x16_lt(c2, h1), offset);
+        let l2 = s.v128_and(s.u8x16_lt(c2, l1), offset);
+
+        let h3 = s.u8x16_add(h1, h2);
+        let l3 = s.u8x16_add(l1, l2);
+
+        let y1 = s.u8x16_zip_lo(h3, l3);
+        let y2 = s.u8x16_zip_hi(h3, l3);
+
+        (y1, y2)
+    }
+}
+
 #[cfg(test)]
 mod algorithm {
     use super::*;
