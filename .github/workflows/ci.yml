@@ -47,6 +47,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
       - uses: extractions/setup-just@v1
       - run: |
+          cargo install cross
+      - run: |
           for member in $(ls crates); do
             pushd crates/$member
             just x86-test

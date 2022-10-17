@@ -17,6 +17,11 @@ function x86_test() {
     cargo test --no-default-features --features 'detect,unstable'           $@
     cargo test --no-default-features --features 'alloc,detect,unstable'     $@
     cargo test --no-default-features --features 'std,detect,unstable'       $@
+
+    if [[ ! "$RUSTFLAGS" == *"sanitizer"* ]]; then
+        cross test --target i686-unknown-linux-gnu --no-default-features --features 'std'                  $@
+        cross test --target i686-unknown-linux-gnu --no-default-features --features 'std,detect,unstable'  $@
+    fi
 }
 
 function arm_test() {
