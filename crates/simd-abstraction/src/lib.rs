@@ -42,7 +42,6 @@ pub mod arch {
 }
 
 pub mod ascii;
-pub mod crc32;
 pub mod hex;
 
 #[macro_export]

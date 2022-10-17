@@ -1,10 +1,8 @@
-use crate::crc32::{self, POLYNOMIAL_CRC32C, POLYNOMIAL_CRC32_IEEE};
 use crate::traits::{InstructionSet, SIMD128, SIMD256};
 
 use core::arch::aarch64::*;
 
 define_isa!(NEON, "neon", is_aarch64_feature_detected);
-define_isa!(CRC32, "crc", is_aarch64_feature_detected);
 
 unsafe impl SIMD128 for NEON {
     type V128 = uint8x16_t;
@@ -187,49 +185,5 @@ unsafe impl SIMD256 for NEON {
     #[inline(always)]
     unsafe fn v256_store_unaligned(self, addr: *mut u8, a: Self::V256) {
         vst1q_u8_x2(addr, a)
-    }
-}
-
-unsafe impl crc32::CRC32<POLYNOMIAL_CRC32_IEEE> for CRC32 {
-    #[inline(always)]
-    fn crc32_u8(self, crc: u32, value: u8) -> u32 {
-        unsafe { __crc32b(crc, value) }
-    }
-
-    #[inline(always)]
-    fn crc32_u16(self, crc: u32, value: u16) -> u32 {
-        unsafe { __crc32h(crc, value) }
-    }
-
-    #[inline(always)]
-    fn crc32_u32(self, crc: u32, value: u32) -> u32 {
-        unsafe { __crc32w(crc, value) }
-    }
-
-    #[inline(always)]
-    fn crc32_u64(self, crc: u32, value: u64) -> u32 {
-        unsafe { __crc32d(crc, value) }
-    }
-}
-
-unsafe impl crc32::CRC32<POLYNOMIAL_CRC32C> for CRC32 {
-    #[inline(always)]
-    fn crc32_u8(self, crc: u32, value: u8) -> u32 {
-        unsafe { __crc32cb(crc, value) }
-    }
-
-    #[inline(always)]
-    fn crc32_u16(self, crc: u32, value: u16) -> u32 {
-        unsafe { __crc32ch(crc, value) }
-    }
-
-    #[inline(always)]
-    fn crc32_u32(self, crc: u32, value: u32) -> u32 {
-        unsafe { __crc32cw(crc, value) }
-    }
-
-    #[inline(always)]
-    fn crc32_u64(self, crc: u32, value: u64) -> u32 {
-        unsafe { __crc32cd(crc, value) }
     }
 }
