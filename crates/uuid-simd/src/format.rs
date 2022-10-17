@@ -15,6 +15,14 @@ const fn char_lut_fallback(case: AsciiCase) -> &'static [u8; 16] {
 
 #[inline(always)]
 pub unsafe fn format_simple_fallback(src: *const u8, dst: *mut u8, case: AsciiCase) {
+    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
+    {
+        if cfg!(target_feature = "sse2") {
+            self::sse2::format_simple(src, dst, case);
+            return;
+        }
+    }
+
     let lut = char_lut_fallback(case).as_ptr();
     for i in 0..16 {
         let x = read(src, i);
@@ -99,4 +107,30 @@ pub unsafe fn format_hyphenated_simd<S: SIMD256>(s: S, src: *const u8, dst: *mut
     let bytes_28_31 = i32x4_get_lane3(s, a.1) as u32;
     core::ptr::write_unaligned(dst.add(16).cast(), bytes_14_15);
     core::ptr::write_unaligned(dst.add(32).cast(), bytes_28_31);
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
+mod sse2 {
+    use super::*;
+
+    use vsimd::hex::sse2::*;
+    use vsimd::isa::{InstructionSet, SSE2};
+    use vsimd::SIMD128;
+
+    #[inline]
+    #[target_feature(enable = "sse2")]
+    pub unsafe fn format_simple(src: *const u8, dst: *mut u8, case: AsciiCase) {
+        let s = SSE2::new();
+
+        let offset = match case {
+            AsciiCase::Lower => LOWER_OFFSET,
+            AsciiCase::Upper => UPPER_OFFSET,
+        };
+
+        let x = s.v128_load_unaligned(src);
+        let (y1, y2) = encode16(s, x, offset);
+
+        s.v128_store_unaligned(dst, y1);
+        s.v128_store_unaligned(dst.add(16), y2);
+    }
 }
