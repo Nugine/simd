@@ -11,6 +11,8 @@ use vsimd::tools::{read, write};
 use vsimd::vector::V256;
 use vsimd::SIMD256;
 
+use core::ops::Not;
+
 const fn decode_table(charset: &'static [u8; 64]) -> [u8; 256] {
     let mut table = [0xff; 256];
     let mut i = 0;
@@ -275,16 +277,10 @@ fn merge_bits_x2<S: SIMD256>(s: S, x: V256) -> V256 {
     // {AAAB|BBCC|CDDD|0000|EEEF|FFGG|GHHH|0000}
 }
 
-#[allow(clippy::result_unit_err)]
 #[inline(always)]
-fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>, decode: AlswLut<V256>) -> Result<V256, ()> {
+fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>, decode: AlswLut<V256>) -> Result<V256, Error> {
     let (c1, c2) = vsimd::alsw::decode_ascii_xn(s, x, check, decode);
-
     let y = merge_bits_x2(s, c2);
-
-    if u8x32_highbit_any(s, c1) {
-        Err(())
-    } else {
-        Ok(y)
-    }
+    ensure!(u8x32_highbit_any(s, c1).not());
+    Ok(y)
 }
