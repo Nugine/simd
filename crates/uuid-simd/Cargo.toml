@@ -1,6 +1,6 @@
 [package]
 name = "uuid-simd"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 description = "SIMD-accelerated UUID operations"
 license = "MIT"
@@ -21,7 +21,7 @@ path = "../simd-abstraction"
 version = "0.7.0"
 
 [dev-dependencies]
-hex-simd = { path = "../hex-simd", version = "0.7.0" }
+hex-simd = { path = "../hex-simd", version = "0.7.1" }
 
 [dependencies.uuid]
 version = "1.1.2"

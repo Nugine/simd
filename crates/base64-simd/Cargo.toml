@@ -1,6 +1,6 @@
 [package]
 name = "base64-simd"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 description = "SIMD-accelerated base64 encoding and decoding"
 license = "MIT"

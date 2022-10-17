@@ -117,11 +117,11 @@ test-all:
 sync-version:
     #!/bin/bash -e
     cd {{justfile_directory()}}
-    cargo set-version -p simd-abstraction '0.7.0'
-    cargo set-version -p uuid-simd '0.7.0'
-    cargo set-version -p hex-simd '0.7.0'
-    cargo set-version -p base64-simd '0.7.0'
-    cargo set-version -p simd-benches '0.7.0'
+    cargo set-version -p simd-abstraction '0.7.1'
+    cargo set-version -p uuid-simd '0.7.1'
+    cargo set-version -p hex-simd '0.7.1'
+    cargo set-version -p base64-simd '0.7.1'
+    cargo set-version -p simd-benches '0.7.1'
 
 fmt:
     #!/bin/bash -ex

@@ -1,6 +1,6 @@
 [package]
 name = "hex-simd"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 description = "SIMD-accelerated hex encoding and decoding"
 license = "MIT"

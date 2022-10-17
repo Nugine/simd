@@ -1,6 +1,6 @@
 [package]
 name = "simd-benches"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 publish = false
 
@@ -9,11 +9,11 @@ unstable = ["simd-abstraction/unstable"]
 
 [dependencies.base64-simd]
 path = "../base64-simd"
-version = "0.7.0"
+version = "0.7.1"
 
 [dependencies.hex-simd]
 path = "../hex-simd"
-version = "0.7.0"
+version = "0.7.1"
 
 [dependencies]
 base64 = "0.13.0"
@@ -30,7 +30,7 @@ version = "0.7.0"
 
 [dependencies.uuid-simd]
 path = "../uuid-simd"
-version = "0.7.0"
+version = "0.7.1"
 features = ["uuid"]
 
 [[bench]]
