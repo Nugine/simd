@@ -67,6 +67,9 @@ pub fn bench_decode(c: &mut Criterion) {
         ("base16/fallback", |src, dst| {
             base16::decode_slice(src, dst).unwrap();
         }),
+        ("data-encoding/fallback", |src, dst| {
+            data_encoding::HEXLOWER_PERMISSIVE.decode_mut(src, dst).unwrap();
+        }),
     ];
 
     for &(name, f) in functions {
@@ -111,6 +114,9 @@ pub fn bench_encode(c: &mut Criterion) {
         ("base16/fallback", |src, dst| {
             let config = base16::EncConfig::EncodeLower;
             base16::encode_config_slice(src, config, dst);
+        }),
+        ("data-encoding/fallback", |src, dst| {
+            data_encoding::HEXLOWER.encode_mut(src, dst);
         }),
     ];
 

@@ -80,6 +80,7 @@ getrandom = { version = "0.2", features = ["js"] }
 base64ct = "1.5.2"
 base16ct = "0.1.1"
 base32ct = "0.1.0"
+data-encoding = "2.3.2"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["real_blackbox"] }

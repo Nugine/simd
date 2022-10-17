@@ -27,6 +27,9 @@ pub fn bench_encode(c: &mut Criterion) {
             use base64ct::Encoding;
             base64ct::Base64::encode(src, dst).unwrap();
         }),
+        ("data-encoding/fallback", |src, dst| {
+            data_encoding::BASE64.encode_mut(src, dst);
+        }),
     ];
 
     for &(name, f) in functions {
@@ -65,6 +68,9 @@ pub fn bench_decode(c: &mut Criterion) {
         ("base64ct/fallback", |src, dst| {
             use base64ct::Encoding;
             base64ct::Base64::decode(src, dst).unwrap();
+        }),
+        ("data-encoding/fallback", |src, dst| {
+            data_encoding::BASE64.decode_mut(src, dst).unwrap();
         }),
     ];
 

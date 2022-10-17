@@ -20,6 +20,9 @@ pub fn bench_encode(c: &mut Criterion) {
             use base32ct::Encoding;
             base32ct::Base32Upper::encode(src, dst).unwrap();
         }),
+        ("data-encoding/fallback", |src, dst| {
+            data_encoding::BASE32.encode_mut(src, dst);
+        }),
     ];
 
     for &(name, f) in functions {
@@ -51,6 +54,9 @@ pub fn bench_decode(c: &mut Criterion) {
         ("base32ct/fallback", |src, dst| {
             use base32ct::Encoding;
             base32ct::Base32Upper::decode(src, dst).unwrap();
+        }),
+        ("data-encoding/fallback", |src, dst| {
+            data_encoding::BASE32.decode_mut(src, dst).unwrap();
         }),
     ];
 
