@@ -1911,6 +1911,19 @@ pub unsafe trait SIMD128: SIMD64 {
             unreachable!()
         }
     }
+
+    /// T1: SSE2
+    #[inline(always)]
+    fn u16x8_packus(self, a: V128, b: V128) -> V128 {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(Self, SSE2) {
+            return unsafe { t(_mm_packus_epi16(t(a), t(b))) };
+        }
+        {
+            let _ = (a, b);
+            unreachable!()
+        }
+    }
 }
 
 #[cfg(all(test, not(miri)))]
