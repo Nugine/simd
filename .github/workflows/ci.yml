@@ -15,7 +15,7 @@ jobs:
   develop:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt, clippy
@@ -33,7 +33,7 @@ jobs:
           - stable
           - 1.63.0 # MSRV
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -43,7 +43,7 @@ jobs:
   x86-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
       - uses: extractions/setup-just@v1
       - run: |
@@ -58,7 +58,7 @@ jobs:
   arm-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
       - uses: extractions/setup-just@v1
       - run: |
@@ -69,12 +69,11 @@ jobs:
             just arm-test
             popd
           done
-
   
   wasm-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
       - uses: extractions/setup-just@v1
       - run: |
@@ -89,7 +88,7 @@ jobs:
   miri-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
         with: 
           components: miri
