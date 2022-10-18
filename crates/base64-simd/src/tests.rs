@@ -38,6 +38,24 @@ fn basic() {
     }
 }
 
+#[cfg(feature = "alloc")]
+#[test]
+fn allocation() {
+    let src = "helloworld";
+    let prefix = "data:;base64,";
+
+    let mut encode_buf = prefix.to_owned();
+    STANDARD.encode_append(src.as_bytes(), &mut encode_buf);
+
+    assert_eq!(encode_buf, format!("{prefix}aGVsbG93b3JsZA=="));
+
+    let mut decode_buf = b"123".to_vec();
+    let src = encode_buf[prefix.len()..].as_bytes();
+    STANDARD.decode_append(src, &mut decode_buf).unwrap();
+
+    assert_eq!(decode_buf, b"123helloworld");
+}
+
 #[cfg(miri)]
 use std::io::Write as _;
 

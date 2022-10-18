@@ -325,6 +325,21 @@ impl Base64 {
     pub fn decode_type<T: FromBase64Decode>(&self, data: &[u8]) -> Result<T, Error> {
         T::from_base64_decode(self, data)
     }
+
+    /// Encodes bytes to a base64 string and appends to a specified type.
+    #[inline]
+    pub fn encode_append<T: AppendBase64Encode>(&self, src: &[u8], dst: &mut T) {
+        T::append_base64_encode(self, src, dst);
+    }
+
+    /// Decodes a base64 string to bytes and appends to a specified type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `src` is invalid.
+    #[inline]
+    pub fn decode_append<T: AppendBase64Decode>(&self, src: &[u8], dst: &mut T) -> Result<(), Error> {
+        T::append_base64_decode(self, src, dst)
+    }
 }
 
 /// Types that can represent a base64 string.
@@ -335,9 +350,24 @@ pub trait FromBase64Encode: Sized {
 
 /// Types that can be decoded from a base64 string.
 pub trait FromBase64Decode: Sized {
-    /// Decodes a base64 string to bytes case-insensitively and returns the self type.
+    /// Decodes a base64 string to bytes and returns the self type.
     ///
     /// # Errors
     /// This function returns `Err` if the content of `data` is invalid.
     fn from_base64_decode(base64: &Base64, data: &[u8]) -> Result<Self, Error>;
+}
+
+/// Types that can append a base64 string.
+pub trait AppendBase64Encode: FromBase64Encode {
+    /// Encodes bytes to a base64 string and appends into the self type.
+    fn append_base64_encode(base64: &Base64, src: &[u8], dst: &mut Self);
+}
+
+/// Types that can append bytes decoded from from a base64 string.
+pub trait AppendBase64Decode: FromBase64Decode {
+    /// Decodes a base64 string to bytes and appends to the self type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `src` is invalid.
+    fn append_base64_decode(base64: &Base64, src: &[u8], dst: &mut Self) -> Result<(), Error>;
 }
