@@ -195,3 +195,33 @@ pub fn encode_type<T: FromHexEncode>(data: &[u8], case: AsciiCase) -> T {
 pub fn decode_type<T: FromHexDecode>(data: &[u8]) -> Result<T, Error> {
     T::from_hex_decode(data)
 }
+
+/// Types that can append a hex string.
+pub trait AppendHexEncode: FromHexEncode {
+    /// Encodes bytes to a hex string and appends to the self type.
+    fn append_hex_encode(src: &[u8], dst: &mut Self, case: AsciiCase);
+}
+
+/// Types that can append bytes decoded from a hex string.
+pub trait AppendHexDecode: FromHexDecode {
+    /// Decodes a hex string to bytes case-insensitively and appends to the self type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `src` is invalid.
+    fn append_hex_decode(src: &[u8], dst: &mut Self) -> Result<(), Error>;
+}
+
+/// Encodes bytes to a hex string and appends to a specified type.
+#[inline]
+pub fn encode_append<T: AppendHexEncode>(src: &[u8], dst: &mut T, case: AsciiCase) {
+    T::append_hex_encode(src, dst, case);
+}
+
+/// Decodes a hex string to bytes case-insensitively and appends to a specified type.
+///
+/// # Errors
+/// This function returns `Err` if the content of `src` is invalid.
+#[inline]
+pub fn decode_append<T: AppendHexDecode>(src: &[u8], dst: &mut T) -> Result<(), Error> {
+    T::append_hex_decode(src, dst)
+}

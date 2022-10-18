@@ -25,13 +25,31 @@ fn test_str() {
 #[cfg(feature = "alloc")]
 #[test]
 fn test_alloc() {
-    let src = "hello".as_bytes();
+    {
+        let src = "hello".as_bytes();
 
-    let ans: String = crate::encode_type(src, AsciiCase::Lower);
-    assert_eq!(&*ans, "68656c6c6f");
+        let ans: String = crate::encode_type(src, AsciiCase::Lower);
+        assert_eq!(&*ans, "68656c6c6f");
 
-    let ans: Vec<u8> = crate::decode_type(ans.as_bytes()).unwrap();
-    assert_eq!(&*ans, src);
+        let ans: Vec<u8> = crate::decode_type(ans.as_bytes()).unwrap();
+        assert_eq!(&*ans, src);
+    }
+
+    {
+        let src = [1, 2, 3];
+        let prefix = "0x";
+
+        let mut encode_buf = prefix.to_owned();
+        crate::encode_append(&src, &mut encode_buf, AsciiCase::Lower);
+
+        assert_eq!(encode_buf, format!("{prefix}010203"));
+
+        let mut decode_buf = b"123".to_vec();
+        let src = encode_buf[prefix.len()..].as_bytes();
+        crate::decode_append(src, &mut decode_buf).unwrap();
+
+        assert_eq!(decode_buf, b"123\x01\x02\x03");
+    }
 }
 
 #[cfg(miri)]
