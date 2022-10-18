@@ -92,6 +92,24 @@ fn special() {
     }
 }
 
+#[cfg(feature = "alloc")]
+#[test]
+fn allocation() {
+    let src = "helloworld";
+    let prefix = "data:;base32,";
+
+    let mut encode_buf = prefix.to_owned();
+    BASE32.encode_append(src.as_bytes(), &mut encode_buf);
+
+    assert_eq!(encode_buf, format!("{prefix}NBSWY3DPO5XXE3DE"));
+
+    let mut decode_buf = b"123".to_vec();
+    let src = encode_buf[prefix.len()..].as_bytes();
+    BASE32.decode_append(src, &mut decode_buf).unwrap();
+
+    assert_eq!(decode_buf, b"123helloworld");
+}
+
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
     check: for<'s> fn(&'_ Base32, &'s [u8]) -> Result<(), Error>,

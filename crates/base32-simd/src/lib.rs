@@ -258,6 +258,21 @@ impl Base32 {
     pub fn decode_type<T: FromBase32Decode>(&self, data: &[u8]) -> Result<T, Error> {
         T::from_base32_decode(self, data)
     }
+
+    /// Encodes bytes to a base32 string and appends to a specified type.
+    #[inline]
+    pub fn encode_append<T: AppendBase32Encode>(&self, src: &[u8], dst: &mut T) {
+        T::append_base32_encode(self, src, dst);
+    }
+
+    /// Decodes a base32 string to bytes and appends to a specified type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `src` is invalid.
+    #[inline]
+    pub fn decode_append<T: AppendBase32Decode>(&self, src: &[u8], dst: &mut T) -> Result<(), Error> {
+        T::append_base32_decode(self, src, dst)
+    }
 }
 
 /// Types that can represent a base32 string.
@@ -268,9 +283,24 @@ pub trait FromBase32Encode: Sized {
 
 /// Types that can be decoded from a base32 string.
 pub trait FromBase32Decode: Sized {
-    /// Decodes a base32 string to bytes case-insensitively and returns the self type.
+    /// Decodes a base32 string to bytes and returns the self type.
     ///
     /// # Errors
     /// This function returns `Err` if the content of `data` is invalid.
     fn from_base32_decode(base32: &Base32, data: &[u8]) -> Result<Self, Error>;
+}
+
+/// Types that can append a base32 string.
+pub trait AppendBase32Encode: FromBase32Encode {
+    /// Encodes bytes to a base32 string and appends into the self type.
+    fn append_base32_encode(base32: &Base32, src: &[u8], dst: &mut Self);
+}
+
+/// Types that can append bytes decoded from from a base32 string.
+pub trait AppendBase32Decode: FromBase32Decode {
+    /// Decodes a base32 string to bytes and appends to the self type.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `src` is invalid.
+    fn append_base32_decode(base32: &Base32, src: &[u8], dst: &mut Self) -> Result<(), Error>;
 }
