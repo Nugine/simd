@@ -71,7 +71,7 @@ pub use outref::OutRef;
 use crate::decode::decoded_length;
 use crate::encode::encoded_length_unchecked;
 
-use vsimd::tools::slice_mut;
+use vsimd::tools::{slice_mut, slice_parts};
 
 const BASE32_CHARSET: &[u8; 32] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const BASE32HEX_CHARSET: &[u8; 32] = b"0123456789ABCDEFGHIJKLMNOPQRSTUV";
@@ -172,8 +172,8 @@ impl Base32 {
     #[inline]
     pub fn check(&self, data: &[u8]) -> Result<(), Error> {
         let (n, _) = decoded_length(data, self.padding)?;
-        let src = unsafe { data.get_unchecked(..n) };
-        crate::multiversion::check::auto(src, self.kind)
+        let src = data.as_ptr();
+        unsafe { crate::multiversion::check::auto(src, n, self.kind) }
     }
 
     /// Encodes bytes to a base32 string.
@@ -187,8 +187,9 @@ impl Base32 {
             let m = encoded_length_unchecked(src.len(), self.padding);
             assert!(dst.len() >= m);
 
+            let (src, len) = slice_parts(src);
             let dst = dst.as_mut_ptr();
-            self::multiversion::encode::auto(src, dst, self.kind, self.padding);
+            self::multiversion::encode::auto(src, len, dst, self.kind, self.padding);
 
             slice_mut(dst, m)
         }

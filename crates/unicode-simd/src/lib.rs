@@ -31,7 +31,7 @@ pub use outref::OutRef;
 
 // ------------------------------------------------------------------------------------------------
 
-use vsimd::tools::slice_mut;
+use vsimd::tools::{slice_mut, slice_parts};
 
 /// Checks if `data` is a valid ASCII string, in constant-time.
 ///
@@ -43,14 +43,16 @@ use vsimd::tools::slice_mut;
 #[inline]
 #[must_use]
 pub fn is_ascii_ct(data: &[u8]) -> bool {
-    crate::multiversion::is_ascii_ct::auto(data)
+    let (src, len) = slice_parts(data);
+    unsafe { crate::multiversion::is_ascii_ct::auto(src, len) }
 }
 
 /// TODO: test, bench
 #[inline]
 #[must_use]
 pub fn is_utf32le_ct(data: &[u32]) -> bool {
-    crate::multiversion::is_utf32le_ct::auto(data)
+    let (src, len) = slice_parts(data);
+    unsafe { crate::multiversion::is_utf32le_ct::auto(src, len) }
 }
 
 /// TODO: test, bench

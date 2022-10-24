@@ -2,7 +2,7 @@ use crate::{u16x4_to_u64, Kind};
 use crate::{BASE32HEX_CHARSET, BASE32_CHARSET};
 
 use vsimd::isa::{NEON, SSE41, WASM128};
-use vsimd::tools::{read, slice, slice_parts, write};
+use vsimd::tools::{read, write};
 use vsimd::vector::V256;
 use vsimd::{is_subtype, SIMD256};
 
@@ -111,13 +111,11 @@ unsafe fn encode_extra(src: *const u8, extra: usize, dst: *mut u8, charset: *con
 }
 
 #[inline(always)]
-pub(crate) unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
+pub(crate) unsafe fn encode_fallback(mut src: *const u8, mut len: usize, mut dst: *mut u8, kind: Kind, padding: bool) {
     let charset: *const u8 = match kind {
         Kind::Base32 => BASE32_CHARSET.as_ptr(),
         Kind::Base32Hex => BASE32HEX_CHARSET.as_ptr(),
     };
-
-    let (mut src, mut len) = slice_parts(src);
 
     let end = src.add(len / 5 * 5);
     while src < end {
@@ -132,13 +130,18 @@ pub(crate) unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, kind: Kind, p
 }
 
 #[inline(always)]
-pub(crate) unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, kind: Kind, padding: bool) {
+pub(crate) unsafe fn encode_simd<S: SIMD256>(
+    s: S,
+    mut src: *const u8,
+    mut len: usize,
+    mut dst: *mut u8,
+    kind: Kind,
+    padding: bool,
+) {
     let (charset, encoding_lut) = match kind {
         Kind::Base32 => (BASE32_CHARSET.as_ptr(), BASE32_ENCODING_LUT),
         Kind::Base32Hex => (BASE32HEX_CHARSET.as_ptr(), BASE32HEX_ENCODING_LUT),
     };
-
-    let (mut src, mut len) = slice_parts(src);
 
     if len >= (10 + 20 + 6) {
         {
@@ -165,7 +168,7 @@ pub(crate) unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8,
         }
     }
 
-    encode_fallback(slice(src, len), dst, kind, padding);
+    encode_fallback(src, len, dst, kind, padding);
 }
 
 #[inline(always)]

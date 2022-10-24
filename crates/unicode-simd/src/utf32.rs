@@ -1,4 +1,3 @@
-use vsimd::tools::{slice, slice_parts};
 use vsimd::SIMD256;
 
 #[inline(always)]
@@ -20,44 +19,37 @@ fn is_unicode_scalar_value(x: u32) -> bool {
 }
 
 #[inline]
-pub fn is_utf32le_ct_fallback(data: &[u32]) -> bool {
-    unsafe {
-        let mut flag = true;
+pub unsafe fn is_utf32le_ct_fallback(mut src: *const u32, len: usize) -> bool {
+    let mut flag = true;
 
-        let (mut src, len) = slice_parts(data);
-        let end = src.add(len);
-        while src < end {
-            let x = src.read();
-            flag &= is_unicode_scalar_value(x);
-            src = src.add(1);
-        }
-
-        flag
+    let end = src.add(len);
+    while src < end {
+        let x = src.read();
+        flag &= is_unicode_scalar_value(x);
+        src = src.add(1);
     }
+
+    flag
 }
 
 #[inline(always)]
-pub fn is_utf32le_ct_simd<S: SIMD256>(s: S, data: &[u32]) -> bool {
-    unsafe {
-        let mut y = s.u32x8_splat(0);
+pub unsafe fn is_utf32le_ct_simd<S: SIMD256>(s: S, mut src: *const u32, mut len: usize) -> bool {
+    let mut y = s.u32x8_splat(0);
 
-        let (mut src, mut len) = slice_parts(data);
+    let end = src.add(len / 8 * 8);
+    while src < end {
+        let x = s.v256_load_unaligned(src.cast::<u8>());
+        let a1 = s.v256_xor(x, s.u32x8_splat(0xD800));
+        let a2 = s.u32x8_sub(a1, s.u32x8_splat(0x800));
+        y = s.u32x8_max(y, a2);
 
-        let end = src.add(len / 8 * 8);
-        while src < end {
-            let x = s.v256_load_unaligned(src.cast::<u8>());
-            let a1 = s.v256_xor(x, s.u32x8_splat(0xD800));
-            let a2 = s.u32x8_sub(a1, s.u32x8_splat(0x800));
-            y = s.u32x8_max(y, a2);
-
-            src = src.add(8);
-        }
-        len %= 8;
-
-        let m = s.u32x8_splat(0x11_0000 - 0x800 - 1);
-        let mut ans = s.v256_all_zero(s.u32x8_lt(m, y));
-
-        ans &= is_utf32le_ct_fallback(slice(src, len));
-        ans
+        src = src.add(8);
     }
+    len %= 8;
+
+    let m = s.u32x8_splat(0x11_0000 - 0x800 - 1);
+    let mut ans = s.v256_all_zero(s.u32x8_lt(m, y));
+
+    ans &= is_utf32le_ct_fallback(src, len);
+    ans
 }

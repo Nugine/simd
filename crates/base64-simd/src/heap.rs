@@ -55,6 +55,7 @@ fn encode_append_vec(base64: &Base64, src: &[u8], buf: &mut Vec<u8>) {
     }
 }
 
+#[inline]
 fn decode_to_boxed_bytes(base64: &Base64, data: &[u8]) -> Result<Box<[u8]>, Error> {
     if data.is_empty() {
         return Ok(Box::from([]));
@@ -76,6 +77,7 @@ fn decode_to_boxed_bytes(base64: &Base64, data: &[u8]) -> Result<Box<[u8]>, Erro
     }
 }
 
+#[inline]
 fn decode_append_vec(base64: &Base64, src: &[u8], buf: &mut Vec<u8>) -> Result<(), Error> {
     if src.is_empty() {
         return Ok(());

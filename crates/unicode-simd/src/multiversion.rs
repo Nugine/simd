@@ -4,19 +4,19 @@ use vsimd::simd_dispatch;
 
 simd_dispatch! (
     name        = is_ascii_ct,
-    signature   = fn(data: &[u8]) -> bool,
+    signature   = fn(src: *const u8, len: usize) -> bool,
     fallback    = {crate::ascii::is_ascii_ct_fallback},
     simd        = {crate::ascii::is_ascii_ct_simd},
-    safety      = {},
+    safety      = {unsafe},
     visibility  = {pub},
 );
 
 simd_dispatch!(
     name        = is_utf32le_ct,
-    signature   = fn(data: &[u32]) -> bool,
+    signature   = fn(src: *const u32, len: usize) -> bool,
     fallback    = {crate::utf32::is_utf32le_ct_fallback},
     simd        = {crate::utf32::is_utf32le_ct_simd},
-    safety      = {},
+    safety      = {unsafe},
     visibility  = {pub},
 );
 

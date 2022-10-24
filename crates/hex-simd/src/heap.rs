@@ -6,6 +6,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+#[inline]
 fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
     if src.is_empty() {
         return Ok(Box::from([]));
@@ -26,6 +27,7 @@ fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
     }
 }
 
+#[inline]
 fn decode_append_vec(src: &[u8], buf: &mut Vec<u8>) -> Result<(), Error> {
     if src.is_empty() {
         return Ok(());
@@ -47,6 +49,7 @@ fn decode_append_vec(src: &[u8], buf: &mut Vec<u8>) -> Result<(), Error> {
     }
 }
 
+#[inline]
 fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
     if src.is_empty() {
         return Box::from("");
@@ -68,6 +71,7 @@ fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
     }
 }
 
+#[inline]
 fn encode_append_vec(src: &[u8], buf: &mut Vec<u8>, case: AsciiCase) {
     if src.is_empty() {
         return;
