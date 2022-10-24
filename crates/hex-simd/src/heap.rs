@@ -1,6 +1,6 @@
 use crate::{AppendHexDecode, AppendHexEncode, AsciiCase, Error, FromHexDecode, FromHexEncode};
 
-use vsimd::tools::{alloc_uninit_bytes, assume_init, slice_mut, slice_parts};
+use vsimd::tools::{alloc_uninit_bytes, assume_init, boxed_str, slice_parts};
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -14,13 +14,15 @@ fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
     ensure!(src.len() % 2 == 0);
 
     unsafe {
-        let mut uninit_buf = alloc_uninit_bytes(src.len() / 2);
+        let mut buf = alloc_uninit_bytes(src.len() / 2);
 
-        let (src, len) = slice_parts(src);
-        let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-        crate::multiversion::decode::auto(src, len, dst)?;
+        {
+            let (src, len) = slice_parts(src);
+            let dst: *mut u8 = buf.as_mut_ptr().cast();
+            crate::multiversion::decode::auto(src, len, dst)?;
+        }
 
-        Ok(assume_init(uninit_buf))
+        Ok(assume_init(buf))
     }
 }
 
@@ -54,14 +56,15 @@ fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
         let m = src.len() * 2;
         assert!(m <= usize::MAX / 2);
 
-        let mut uninit_buf = alloc_uninit_bytes(m);
+        let mut buf = alloc_uninit_bytes(m);
 
-        let (src, len) = slice_parts(src);
-        let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-        crate::multiversion::encode::auto(src, len, dst, case);
+        {
+            let (src, len) = slice_parts(src);
+            let dst: *mut u8 = buf.as_mut_ptr().cast();
+            crate::multiversion::encode::auto(src, len, dst, case);
+        }
 
-        let ptr = Box::into_raw(uninit_buf).cast::<u8>();
-        Box::from_raw(core::str::from_utf8_unchecked_mut(slice_mut(ptr, m)))
+        boxed_str(assume_init(buf))
     }
 }
 

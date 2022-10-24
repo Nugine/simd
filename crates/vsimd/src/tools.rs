@@ -86,3 +86,11 @@ pub fn slice_parts<T>(slice: &[T]) -> (*const T, usize) {
     let ptr = slice.as_ptr();
     (ptr, len)
 }
+
+#[cfg(feature = "alloc")]
+#[inline(always)]
+#[must_use]
+pub unsafe fn boxed_str(b: Box<[u8]>) -> Box<str> {
+    let ptr = Box::into_raw(b);
+    Box::from_raw(core::str::from_utf8_unchecked_mut(&mut *ptr))
+}

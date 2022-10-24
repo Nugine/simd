@@ -2,7 +2,7 @@ use crate::decode::decoded_length;
 use crate::encode::encoded_length_unchecked;
 use crate::{AppendBase32Decode, AppendBase32Encode, Base32, Error, FromBase32Decode, FromBase32Encode};
 
-use vsimd::tools::{alloc_uninit_bytes, assume_init, slice_mut};
+use vsimd::tools::{alloc_uninit_bytes, assume_init, boxed_str};
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -17,13 +17,15 @@ fn decode_to_boxed_bytes(base32: &Base32, src: &[u8]) -> Result<Box<[u8]>, Error
         let (n, m) = decoded_length(src, base32.padding)?;
 
         // safety: 0 < m < isize::MAX
-        let mut uninit_buf = alloc_uninit_bytes(m);
+        let mut buf = alloc_uninit_bytes(m);
 
-        let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-        let src: *const u8 = src.as_ptr();
-        crate::multiversion::decode::auto(src, n, dst, base32.kind)?;
+        {
+            let src: *const u8 = src.as_ptr();
+            let dst: *mut u8 = buf.as_mut_ptr().cast();
+            crate::multiversion::decode::auto(src, n, dst, base32.kind)?;
+        }
 
-        Ok(assume_init(uninit_buf))
+        Ok(assume_init(buf))
     }
 }
 
@@ -56,14 +58,12 @@ fn encode_to_boxed_str(base32: &Base32, src: &[u8]) -> Box<str> {
         let m = encoded_length_unchecked(src.len(), base32.padding);
         assert!(m <= usize::MAX / 2);
 
-        let mut uninit_buf = alloc_uninit_bytes(m);
+        let mut buf = alloc_uninit_bytes(m);
 
-        let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
+        let dst: *mut u8 = buf.as_mut_ptr().cast();
         crate::multiversion::encode::auto(src, dst, base32.kind, base32.padding);
 
-        let len = uninit_buf.len();
-        let ptr = Box::into_raw(uninit_buf).cast::<u8>();
-        Box::from_raw(core::str::from_utf8_unchecked_mut(slice_mut(ptr, len)))
+        boxed_str(assume_init(buf))
     }
 }
 

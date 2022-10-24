@@ -4,7 +4,7 @@ use crate::{AppendBase64Decode, AppendBase64Encode};
 use crate::{Base64, Error};
 use crate::{FromBase64Decode, FromBase64Encode};
 
-use vsimd::tools::{alloc_uninit_bytes, assume_init, slice_mut, slice_parts};
+use vsimd::tools::{alloc_uninit_bytes, assume_init, boxed_str, slice_parts};
 
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -20,17 +20,15 @@ fn encode_to_boxed_str(base64: &Base64, data: &[u8]) -> Box<str> {
         let m = encoded_length_unchecked(data.len(), base64.config);
         assert!(m <= usize::MAX / 2);
 
-        let mut uninit_buf = alloc_uninit_bytes(m);
+        let mut buf = alloc_uninit_bytes(m);
 
         {
             let (src, len) = slice_parts(data);
-            let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
+            let dst: *mut u8 = buf.as_mut_ptr().cast();
             crate::multiversion::encode::auto(src, len, dst, base64.config);
         }
 
-        let len = uninit_buf.len();
-        let ptr = Box::into_raw(uninit_buf).cast::<u8>();
-        Box::from_raw(core::str::from_utf8_unchecked_mut(slice_mut(ptr, len)))
+        boxed_str(assume_init(buf))
     }
 }
 
@@ -66,13 +64,15 @@ fn decode_to_boxed_bytes(base64: &Base64, data: &[u8]) -> Result<Box<[u8]>, Erro
         let (n, m) = decoded_length(data, base64.config)?;
 
         // safety: 0 < m < isize::MAX
-        let mut uninit_buf = alloc_uninit_bytes(m);
+        let mut buf = alloc_uninit_bytes(m);
 
-        let dst = uninit_buf.as_mut_ptr().cast();
-        let src = data.as_ptr();
-        crate::multiversion::decode::auto(src, dst, n, base64.config)?;
+        {
+            let dst = buf.as_mut_ptr().cast();
+            let src = data.as_ptr();
+            crate::multiversion::decode::auto(src, dst, n, base64.config)?;
+        }
 
-        Ok(assume_init(uninit_buf))
+        Ok(assume_init(buf))
     }
 }
 
