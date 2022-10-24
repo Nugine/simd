@@ -4,12 +4,13 @@ use crate::{AppendBase64Decode, AppendBase64Encode};
 use crate::{Base64, Error};
 use crate::{FromBase64Decode, FromBase64Encode};
 
-use vsimd::tools::{alloc_uninit_bytes, assume_init, slice_mut};
+use vsimd::tools::{alloc_uninit_bytes, assume_init, slice_mut, slice_parts};
 
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+#[inline]
 fn encode_to_boxed_str(base64: &Base64, data: &[u8]) -> Box<str> {
     if data.is_empty() {
         return Box::from("");
@@ -21,8 +22,11 @@ fn encode_to_boxed_str(base64: &Base64, data: &[u8]) -> Box<str> {
 
         let mut uninit_buf = alloc_uninit_bytes(m);
 
-        let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-        crate::multiversion::encode::auto(data, dst, base64.config);
+        {
+            let (src, len) = slice_parts(data);
+            let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
+            crate::multiversion::encode::auto(src, len, dst, base64.config);
+        }
 
         let len = uninit_buf.len();
         let ptr = Box::into_raw(uninit_buf).cast::<u8>();
@@ -30,6 +34,7 @@ fn encode_to_boxed_str(base64: &Base64, data: &[u8]) -> Box<str> {
     }
 }
 
+#[inline]
 fn encode_append_vec(base64: &Base64, src: &[u8], buf: &mut Vec<u8>) {
     if src.is_empty() {
         return;
@@ -42,8 +47,11 @@ fn encode_append_vec(base64: &Base64, src: &[u8], buf: &mut Vec<u8>) {
         buf.reserve_exact(m);
         let prev_len = buf.len();
 
-        let dst = buf.as_mut_ptr().add(prev_len);
-        crate::multiversion::encode::auto(src, dst, base64.config);
+        {
+            let (src, len) = slice_parts(src);
+            let dst = buf.as_mut_ptr().add(prev_len);
+            crate::multiversion::encode::auto(src, len, dst, base64.config);
+        }
 
         buf.set_len(prev_len + m);
     }

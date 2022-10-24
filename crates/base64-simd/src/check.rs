@@ -4,17 +4,14 @@ use crate::decode::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
 use crate::{Config, Error, Kind};
 
 use vsimd::alsw::AlswLut;
-use vsimd::tools::slice;
 use vsimd::vector::V256;
 use vsimd::SIMD256;
 
 use core::ptr::null_mut;
 
-pub(crate) fn check_fallback(src: &[u8], config: Config) -> Result<(), Error> {
+pub(crate) unsafe fn check_fallback(mut src: *const u8, mut n: usize, config: Config) -> Result<(), Error> {
     let kind = config.kind;
     let forgiving = config.extra.forgiving();
-
-    let (mut src, mut n) = (src.as_ptr(), src.len());
 
     let table = match kind {
         Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
@@ -39,10 +36,13 @@ pub(crate) fn check_fallback(src: &[u8], config: Config) -> Result<(), Error> {
     }
 }
 
-pub(crate) fn check_simd<S: SIMD256>(s: S, src: &[u8], config: Config) -> Result<(), Error> {
+pub(crate) unsafe fn check_simd<S: SIMD256>(
+    s: S,
+    mut src: *const u8,
+    mut n: usize,
+    config: Config,
+) -> Result<(), Error> {
     let kind = config.kind;
-
-    let (mut src, mut n) = (src.as_ptr(), src.len());
 
     let check_lut = match kind {
         Kind::Standard => STANDARD_ALSW_CHECK_X2,
@@ -59,7 +59,7 @@ pub(crate) fn check_simd<S: SIMD256>(s: S, src: &[u8], config: Config) -> Result
             n -= 32;
         }
 
-        check_fallback(slice(src, n), config)
+        check_fallback(src, n, config)
     }
 }
 

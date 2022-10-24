@@ -6,19 +6,18 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-fn decode_to_boxed_bytes(data: &[u8]) -> Result<Box<[u8]>, Error> {
-    if data.is_empty() {
+fn decode_to_boxed_bytes(src: &[u8]) -> Result<Box<[u8]>, Error> {
+    if src.is_empty() {
         return Ok(Box::from([]));
     }
 
-    ensure!(data.len() % 2 == 0);
+    ensure!(src.len() % 2 == 0);
 
     unsafe {
-        let mut uninit_buf = alloc_uninit_bytes(data.len() / 2);
+        let mut uninit_buf = alloc_uninit_bytes(src.len() / 2);
 
+        let (src, len) = slice_parts(src);
         let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-        let src = data.as_ptr();
-        let len = data.len();
         crate::multiversion::decode::auto(src, len, dst)?;
 
         Ok(assume_init(uninit_buf))
@@ -46,19 +45,20 @@ fn decode_append_vec(src: &[u8], buf: &mut Vec<u8>) -> Result<(), Error> {
     }
 }
 
-fn encode_to_boxed_str(data: &[u8], case: AsciiCase) -> Box<str> {
-    if data.is_empty() {
+fn encode_to_boxed_str(src: &[u8], case: AsciiCase) -> Box<str> {
+    if src.is_empty() {
         return Box::from("");
     }
 
     unsafe {
-        let m = data.len() * 2;
+        let m = src.len() * 2;
         assert!(m <= usize::MAX / 2);
 
         let mut uninit_buf = alloc_uninit_bytes(m);
 
+        let (src, len) = slice_parts(src);
         let dst: *mut u8 = uninit_buf.as_mut_ptr().cast();
-        crate::multiversion::encode::auto(data, dst, case);
+        crate::multiversion::encode::auto(src, len, dst, case);
 
         let ptr = Box::into_raw(uninit_buf).cast::<u8>();
         Box::from_raw(core::str::from_utf8_unchecked_mut(slice_mut(ptr, m)))
@@ -77,8 +77,9 @@ fn encode_append_vec(src: &[u8], buf: &mut Vec<u8>, case: AsciiCase) {
         buf.reserve_exact(m);
         let prev_len = buf.len();
 
+        let (src, len) = slice_parts(src);
         let dst = buf.as_mut_ptr().add(prev_len);
-        crate::multiversion::encode::auto(src, dst, case);
+        crate::multiversion::encode::auto(src, len, dst, case);
 
         buf.set_len(prev_len + m);
     }

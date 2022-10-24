@@ -1,5 +1,5 @@
 use vsimd::ascii::AsciiCase;
-use vsimd::tools::{read, slice_parts, write};
+use vsimd::tools::{read, write};
 use vsimd::SIMD256;
 
 fn charset(case: AsciiCase) -> &'static [u8; 16] {
@@ -28,10 +28,8 @@ unsafe fn encode_short(mut src: *const u8, len: usize, mut dst: *mut u8, charset
     }
 }
 
-unsafe fn encode_long(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
+unsafe fn encode_long(mut src: *const u8, len: usize, mut dst: *mut u8, case: AsciiCase) {
     let charset = charset(case).as_ptr();
-
-    let (mut src, len) = (src.as_ptr(), src.len());
 
     let end = src.add(len / 8 * 8);
     while src < end {
@@ -47,26 +45,24 @@ unsafe fn encode_long(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
 }
 
 #[inline(always)]
-pub unsafe fn encode_fallback(src: &[u8], dst: *mut u8, case: AsciiCase) {
+pub unsafe fn encode_fallback(src: *const u8, len: usize, dst: *mut u8, case: AsciiCase) {
     #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
     {
         if cfg!(target_feature = "sse2") {
-            self::sse2::encode(src, dst, case);
+            self::sse2::encode(src, len, dst, case);
             return;
         }
     }
 
-    encode_long(src, dst, case);
+    encode_long(src, len, dst, case);
 }
 
 #[inline(always)]
-pub unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, case: AsciiCase) {
+pub unsafe fn encode_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, mut dst: *mut u8, case: AsciiCase) {
     let lut = match case {
         AsciiCase::Lower => vsimd::hex::ENCODE_LOWER_LUT,
         AsciiCase::Upper => vsimd::hex::ENCODE_UPPER_LUT,
     };
-
-    let (mut src, mut len) = slice_parts(src);
 
     if len == 16 {
         let x = s.v128_load_unaligned(src);
@@ -127,10 +123,8 @@ mod sse2 {
 
     #[inline]
     #[target_feature(enable = "sse2")]
-    pub unsafe fn encode(src: &[u8], mut dst: *mut u8, case: AsciiCase) {
+    pub unsafe fn encode(mut src: *const u8, mut len: usize, mut dst: *mut u8, case: AsciiCase) {
         let s = SSE2::new();
-
-        let (mut src, mut len) = slice_parts(src);
 
         let offset = match case {
             AsciiCase::Lower => LOWER_OFFSET,

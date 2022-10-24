@@ -66,7 +66,7 @@ pub use vsimd::ascii::AsciiCase;
 
 // -------------------------------------------------------------------------------------------------
 
-use vsimd::tools::slice_mut;
+use vsimd::tools::{slice_mut, slice_parts};
 
 /// Calculates the encoded length.
 ///
@@ -95,7 +95,8 @@ pub fn decoded_length(n: usize) -> Result<usize, Error> {
 /// This function returns `Err` if the content of `data` is invalid.
 #[inline]
 pub fn check(data: &[u8]) -> Result<(), Error> {
-    crate::multiversion::check::auto(data)
+    let (src, len) = slice_parts(data);
+    unsafe { crate::multiversion::check::auto(src, len) }
 }
 
 /// Encodes bytes to a hex string.
@@ -108,10 +109,11 @@ pub fn check(data: &[u8]) -> Result<(), Error> {
 #[must_use]
 pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>, case: AsciiCase) -> &'d mut [u8] {
     assert!(dst.len() / 2 >= src.len());
-    let dst = dst.as_mut_ptr();
     unsafe {
-        crate::multiversion::encode::auto(src, dst, case);
-        slice_mut(dst, src.len() * 2)
+        let (src, len) = slice_parts(src);
+        let dst = dst.as_mut_ptr();
+        crate::multiversion::encode::auto(src, len, dst, case);
+        slice_mut(dst, len * 2)
     }
 }
 

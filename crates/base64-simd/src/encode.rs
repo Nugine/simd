@@ -3,7 +3,7 @@ use crate::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 
 use vsimd::is_subtype;
 use vsimd::isa::{NEON, SSE41, WASM128};
-use vsimd::tools::{read, slice, slice_parts, write};
+use vsimd::tools::{read, write};
 use vsimd::vector::{V128, V256};
 use vsimd::{Scalable, SIMD128, SIMD256};
 
@@ -75,7 +75,7 @@ unsafe fn encode_extra(extra: usize, src: *const u8, dst: *mut u8, charset: *con
     }
 }
 
-pub(crate) unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, config: Config) {
+pub(crate) unsafe fn encode_fallback(mut src: *const u8, mut len: usize, mut dst: *mut u8, config: Config) {
     let kind = config.kind;
     let padding = config.extra.padding();
 
@@ -83,8 +83,6 @@ pub(crate) unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, config: Confi
         Kind::Standard => STANDARD_CHARSET.as_ptr(),
         Kind::UrlSafe => URL_SAFE_CHARSET.as_ptr(),
     };
-
-    let (mut src, mut len) = slice_parts(src);
 
     const L: usize = 4;
     while len >= L * 6 + 2 {
@@ -116,10 +114,14 @@ pub(crate) unsafe fn encode_fallback(src: &[u8], mut dst: *mut u8, config: Confi
     encode_extra(len, src, dst, charset, padding);
 }
 
-pub(crate) unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8, config: Config) {
+pub(crate) unsafe fn encode_simd<S: SIMD256>(
+    s: S,
+    mut src: *const u8,
+    mut len: usize,
+    mut dst: *mut u8,
+    config: Config,
+) {
     let kind = config.kind;
-
-    let (mut src, mut len) = slice_parts(src);
 
     if len >= (6 + 24 + 4) {
         let (charset, shift_lut) = match kind {
@@ -158,7 +160,7 @@ pub(crate) unsafe fn encode_simd<S: SIMD256>(s: S, src: &[u8], mut dst: *mut u8,
         len -= 12;
     }
 
-    encode_fallback(slice(src, len), dst, config);
+    encode_fallback(src, len, dst, config);
 }
 
 const SPLIT_SHUFFLE: V256 = V256::from_bytes([

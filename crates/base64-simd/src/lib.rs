@@ -75,7 +75,7 @@ pub use outref::OutRef;
 use crate::decode::decoded_length;
 use crate::encode::encoded_length_unchecked;
 
-use vsimd::tools::slice_mut;
+use vsimd::tools::{slice_mut, slice_parts};
 
 const STANDARD_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const URL_SAFE_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -239,8 +239,7 @@ impl Base64 {
     #[inline]
     pub fn check(&self, data: &[u8]) -> Result<(), Error> {
         let (n, _) = decoded_length(data, self.config)?;
-        let src = unsafe { data.get_unchecked(..n) };
-        crate::multiversion::check::auto(src, self.config)
+        unsafe { crate::multiversion::check::auto(data.as_ptr(), n, self.config) }
     }
 
     /// Encodes bytes to a base64 string.
@@ -254,8 +253,9 @@ impl Base64 {
             let m = encoded_length_unchecked(src.len(), self.config);
             assert!(dst.len() >= m);
 
+            let (src, len) = slice_parts(src);
             let dst = dst.as_mut_ptr();
-            self::multiversion::encode::auto(src, dst, self.config);
+            self::multiversion::encode::auto(src, len, dst, self.config);
 
             slice_mut(dst, m)
         }

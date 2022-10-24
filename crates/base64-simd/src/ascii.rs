@@ -1,5 +1,5 @@
 use vsimd::mask::mask8x32_any;
-use vsimd::tools::{read, slice, slice_parts};
+use vsimd::tools::{read, slice_parts};
 use vsimd::vector::V256;
 use vsimd::SIMD256;
 
@@ -50,64 +50,58 @@ fn has_ascii_whitespace_u8x32<S: SIMD256>(s: S, x: V256) -> bool {
 }
 
 #[inline(always)]
-pub fn find_non_ascii_whitespace_fallback(data: &[u8]) -> usize {
-    unsafe {
-        let len = data.len();
-        let mut src = data.as_ptr();
-        let base = src;
+pub unsafe fn find_non_ascii_whitespace_fallback(mut src: *const u8, len: usize) -> usize {
+    let base = src;
 
-        const L: usize = 8;
-        let end = src.add(len / L * L);
-        while src < end {
-            let mut flag = 0;
-            let mut i = 0;
-            while i < L {
-                flag |= lookup_ascii_whitespace(read(src, i));
-                i += 1;
-            }
-            if flag != 0 {
-                break;
-            }
-            src = src.add(L);
+    const L: usize = 8;
+    let end = src.add(len / L * L);
+    while src < end {
+        let mut flag = 0;
+        let mut i = 0;
+        while i < L {
+            flag |= lookup_ascii_whitespace(read(src, i));
+            i += 1;
         }
-
-        let end = base.add(len);
-        while src < end {
-            if lookup_ascii_whitespace(src.read()) != 0 {
-                break;
-            }
-            src = src.add(1);
+        if flag != 0 {
+            break;
         }
-
-        src.offset_from(base) as usize
+        src = src.add(L);
     }
+
+    let end = base.add(len);
+    while src < end {
+        if lookup_ascii_whitespace(src.read()) != 0 {
+            break;
+        }
+        src = src.add(1);
+    }
+
+    src.offset_from(base) as usize
 }
 
 #[inline(always)]
-pub fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, data: &[u8]) -> usize {
-    unsafe {
-        let (mut src, len) = slice_parts(data);
-        let base = src;
+pub unsafe fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, mut src: *const u8, len: usize) -> usize {
+    let base = src;
 
-        let end = src.add(len / 32 * 32);
-        while src < end {
-            let x = s.v256_load_unaligned(src);
-            if has_ascii_whitespace_u8x32(s, x) {
-                break;
-            }
-            src = src.add(32);
+    let end = src.add(len / 32 * 32);
+    while src < end {
+        let x = s.v256_load_unaligned(src);
+        if has_ascii_whitespace_u8x32(s, x) {
+            break;
         }
-
-        let checked_len = src.offset_from(base) as usize;
-        let pos = find_non_ascii_whitespace_fallback(slice(src, len - checked_len));
-        checked_len + pos
+        src = src.add(32);
     }
+
+    let checked_len = src.offset_from(base) as usize;
+    let pos = find_non_ascii_whitespace_fallback(src, len - checked_len);
+    checked_len + pos
 }
 
 #[inline(always)]
 #[must_use]
 pub fn find_non_ascii_whitespace(data: &[u8]) -> usize {
-    crate::multiversion::find_non_ascii_whitespace::auto(data)
+    let (src, len) = slice_parts(data);
+    unsafe { crate::multiversion::find_non_ascii_whitespace::auto(src, len) }
 }
 
 #[inline(always)]
