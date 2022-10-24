@@ -114,6 +114,30 @@ unsafe impl SIMD128 for SSE2 {}
 unsafe impl SIMD256 for SSE2 {}
 
 #[derive(Debug, Clone, Copy)]
+pub struct SSSE3(());
+
+unsafe impl InstructionSet for SSSE3 {
+    #[inline(always)]
+    unsafe fn new() -> Self {
+        Self(())
+    }
+
+    #[inline(always)]
+    fn is_enabled() -> bool {
+        x86_is_enabled!("ssse3")
+    }
+
+    #[inline(always)]
+    fn is_subtype_of<T: InstructionSet>() -> bool {
+        is_same_type::<Self, T>() || SSE2::is_subtype_of::<T>()
+    }
+}
+
+unsafe impl SIMD64 for SSSE3 {}
+// unsafe impl SIMD128 for SSSE3 {}
+// unsafe impl SIMD256 for SSSE3 {}
+
+#[derive(Debug, Clone, Copy)]
 pub struct SSE41(());
 
 unsafe impl InstructionSet for SSE41 {
@@ -129,7 +153,7 @@ unsafe impl InstructionSet for SSE41 {
 
     #[inline(always)]
     fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>() || SSE2::is_subtype_of::<T>()
+        is_same_type::<Self, T>() || SSSE3::is_subtype_of::<T>()
     }
 }
 
@@ -230,3 +254,40 @@ unsafe impl InstructionSet for WASM128 {
 unsafe impl SIMD64 for WASM128 {}
 unsafe impl SIMD128 for WASM128 {}
 unsafe impl SIMD256 for WASM128 {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use core::ops::Not;
+
+    #[test]
+    fn subtyping() {
+        macro_rules! assert_subtype {
+            ($ty:ident: $super: ident) => {
+                assert!(is_subtype!($ty, $ty));
+                assert!(is_subtype!($super, $super));
+                assert!(is_subtype!($ty, $super));
+                assert!(is_subtype!($super, $ty).not());
+            };
+        }
+
+        assert_subtype!(SSE2: Fallback);
+
+        assert_subtype!(SSSE3: Fallback);
+        assert_subtype!(SSSE3: SSE2);
+
+        assert_subtype!(SSE41: Fallback);
+        assert_subtype!(SSE41: SSE2);
+        assert_subtype!(SSE41: SSSE3);
+
+        assert_subtype!(AVX2: Fallback);
+        assert_subtype!(AVX2: SSE2);
+        assert_subtype!(AVX2: SSSE3);
+        assert_subtype!(AVX2: SSE41);
+
+        assert_subtype!(NEON: Fallback);
+
+        assert_subtype!(WASM128: Fallback);
+    }
+}

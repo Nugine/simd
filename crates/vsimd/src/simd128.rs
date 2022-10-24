@@ -2,6 +2,9 @@ use crate::isa::{NEON, SSE2, SSE41, WASM128};
 use crate::vector::V128;
 use crate::SIMD64;
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+use crate::isa::SSSE3;
+
 #[cfg(any(
     any(target_arch = "x86", target_arch = "x86_64"),
     all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")),
@@ -1284,14 +1287,14 @@ pub unsafe trait SIMD128: SIMD64 {
         }
     }
 
-    /// T1: SSE41, NEON-A64, WASM128
+    /// T1: SSSE3, NEON-A64, WASM128
     ///
     /// T2: NEON-A32
     #[inline(always)]
     fn u8x16_swizzle(self, a: V128, b: V128) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, SSE41) {
-            return unsafe { t(_mm_shuffle_epi8(t(a), t(b))) }; // TODO: ssse3
+        if is_subtype!(Self, SSSE3) {
+            return unsafe { t(_mm_shuffle_epi8(t(a), t(b))) };
         }
         #[cfg(all(feature = "unstable", target_arch = "arm"))]
         if is_subtype!(Self, NEON) {
@@ -1783,12 +1786,12 @@ pub unsafe trait SIMD128: SIMD64 {
         }
     }
 
-    /// T1: SSE41
+    /// T1: SSSE3
     #[inline(always)]
     fn i16x8_maddubs(self, a: V128, b: V128) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, SSE41) {
-            return unsafe { t(_mm_maddubs_epi16(t(a), t(b))) }; // TODO: ssse3
+        if is_subtype!(Self, SSSE3) {
+            return unsafe { t(_mm_maddubs_epi16(t(a), t(b))) };
         }
         if is_subtype!(Self, NEON | WASM128) {
             unimplemented!()
