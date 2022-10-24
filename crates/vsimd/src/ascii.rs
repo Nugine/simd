@@ -32,8 +32,8 @@ pub fn to_ascii_uppercase<S: Scalable<V>, V: Copy>(s: S, x: V) -> V {
 mod algorithm {
     use crate::algorithm::*;
 
-    #[ignore]
     #[test]
+    #[ignore]
     fn convert_case() {
         let convert = |c: u8, shift: u8| {
             let x1 = c.wrapping_sub(shift + 0x80);

@@ -8,7 +8,8 @@ fn rand_bytes(n: usize) -> Vec<u8> {
     bytes
 }
 
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn test_str() {
     use core::mem::MaybeUninit;
     let src = "hello";
@@ -23,7 +24,8 @@ fn test_str() {
 }
 
 #[cfg(feature = "alloc")]
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn test_alloc() {
     {
         let src = "hello".as_bytes();
@@ -169,13 +171,8 @@ fn safety_unit_test(
     }
 }
 
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn test_safety() {
-    safety_unit_test(crate::check, crate::decode, crate::encode, crate::decode_inplace);
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test::wasm_bindgen_test]
-fn wasm() {
     safety_unit_test(crate::check, crate::decode, crate::encode, crate::decode_inplace);
 }

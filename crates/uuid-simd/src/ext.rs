@@ -113,11 +113,7 @@ impl fmt::LowerHex for Simple<'_> {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let case = AsciiCase::Lower;
-        unsafe {
-            format_uuid(self.0, case, crate::format_simple, |s| {
-                <str as fmt::Display>::fmt(s, f)
-            })
-        }
+        unsafe { format_uuid(self.0, case, crate::format_simple, |s| <str as fmt::Display>::fmt(s, f)) }
     }
 }
 
@@ -137,11 +133,7 @@ impl fmt::UpperHex for Simple<'_> {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let case = AsciiCase::Upper;
-        unsafe {
-            format_uuid(self.0, case, crate::format_simple, |s| {
-                <str as fmt::Display>::fmt(s, f)
-            })
-        }
+        unsafe { format_uuid(self.0, case, crate::format_simple, |s| <str as fmt::Display>::fmt(s, f)) }
     }
 }
 
@@ -171,16 +163,22 @@ impl fmt::Display for Hyphenated<'_> {
     }
 }
 
-#[test]
-fn test_uuid_ext() {
-    let s1 = "67e5504410b1426f9247bb680e5fe0c8";
-    let s2 = "67e55044-10b1-426f-9247-bb680e5fe0c8";
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let u = Uuid::parse(s1).unwrap();
+    #[cfg_attr(not(target_arch = "wasm32"), test)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+    fn test_uuid_ext() {
+        let s1 = "67e5504410b1426f9247bb680e5fe0c8";
+        let s2 = "67e55044-10b1-426f-9247-bb680e5fe0c8";
 
-    let a1 = u.format_simple().to_string();
-    let a2 = format!("{:X}", u.format_hyphenated());
+        let u = Uuid::parse(s1).unwrap();
 
-    assert_eq!(a1, s1);
-    assert_eq!(a2, s2.to_ascii_uppercase());
+        let a1 = u.format_simple().to_string();
+        let a2 = format!("{:X}", u.format_hyphenated());
+
+        assert_eq!(a1, s1);
+        assert_eq!(a2, s2.to_ascii_uppercase());
+    }
 }

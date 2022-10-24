@@ -19,7 +19,8 @@ macro_rules! dbgmsg {
     };
 }
 
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn basic() {
     let cases: &[(Base32, &str, &str)] = &[
         (BASE32, "", ""),
@@ -58,7 +59,8 @@ fn basic() {
     }
 }
 
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn special() {
     // failed random cases
     let inputs: &[&[u8]] = &[
@@ -93,7 +95,8 @@ fn special() {
 }
 
 #[cfg(feature = "alloc")]
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn allocation() {
     let src = "helloworld";
     let prefix = "data:;base32,";
@@ -149,13 +152,8 @@ fn safety_unit_test(
     }
 }
 
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn test_safety() {
-    safety_unit_test(Base32::check, Base32::encode, Base32::decode, Base32::decode_inplace);
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test::wasm_bindgen_test]
-fn wasm() {
     safety_unit_test(Base32::check, Base32::encode, Base32::decode, Base32::decode_inplace);
 }

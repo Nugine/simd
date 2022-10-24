@@ -278,8 +278,8 @@ pub mod sse2 {
 mod algorithm {
     use super::*;
 
-    #[ignore]
     #[test]
+    #[ignore]
     fn check() {
         fn is_hex_v1(c: u8) -> bool {
             matches!(c, b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F')
@@ -304,8 +304,8 @@ mod algorithm {
         }
     }
 
-    #[ignore]
     #[test]
+    #[ignore]
     fn hex_alsw() {
         HexAlsw::test_check();
         HexAlsw::test_decode();

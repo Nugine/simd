@@ -113,13 +113,8 @@ fn safety_unit_test(
     }
 }
 
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn test_safety() {
-    safety_unit_test(crate::parse, crate::format_simple, crate::format_hyphenated);
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test::wasm_bindgen_test]
-fn wasm() {
     safety_unit_test(crate::parse, crate::format_simple, crate::format_hyphenated);
 }
