@@ -8,7 +8,8 @@ fn rand_bytes(n: usize) -> Vec<u8> {
     bytes
 }
 
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn basic() {
     let cases: &[(Base64, &str, &str)] = &[
         (STANDARD, "", ""),
@@ -39,7 +40,8 @@ fn basic() {
 }
 
 #[cfg(feature = "alloc")]
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn allocation() {
     let src = "helloworld";
     let prefix = "data:;base64,";
@@ -155,13 +157,8 @@ fn safety_unit_test(
     }
 }
 
-#[test]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn test_safety() {
-    safety_unit_test(Base64::check, Base64::encode, Base64::decode, Base64::decode_inplace);
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen_test::wasm_bindgen_test]
-fn wasm() {
     safety_unit_test(Base64::check, Base64::encode, Base64::decode, Base64::decode_inplace);
 }

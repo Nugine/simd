@@ -1,7 +1,6 @@
-use vsimd::mask::mask8x32_any;
-use vsimd::tools::{read, slice_parts};
-use vsimd::vector::V256;
-use vsimd::SIMD256;
+use vsimd::isa::AVX2;
+use vsimd::tools::slice_parts;
+use vsimd::{is_subtype, Scalable, SIMD256};
 
 #[inline(always)]
 #[must_use]
@@ -22,7 +21,7 @@ fn lookup_ascii_whitespace(c: u8) -> u8 {
 }
 
 #[inline(always)]
-fn has_ascii_whitespace_u8x32<S: SIMD256>(s: S, x: V256) -> bool {
+fn has_ascii_whitespace<S: Scalable<V>, V: Copy>(s: S, x: V) -> bool {
     // ASCII whitespaces
     // TAB      0x09    00001001
     // LF       0x0a    00001010
@@ -31,43 +30,22 @@ fn has_ascii_whitespace_u8x32<S: SIMD256>(s: S, x: V256) -> bool {
     // SPACE    0x20    00010000
     //
 
-    const LUT: V256 = V256::double_bytes([
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
-        0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0x00, 0x00, //
-    ]);
+    // m1 = {{byte in 0x09..=0x0d}}x32
+    let m1 = s.i8xn_lt(s.u8xn_sub(x, s.u8xn_splat(0x89)), s.i8xn_splat(-128 + 5));
 
-    // m1 = {{byte is SPACE}}x32
-    let m1 = s.u8x32_eq(x, s.u8x32_splat(0x20));
+    // m2 = {{byte == 0x0b}}
+    let m2 = s.u8xn_eq(x, s.u8xn_splat(0x0b));
 
-    // m2 = {{low half is activated}}x32
-    let m2 = s.u8x16x2_swizzle(LUT, x);
+    // m3 = {{byte is SPACE}}
+    let m3 = s.u8xn_eq(x, s.u8xn_splat(0x20));
 
-    // m3 = {{high half is zero}}x32
-    let m3 = s.u8x32_eq(s.v256_and(x, s.u8x32_splat(0xf0)), s.v256_create_zero());
-
-    // any(m1 | (m2 & m3))
-    mask8x32_any(s, s.v256_or(m1, s.v256_and(m2, m3)))
+    // any((m1 & !m2) | m3)
+    s.mask8xn_any(s.or(s.andnot(m1, m2), m3))
 }
 
 #[inline(always)]
-pub unsafe fn find_non_ascii_whitespace_fallback(mut src: *const u8, len: usize) -> usize {
+unsafe fn find_non_ascii_whitespace_short(mut src: *const u8, len: usize) -> usize {
     let base = src;
-
-    const L: usize = 8;
-    let end = src.add(len / L * L);
-    while src < end {
-        let mut flag = 0;
-        let mut i = 0;
-        while i < L {
-            flag |= lookup_ascii_whitespace(read(src, i));
-            i += 1;
-        }
-        if flag != 0 {
-            break;
-        }
-        src = src.add(L);
-    }
-
     let end = base.add(len);
     while src < end {
         if lookup_ascii_whitespace(src.read()) != 0 {
@@ -80,20 +58,43 @@ pub unsafe fn find_non_ascii_whitespace_fallback(mut src: *const u8, len: usize)
 }
 
 #[inline(always)]
+pub unsafe fn find_non_ascii_whitespace_fallback(src: *const u8, len: usize) -> usize {
+    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
+    {
+        if cfg!(target_feature = "sse2") {
+            return self::sse2::find_non_ascii_whitespace(src, len);
+        }
+    }
+
+    find_non_ascii_whitespace_short(src, len)
+}
+
+#[inline(always)]
 pub unsafe fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, mut src: *const u8, len: usize) -> usize {
     let base = src;
 
-    let end = src.add(len / 32 * 32);
-    while src < end {
-        let x = s.v256_load_unaligned(src);
-        if has_ascii_whitespace_u8x32(s, x) {
-            break;
+    if is_subtype!(S, AVX2) {
+        let end = src.add(len / 32 * 32);
+        while src < end {
+            let x = s.v256_load_unaligned(src);
+            if has_ascii_whitespace(s, x) {
+                break;
+            }
+            src = src.add(32);
         }
-        src = src.add(32);
+    } else {
+        let end = src.add(len / 16 * 16);
+        while src < end {
+            let x = s.v128_load_unaligned(src);
+            if has_ascii_whitespace(s, x) {
+                break;
+            }
+            src = src.add(16);
+        }
     }
 
     let checked_len = src.offset_from(base) as usize;
-    let pos = find_non_ascii_whitespace_fallback(src, len - checked_len);
+    let pos = find_non_ascii_whitespace_short(src, len - checked_len);
     checked_len + pos
 }
 
@@ -144,11 +145,24 @@ pub fn remove_ascii_whitespace_inplace(data: &mut [u8]) -> &mut [u8] {
     }
 }
 
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
+mod sse2 {
+    use vsimd::isa::{InstructionSet, SSE2};
+
+    #[inline]
+    #[target_feature(enable = "sse2")]
+    pub unsafe fn find_non_ascii_whitespace(src: *const u8, len: usize) -> usize {
+        let s = SSE2::new();
+        super::find_non_ascii_whitespace_simd(s, src, len)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
+    #[cfg_attr(not(target_arch = "wasm32"), test)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_remove_ascii_whitespace() {
         let cases = [
             "abcd",
@@ -169,6 +183,21 @@ mod tests {
             };
             let ans = remove_ascii_whitespace_inplace(&mut buf);
             assert_eq!(ans, &*expected, "case = {case:?}");
+        }
+    }
+}
+
+#[cfg(test)]
+mod algorithm {
+    #[test]
+    #[ignore]
+    fn is_ascii_whitespace() {
+        for x in 0..=255u8 {
+            let m1 = (x.wrapping_sub(0x89) as i8) < (-128 + 5);
+            let m2 = x == 0x0b;
+            let m3 = x == 0x20;
+            let ans = (m1 && !m2) || m3;
+            assert_eq!(ans, x.is_ascii_whitespace());
         }
     }
 }

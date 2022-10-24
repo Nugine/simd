@@ -183,7 +183,7 @@ pub unsafe trait SIMD256: SIMD128 {
     fn v256_andnot(self, a: V256, b: V256) -> V256 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_andnot_si256(t(a), t(b))) };
+            return unsafe { t(_mm256_andnot_si256(t(b), t(a))) };
         }
         {
             simd256_vop!(self, Self::v128_andnot, a, b)

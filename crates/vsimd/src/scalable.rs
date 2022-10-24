@@ -7,6 +7,7 @@ pub unsafe trait Scalable<V: Copy>: InstructionSet {
     fn and(self, a: V, b: V) -> V;
     fn or(self, a: V, b: V) -> V;
     fn xor(self, a: V, b: V) -> V;
+    fn andnot(self, a: V, b: V) -> V;
 
     fn u8xn_splat(self, x: u8) -> V;
     fn i8xn_splat(self, x: i8) -> V;
@@ -19,6 +20,8 @@ pub unsafe trait Scalable<V: Copy>: InstructionSet {
     fn i8xn_add_sat(self, a: V, b: V) -> V;
 
     fn u8xn_sub_sat(self, a: V, b: V) -> V;
+
+    fn u8xn_eq(self, a: V, b: V) -> V;
 
     fn i8xn_lt(self, a: V, b: V) -> V;
 
@@ -62,6 +65,11 @@ where
     }
 
     #[inline(always)]
+    fn andnot(self, a: V128, b: V128) -> V128 {
+        self.v128_andnot(a, b)
+    }
+
+    #[inline(always)]
     fn u8xn_splat(self, x: u8) -> V128 {
         self.u8x16_splat(x)
     }
@@ -94,6 +102,11 @@ where
     #[inline(always)]
     fn u8xn_sub_sat(self, a: V128, b: V128) -> V128 {
         self.u8x16_sub_sat(a, b)
+    }
+
+    #[inline(always)]
+    fn u8xn_eq(self, a: V128, b: V128) -> V128 {
+        self.u8x16_eq(a, b)
     }
 
     #[inline(always)]
@@ -182,6 +195,11 @@ where
     }
 
     #[inline(always)]
+    fn andnot(self, a: V256, b: V256) -> V256 {
+        self.v256_andnot(a, b)
+    }
+
+    #[inline(always)]
     fn u8xn_splat(self, x: u8) -> V256 {
         self.u8x32_splat(x)
     }
@@ -214,6 +232,11 @@ where
     #[inline(always)]
     fn u8xn_sub_sat(self, a: V256, b: V256) -> V256 {
         self.u8x32_sub_sat(a, b)
+    }
+
+    #[inline(always)]
+    fn u8xn_eq(self, a: V256, b: V256) -> V256 {
+        self.u8x32_eq(a, b)
     }
 
     #[inline(always)]

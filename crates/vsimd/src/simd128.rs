@@ -230,7 +230,7 @@ pub unsafe trait SIMD128: SIMD64 {
     fn v128_andnot(self, a: V128, b: V128) -> V128 {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
-            return unsafe { t(_mm_andnot_si128(t(a), t(b))) };
+            return unsafe { t(_mm_andnot_si128(t(b), t(a))) };
         }
         #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
         if is_subtype!(Self, NEON) {

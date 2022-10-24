@@ -39,6 +39,7 @@
     clippy::cast_sign_loss,
     clippy::cast_possible_truncation,
     clippy::cast_lossless,
+    clippy::cast_possible_wrap,
     clippy::items_after_statements,
     clippy::match_same_arms,
     clippy::verbose_bit_mask
