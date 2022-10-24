@@ -101,9 +101,9 @@ sync-version:
     cargo set-version -p uuid-simd          '0.8.0-dev'
     cargo set-version -p hex-simd           '0.8.0-dev'
     cargo set-version -p base64-simd        '0.8.0-dev'
-    cargo set-version -p unicode-simd       '0.1.0-dev'
-    cargo set-version -p base32-simd        '0.1.0-dev'
-    cargo set-version -p vsimd              '0.1.0-dev'
+    cargo set-version -p unicode-simd       '0.8.0-dev'
+    cargo set-version -p base32-simd        '0.8.0-dev'
+    cargo set-version -p vsimd              '0.8.0-dev'
 
 fmt:
     #!/bin/bash -ex

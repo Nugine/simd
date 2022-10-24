@@ -23,7 +23,7 @@ unstable = ["vsimd/unstable", "hex-simd/unstable"]
 
 [dependencies]
 outref = "0.3.0"
-vsimd = { path = "../vsimd", version = "0.1.0-dev" }
+vsimd = { path = "../vsimd", version = "0.8.0-dev" }
 uuid = { version = "1.1.2", optional = true }
 
 [dev-dependencies]
