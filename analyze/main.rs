@@ -81,6 +81,7 @@ fn gather_table_data(data: &[Data]) -> Result<Vec<TableData>> {
         "base64-check",
         "base64-decode",
         "base64-encode",
+        "base64-forgiving-decode",
         "hex-check",
         "hex-decode",
         "hex-encode",

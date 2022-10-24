@@ -112,5 +112,33 @@ pub fn bench_check(c: &mut Criterion) {
     }
 }
 
-criterion_group!(benches, bench_encode, bench_decode, bench_check);
+pub fn bench_forgiving_decode(c: &mut Criterion) {
+    let mut group = c.benchmark_group("base64-forgiving-decode");
+    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
+
+    let cases = [16, 32, 64, 256, 1024, 4096, 65536];
+    let inputs: Vec<Vec<u8>> = map_collect(cases, |n| base64_simd::STANDARD.encode_type(&rand_bytes(n)));
+
+    #[allow(clippy::type_complexity)]
+    let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
+        ("base64-simd/auto", |src, dst| {
+            base64_simd::forgiving_decode(src, OutRef::from_slice(dst)).unwrap();
+        }), //
+    ];
+
+    for &(name, f) in functions {
+        for src in &inputs {
+            group.throughput(Throughput::Bytes(src.len() as u64));
+            let id = BenchmarkId::new(name, src.len());
+
+            let mut dst: Vec<u8> = vec![0; src.len()];
+
+            group.bench_with_input(id, src.as_slice(), |b, src| {
+                b.iter(|| f(black_box(src), black_box(dst.as_mut_slice())))
+            });
+        }
+    }
+}
+
+criterion_group!(benches, bench_encode, bench_decode, bench_check, bench_forgiving_decode);
 criterion_main!(benches);
