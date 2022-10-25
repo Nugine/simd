@@ -134,8 +134,8 @@ unsafe impl InstructionSet for SSSE3 {
 }
 
 unsafe impl SIMD64 for SSSE3 {}
-// unsafe impl SIMD128 for SSSE3 {}
-// unsafe impl SIMD256 for SSSE3 {}
+unsafe impl SIMD128 for SSSE3 {}
+unsafe impl SIMD256 for SSSE3 {}
 
 #[derive(Debug, Clone, Copy)]
 pub struct SSE41(());

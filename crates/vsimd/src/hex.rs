@@ -1,5 +1,5 @@
 use crate::alsw::{self, AlswLut};
-use crate::isa::{AVX2, NEON, SSE41, WASM128};
+use crate::isa::{AVX2, NEON, SSSE3, WASM128};
 use crate::mask::{u8x16_highbit_any, u8x32_highbit_any};
 use crate::vector::{V128, V256, V64};
 use crate::{Scalable, SIMD128, SIMD256};
@@ -145,7 +145,7 @@ fn decode32<S: SIMD256>(s: S, x: V256) -> (V256, V256) {
 pub fn decode_ascii16<S: SIMD128>(s: S, x: V128) -> Result<V64, ()> {
     let (y, is_invalid) = decode16(s, x);
 
-    let ans = if is_subtype!(S, SSE41 | WASM128) {
+    let ans = if is_subtype!(S, SSSE3 | WASM128) {
         const UZP1: V128 = DECODE_UZP1.to_v128x2().0;
         s.u8x16_swizzle(y, UZP1).to_v64x2().0
     } else if is_subtype!(S, NEON) {
@@ -167,7 +167,7 @@ pub fn decode_ascii16<S: SIMD128>(s: S, x: V128) -> Result<V64, ()> {
 pub fn decode_ascii32<S: SIMD256>(s: S, x: V256) -> Result<V128, ()> {
     let (y, is_invalid) = decode32(s, x);
 
-    let ans = if is_subtype!(S, SSE41 | WASM128) {
+    let ans = if is_subtype!(S, SSSE3 | WASM128) {
         let (a, b) = s.u8x16x2_swizzle(y, DECODE_UZP1).to_v128x2();
         s.u64x2_zip_lo(a, b)
     } else if is_subtype!(S, NEON) {
@@ -196,7 +196,7 @@ pub fn decode_ascii32x2<S: SIMD256>(s: S, x: (V256, V256)) -> Result<V256, ()> {
         let cd = s.u8x16x2_swizzle(y2, DECODE_UZP2);
         let acbd = s.v256_or(ab, cd);
         s.u64x4_permute::<0b_1101_1000>(acbd) // 0213
-    } else if is_subtype!(S, SSE41 | WASM128) {
+    } else if is_subtype!(S, SSSE3 | WASM128) {
         let ab = s.u8x16x2_swizzle(y1, DECODE_UZP1);
         let cd = s.u8x16x2_swizzle(y2, DECODE_UZP1);
         s.u64x4_unzip_even(ab, cd)

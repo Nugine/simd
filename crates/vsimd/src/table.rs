@@ -1,4 +1,4 @@
-use crate::isa::{NEON, SSE41, WASM128};
+use crate::isa::{NEON, SSSE3, WASM128};
 use crate::Scalable;
 
 #[inline(always)]
@@ -7,7 +7,7 @@ where
     S: Scalable<V>,
     V: Copy,
 {
-    if is_subtype!(S, SSE41) {
+    if is_subtype!(S, SSSE3) {
         return s.u8x16xn_swizzle(lut, x);
     }
 

@@ -246,7 +246,7 @@ pub unsafe trait SIMD128: SIMD64 {
         }
     }
 
-    /// T1: SSE2, NEON-A64, WASM128
+    /// T1: SSE41, NEON-A64, WASM128
     ///
     /// T2: NEON-A32
     #[inline(always)]
