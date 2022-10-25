@@ -59,13 +59,6 @@ unsafe fn find_non_ascii_whitespace_short(mut src: *const u8, len: usize) -> usi
 
 #[inline(always)]
 pub unsafe fn find_non_ascii_whitespace_fallback(src: *const u8, len: usize) -> usize {
-    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
-    {
-        if cfg!(target_feature = "sse2") {
-            return self::sse2::find_non_ascii_whitespace(src, len);
-        }
-    }
-
     find_non_ascii_whitespace_short(src, len)
 }
 
@@ -142,18 +135,6 @@ pub fn remove_ascii_whitespace_inplace(data: &mut [u8]) -> &mut [u8] {
         debug_assert!(rem <= len);
 
         data.get_unchecked_mut(..(pos + rem))
-    }
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
-mod sse2 {
-    use vsimd::isa::{InstructionSet, SSE2};
-
-    #[inline]
-    #[target_feature(enable = "sse2")]
-    pub unsafe fn find_non_ascii_whitespace(src: *const u8, len: usize) -> usize {
-        let s = SSE2::new();
-        super::find_non_ascii_whitespace_simd(s, src, len)
     }
 }
 

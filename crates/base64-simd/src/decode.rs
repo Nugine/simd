@@ -5,7 +5,7 @@ use crate::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 
 use vsimd::alsw::AlswLut;
 use vsimd::is_subtype;
-use vsimd::isa::{NEON, SSE41, WASM128};
+use vsimd::isa::{NEON, SSSE3, WASM128};
 use vsimd::mask::u8x32_highbit_any;
 use vsimd::tools::{read, write};
 use vsimd::vector::V256;
@@ -239,7 +239,7 @@ pub(crate) unsafe fn decode_simd<S: SIMD256>(
 fn merge_bits_x2<S: SIMD256>(s: S, x: V256) -> V256 {
     // x : {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
 
-    let y = if is_subtype!(S, SSE41) {
+    let y = if is_subtype!(S, SSSE3) {
         let m1 = s.u16x16_splat(u16::from_le_bytes([0x40, 0x01]));
         let x1 = s.i16x16_maddubs(x, m1);
         // x1: {aabbbbbb|0000aaaa|ccdddddd|0000cccc} x8
