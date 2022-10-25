@@ -1,7 +1,8 @@
 use crate::Error;
 
 use vsimd::hex::unhex;
-use vsimd::SIMD256;
+use vsimd::isa::AVX2;
+use vsimd::{is_subtype, SIMD256};
 
 #[inline(always)]
 unsafe fn check_short(mut src: *const u8, len: usize) -> Result<(), Error> {
@@ -34,64 +35,37 @@ unsafe fn check_short(mut src: *const u8, len: usize) -> Result<(), Error> {
 
 #[inline(always)]
 pub unsafe fn check_fallback(src: *const u8, len: usize) -> Result<(), Error> {
-    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
-    {
-        if cfg!(target_feature = "sse2") {
-            return self::sse2::check(src, len);
-        }
-    }
-
     check_short(src, len)
 }
 
 #[inline(always)]
 pub unsafe fn check_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize) -> Result<(), Error> {
-    if len == 16 {
-        let x = s.v128_load_unaligned(src);
-        ensure!(vsimd::hex::check_xn(s, x));
-        return Ok(());
-    }
+    if is_subtype!(S, AVX2) {
+        if len == 16 {
+            let x = s.v128_load_unaligned(src);
+            ensure!(vsimd::hex::check_xn(s, x));
+            return Ok(());
+        }
 
-    if len == 32 {
-        let x = s.v256_load_unaligned(src);
-        ensure!(vsimd::hex::check_xn(s, x));
-        return Ok(());
-    }
+        let end = src.add(len / 32 * 32);
+        while src < end {
+            let x = s.v256_load_unaligned(src);
+            ensure!(vsimd::hex::check_xn(s, x));
+            src = src.add(32);
+        }
+        len %= 32;
 
-    let end = src.add(len / 32 * 32);
-    while src < end {
-        let x = s.v256_load_unaligned(src);
-        ensure!(vsimd::hex::check_xn(s, x));
-        src = src.add(32);
-    }
-    len %= 32;
+        if len == 0 {
+            return Ok(());
+        }
 
-    if len == 0 {
-        return Ok(());
-    }
-
-    if len >= 16 {
-        let x = s.v128_load_unaligned(src);
-        ensure!(vsimd::hex::check_xn(s, x));
-        len -= 16;
-        src = src.add(16);
-    }
-
-    check_short(src, len)
-}
-
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
-mod sse2 {
-    use super::*;
-
-    use vsimd::isa::{InstructionSet, SSE2};
-    use vsimd::SIMD128;
-
-    #[inline]
-    #[target_feature(enable = "sse2")]
-    pub unsafe fn check(mut src: *const u8, mut len: usize) -> Result<(), Error> {
-        let s = SSE2::new();
-
+        if len >= 16 {
+            let x = s.v128_load_unaligned(src);
+            ensure!(vsimd::hex::check_xn(s, x));
+            len -= 16;
+            src = src.add(16);
+        }
+    } else {
         let end = src.add(len / 16 * 16);
         while src < end {
             let x = s.v128_load_unaligned(src);
@@ -103,7 +77,7 @@ mod sse2 {
         if len == 0 {
             return Ok(());
         }
-
-        check_short(src, len)
     }
+
+    check_short(src, len)
 }

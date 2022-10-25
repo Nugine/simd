@@ -1,7 +1,9 @@
 use vsimd::ascii::AsciiCase;
-use vsimd::tools::{read, write};
-use vsimd::SIMD256;
+use vsimd::isa::{InstructionSet, AVX2, SSE2};
+use vsimd::tools::{is_same_type, read, write};
+use vsimd::{is_subtype, SIMD128, SIMD256};
 
+#[inline(always)]
 fn charset(case: AsciiCase) -> &'static [u8; 16] {
     match case {
         AsciiCase::Lower => vsimd::hex::LOWER_CHARSET,
@@ -46,19 +48,28 @@ unsafe fn encode_long(mut src: *const u8, len: usize, mut dst: *mut u8, case: As
 
 #[inline(always)]
 pub unsafe fn encode_fallback(src: *const u8, len: usize, dst: *mut u8, case: AsciiCase) {
-    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
-    {
-        if cfg!(target_feature = "sse2") {
-            self::sse2::encode(src, len, dst, case);
-            return;
-        }
-    }
-
     encode_long(src, len, dst, case);
 }
 
 #[inline(always)]
-pub unsafe fn encode_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, mut dst: *mut u8, case: AsciiCase) {
+pub unsafe fn encode_simd<S: SIMD256>(s: S, src: *const u8, len: usize, dst: *mut u8, case: AsciiCase) {
+    if is_same_type::<S, SSE2>() {
+        return encode_simd_sse2(SSE2::new(), src, len, dst, case);
+    }
+    if is_subtype!(S, AVX2) {
+        return encode_simd_v256(s, src, len, dst, case);
+    }
+    encode_simd_v128(s, src, len, dst, case);
+}
+
+#[inline(always)]
+pub unsafe fn encode_simd_v256<S: SIMD256>(
+    s: S,
+    mut src: *const u8,
+    mut len: usize,
+    mut dst: *mut u8,
+    case: AsciiCase,
+) {
     let lut = match case {
         AsciiCase::Lower => vsimd::hex::ENCODE_LOWER_LUT,
         AsciiCase::Upper => vsimd::hex::ENCODE_UPPER_LUT,
@@ -68,14 +79,6 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, 
         let x = s.v128_load_unaligned(src);
         let y = vsimd::hex::encode_bytes16(s, x, lut);
         s.v256_store_unaligned(dst, y);
-        return;
-    }
-
-    if len == 32 {
-        let x = s.v256_load_unaligned(src);
-        let (y1, y2) = vsimd::hex::encode_bytes32(s, x, lut);
-        s.v256_store_unaligned(dst, y1);
-        s.v256_store_unaligned(dst.add(32), y2);
         return;
     }
 
@@ -113,42 +116,63 @@ pub unsafe fn encode_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize, 
     }
 }
 
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
-mod sse2 {
-    use super::*;
+#[inline(always)]
+pub unsafe fn encode_simd_v128<S: SIMD256>(
+    s: S,
+    mut src: *const u8,
+    mut len: usize,
+    mut dst: *mut u8,
+    case: AsciiCase,
+) {
+    let lut = match case {
+        AsciiCase::Lower => vsimd::hex::ENCODE_LOWER_LUT,
+        AsciiCase::Upper => vsimd::hex::ENCODE_UPPER_LUT,
+    };
 
-    use vsimd::hex::sse2::*;
-    use vsimd::isa::{InstructionSet, SSE2};
-    use vsimd::SIMD128;
-
-    #[inline]
-    #[target_feature(enable = "sse2")]
-    pub unsafe fn encode(mut src: *const u8, mut len: usize, mut dst: *mut u8, case: AsciiCase) {
-        let s = SSE2::new();
-
-        let offset = match case {
-            AsciiCase::Lower => LOWER_OFFSET,
-            AsciiCase::Upper => UPPER_OFFSET,
-        };
-
-        let end = src.add(len / 16 * 16);
-        while src < end {
-            let x = s.v128_load_unaligned(src);
-            src = src.add(16);
-
-            let (y1, y2) = encode16(s, x, offset);
-
-            s.v128_store_unaligned(dst, y1);
-            dst = dst.add(16);
-
-            s.v128_store_unaligned(dst, y2);
-            dst = dst.add(16);
-        }
-        len %= 16;
-
-        if len > 0 {
-            let charset = charset(case).as_ptr();
-            encode_short(src, len, dst, charset);
-        }
+    let end = src.add(len / 16 * 16);
+    while src < end {
+        let x = s.v128_load_unaligned(src);
+        let y = vsimd::hex::encode_bytes16(s, x, lut);
+        s.v256_store_unaligned(dst, y);
+        dst = dst.add(32);
+        src = src.add(16);
     }
+    len %= 16;
+
+    if len == 0 {
+        return;
+    }
+
+    let charset = charset(case).as_ptr();
+    encode_short(src, len, dst, charset);
+}
+
+#[inline(always)]
+pub unsafe fn encode_simd_sse2(s: SSE2, mut src: *const u8, mut len: usize, mut dst: *mut u8, case: AsciiCase) {
+    let offset = match case {
+        AsciiCase::Lower => vsimd::hex::sse2::LOWER_OFFSET,
+        AsciiCase::Upper => vsimd::hex::sse2::UPPER_OFFSET,
+    };
+
+    let end = src.add(len / 16 * 16);
+    while src < end {
+        let x = s.v128_load_unaligned(src);
+        src = src.add(16);
+
+        let (y1, y2) = vsimd::hex::sse2::encode16(s, x, offset);
+
+        s.v128_store_unaligned(dst, y1);
+        dst = dst.add(16);
+
+        s.v128_store_unaligned(dst, y2);
+        dst = dst.add(16);
+    }
+    len %= 16;
+
+    if len == 0 {
+        return;
+    }
+
+    let charset = charset(case).as_ptr();
+    encode_short(src, len, dst, charset);
 }
