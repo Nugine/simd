@@ -2,8 +2,13 @@ use crate::spec::*;
 use crate::Error;
 
 use vsimd::hex::unhex;
+use vsimd::isa::InstructionSet;
+use vsimd::isa::SSE2;
+use vsimd::tools::is_same_type;
 use vsimd::tools::{read, write};
 use vsimd::vector::V256;
+use vsimd::vector::V64;
+use vsimd::SIMD128;
 use vsimd::SIMD256;
 
 #[inline(always)]
@@ -13,13 +18,6 @@ const fn shl4(x: u8) -> u8 {
 
 #[inline(always)]
 pub unsafe fn parse_simple_fallback(src: *const u8, dst: *mut u8) -> Result<(), Error> {
-    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
-    {
-        if cfg!(target_feature = "sse2") {
-            return self::sse2::parse_simple(src, dst);
-        }
-    }
-
     let mut flag = 0;
     for i in 0..16 {
         let h1 = unhex(read(src, i * 2));
@@ -55,10 +53,15 @@ pub unsafe fn parse_hyphenated_fallback(src: *const u8, dst: *mut u8) -> Result<
 
 #[inline(always)]
 pub unsafe fn parse_simple_simd<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
-    let x = s.v256_load_unaligned(src);
-    let y = try_!(vsimd::hex::decode_ascii32(s, x));
-    s.v128_store_unaligned(dst, y);
-    Ok(())
+    if is_same_type::<S, SSE2>() {
+        return parse_simple_simd_sse2(SSE2::new(), src, dst);
+    }
+    {
+        let x = s.v256_load_unaligned(src);
+        let y = try_!(vsimd::hex::decode_ascii32(s, x));
+        s.v128_store_unaligned(dst, y);
+        Ok(())
+    }
 }
 
 #[inline(always)]
@@ -87,33 +90,20 @@ pub unsafe fn parse_hyphenated_simd<S: SIMD256>(s: S, src: *const u8, dst: *mut 
     Ok(())
 }
 
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(miri)))]
-mod sse2 {
-    use super::*;
+#[inline(always)]
+pub unsafe fn parse_simple_simd_sse2(s: SSE2, src: *const u8, dst: *mut u8) -> Result<(), Error> {
+    let x1 = s.v128_load_unaligned(src);
+    let x2 = s.v128_load_unaligned(src.add(16));
 
-    use vsimd::hex::sse2::*;
-    use vsimd::isa::{InstructionSet, SSE2};
-    use vsimd::vector::V64;
-    use vsimd::SIMD128;
+    let (n1, f1) = vsimd::hex::sse2::decode_nibbles(s, x1);
+    let (n2, f2) = vsimd::hex::sse2::decode_nibbles(s, x2);
 
-    #[inline]
-    #[target_feature(enable = "sse2")]
-    pub unsafe fn parse_simple(src: *const u8, dst: *mut u8) -> Result<(), Error> {
-        let s = SSE2::new();
+    let flag = s.v128_or(f1, f2);
+    ensure!(s.u8x16_bitmask(flag) == 0);
 
-        let x1 = s.v128_load_unaligned(src);
-        let x2 = s.v128_load_unaligned(src.add(16));
+    let y1 = vsimd::hex::sse2::merge_bits(s, n1);
+    let y2 = vsimd::hex::sse2::merge_bits(s, n2);
 
-        let (n1, f1) = decode_nibbles(s, x1);
-        let (n2, f2) = decode_nibbles(s, x2);
-
-        let flag = s.v128_or(f1, f2);
-        ensure!(s.u8x16_bitmask(flag) == 0);
-
-        let y1 = merge_bits(s, n1);
-        let y2 = merge_bits(s, n2);
-
-        dst.cast::<[V64; 2]>().write_unaligned([y1, y2]);
-        Ok(())
-    }
+    dst.cast::<[V64; 2]>().write_unaligned([y1, y2]);
+    Ok(())
 }

@@ -12,7 +12,7 @@ vsimd::item_group! {
 }
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-use vsimd::isa::{AVX2, SSE41};
+use vsimd::isa::{AVX2, SSE2, SSE41};
 
 #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
 use vsimd::isa::NEON;
@@ -42,7 +42,7 @@ pub fn i16x16_set_lane7<S: SIMD256>(s: S, a: V256, x: i16) -> V256 {
         return unsafe { t(_mm256_insert_epi16::<7>(t(a), x)) };
     }
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    if is_subtype!(S, SSE41) {
+    if is_subtype!(S, SSE2) {
         let a = a.to_v128x2();
         let a0 = unsafe { t(_mm_insert_epi16::<7>(t(a.0), x as i32)) };
         return V256::from_v128x2((a0, a.1));
@@ -122,7 +122,7 @@ pub fn i32x4_get_lane3<S: SIMD128>(s: S, a: V128) -> i32 {
 #[inline(always)]
 pub fn i16x8_get_lane7<S: SIMD128>(s: S, a: V128) -> i16 {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    if is_subtype!(S, SSE41) {
+    if is_subtype!(S, SSE2) {
         return unsafe { _mm_extract_epi16::<7>(t(a)) as i16 };
     }
     #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
