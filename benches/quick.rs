@@ -46,7 +46,7 @@ fn main() {
             let n = 100;
             let time = bench_base64(n, &src);
             let time_per_op = (time / n as u128) as f64;
-            println!("long  | n = {n:<8} time = {:>8}ns", time_per_op);
+            println!("long  | n = {n:<8} time = {time_per_op:>8}ns");
         }
 
         {
@@ -54,7 +54,7 @@ fn main() {
             let n = 1_000_000;
             let time = bench_base64(n, src);
             let time_per_op = time / n as u128;
-            println!("short | n = {n:<8} time = {:>8}ns", time_per_op);
+            println!("short | n = {n:<8} time = {time_per_op:>8}ns");
         }
         println!();
     }

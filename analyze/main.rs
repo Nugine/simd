@@ -171,9 +171,9 @@ fn render_table(table_data: &[TableData]) -> Result<Vec<(String, Table)>> {
                 let f = t.content[i][j];
                 let needs_bold = i == bold_row[j];
                 if needs_bold {
-                    record.push(format!("**{:.3}**", f));
+                    record.push(format!("**{f:.3}**"));
                 } else {
-                    record.push(format!("{:.3}", f));
+                    record.push(format!("{f:.3}"));
                 }
             }
 
@@ -194,9 +194,9 @@ fn main() -> anyhow::Result<()> {
     let data = extract_data(&messages)?;
     let table_data = gather_table_data(&data)?;
     for (title, table) in render_table(&table_data)? {
-        println!("#### {}", title);
+        println!("#### {title}");
         println!();
-        println!("{}", table);
+        println!("{table}");
         println!();
     }
     Ok(())
