@@ -2,7 +2,7 @@
 
 use crate::{AsciiCase, Error};
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {check},
     signature   = {pub unsafe fn(src: *const u8, len: usize) -> Result<(), Error>},
     fallback    = {crate::check::check_fallback},
@@ -11,7 +11,7 @@ vsimd::dispatch_v2!(
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {encode},
     signature   = {pub unsafe fn(src: *const u8, len: usize, dst: *mut u8, case: AsciiCase) -> () },
     fallback    = {crate::encode::encode_fallback},
@@ -20,7 +20,7 @@ vsimd::dispatch_v2!(
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {decode},
     signature   = {pub unsafe fn(src: *const u8, len: usize, dst: *mut u8) -> Result<(), Error>},
     fallback    = {crate::decode::decode_fallback},

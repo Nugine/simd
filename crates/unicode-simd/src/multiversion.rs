@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-vsimd::dispatch_v2! (
+vsimd::dispatch! (
     name        = {is_ascii_ct},
     signature   = {pub unsafe fn(src: *const u8, len: usize) -> bool},
     fallback    = {crate::ascii::is_ascii_ct_fallback},
@@ -9,7 +9,7 @@ vsimd::dispatch_v2! (
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {is_utf32le_ct},
     signature   = {pub unsafe fn(src: *const u32, len: usize) -> bool},
     fallback    = {crate::utf32::is_utf32le_ct_fallback},
@@ -18,7 +18,7 @@ vsimd::dispatch_v2!(
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {utf32_swap_endianness},
     signature   = {pub unsafe fn(src: *const u32, len: usize, dst: *mut u32) -> ()},
     fallback    = {crate::utf32::swap_endianness_fallback},
@@ -27,7 +27,7 @@ vsimd::dispatch_v2!(
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {utf16_swap_endianness},
     signature   = {pub unsafe fn(src: *const u16, len: usize, dst: *mut u16) -> ()},
     fallback    = {crate::utf16::swap_endianness_fallback},

@@ -1,6 +1,6 @@
 use crate::{Error, Kind};
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {check},
     signature   = {pub(crate) unsafe fn(src: *const u8, len: usize, kind: Kind) -> Result<(), Error>},
     fallback    = {crate::check::check_fallback},
@@ -9,7 +9,7 @@ vsimd::dispatch_v2!(
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {decode},
     signature   = {pub(crate) unsafe fn(src: *const u8, len: usize, dst: *mut u8, kind: Kind) -> Result<(), Error>},
     fallback    = {crate::decode::decode_fallback},
@@ -18,7 +18,7 @@ vsimd::dispatch_v2!(
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {encode},
     signature   = {pub(crate) unsafe fn(src: *const u8, len: usize, dst: *mut u8, kind: Kind, padding: bool) -> ()},
     fallback    = {crate::encode::encode_fallback},

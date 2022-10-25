@@ -2,7 +2,7 @@ use crate::error::Error;
 
 use vsimd::ascii::AsciiCase;
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {parse_simple},
     signature   = {pub unsafe fn(src: *const u8, dst: *mut u8) -> Result<(), Error>},
     fallback    = {crate::parse::parse_simple_fallback},
@@ -11,7 +11,7 @@ vsimd::dispatch_v2!(
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {parse_hyphenated},
     signature   = {pub unsafe fn(src: *const u8, dst: *mut u8) -> Result<(), Error>},
     fallback    = {crate::parse::parse_hyphenated_fallback},
@@ -20,7 +20,7 @@ vsimd::dispatch_v2!(
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {format_simple},
     signature   = {pub unsafe fn(src: *const u8, dst: *mut u8, case: AsciiCase) -> ()},
     fallback    = {crate::format::format_simple_fallback},
@@ -29,7 +29,7 @@ vsimd::dispatch_v2!(
     fastest     = {"avx2", "neon", "simd128"},
 );
 
-vsimd::dispatch_v2!(
+vsimd::dispatch!(
     name        = {format_hyphenated},
     signature   = {pub unsafe fn(src: *const u8, dst: *mut u8, case: AsciiCase) -> ()},
     fallback    = {crate::format::format_hyphenated_fallback},
