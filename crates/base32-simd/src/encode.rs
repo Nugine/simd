@@ -1,7 +1,7 @@
 use crate::{u16x4_to_u64, Kind};
 use crate::{BASE32HEX_CHARSET, BASE32_CHARSET};
 
-use vsimd::isa::{NEON, SSE41, WASM128};
+use vsimd::isa::{NEON, SSE41, SSSE3, WASM128};
 use vsimd::tools::{read, write};
 use vsimd::vector::V256;
 use vsimd::{is_subtype, SIMD256};
@@ -180,7 +180,7 @@ fn split_bits<S: SIMD256>(s: S, x: V256) -> V256 {
         0x06, 0x05, 0x07, 0x06, 0x08, 0x07, 0x09, 0x08, //
     ]);
 
-    if is_subtype!(S, SSE41) {
+    if is_subtype!(S, SSSE3) {
         const SPLIT_M1: u64 = u16x4_to_u64([1 << 5, 1 << 7, 1 << 9, 1 << 11]);
         const SPLIT_M2: u64 = u16x4_to_u64([1 << 2, 1 << 4, 1 << 6, 1 << 8]);
 
