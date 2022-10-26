@@ -15,10 +15,8 @@ SIMD-accelerated operations
 
 The crates provide fast fallback implementations and automatically select SIMD functions when available.
 
-Supported instruction sets:
+## Safety
 
-+ SSE4.1
-+ AVX2
-+ ARM NEON
-+ AArch64 NEON
-+ WASM SIMD128
+This project relies heavily on unsafe code. We encourage everyone to review the code and report any issues.
+
+Memory safety bugs and unsoundness issues are classified as critical bugs. They will be fixed as soon as possible.
