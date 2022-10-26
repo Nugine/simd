@@ -242,7 +242,7 @@ pub mod sse2 {
         let hi = s.u16x8_shl::<4>(x);
         let t1 = s.v128_or(lo, hi);
         let t2 = s.v128_and(t1, s.u16x8_splat(0x00ff));
-        let t3 = s.u16x8_packus(t2, s.v128_create_zero());
+        let t3 = s.i16x8_packus(t2, s.v128_create_zero());
         t3.to_v64x2().0
     }
 

@@ -98,6 +98,9 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
     unsafe fn v128_store_unaligned(self, addr: *mut u8, a: V128) {
+        if cfg!(miri) {
+            return addr.cast::<V128>().write_unaligned(a);
+        }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
             return _mm_storeu_si128(addr.cast(), t(a));
@@ -744,6 +747,9 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
     fn u16x8_shl<const IMM8: i32>(self, a: V128) -> V128 {
+        if cfg!(miri) {
+            return crate::simulation::u16x8_shl(a, IMM8 as u8);
+        }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_slli_epi16::<IMM8>(t(a))) };
@@ -786,6 +792,9 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
     fn u16x8_shr<const IMM8: i32>(self, a: V128) -> V128 {
+        if cfg!(miri) {
+            return crate::simulation::u16x8_shr(a, IMM8 as u8);
+        }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_srli_epi16::<IMM8>(t(a))) };
@@ -1038,6 +1047,10 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
     fn u8x16_max(self, a: V128, b: V128) -> V128 {
+        if cfg!(miri) {
+            return crate::simulation::u8x16_max(a, b);
+        }
+
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_max_epu8(t(a), t(b))) };
@@ -1164,6 +1177,9 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
     fn u8x16_min(self, a: V128, b: V128) -> V128 {
+        if cfg!(miri) {
+            return crate::simulation::u8x16_min(a, b);
+        }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_min_epu8(t(a), t(b))) };
@@ -1410,6 +1426,9 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE2, WASM128
     #[inline(always)]
     fn u8x16_bitmask(self, a: V128) -> u16 {
+        if cfg!(miri) {
+            return crate::simulation::u8x16_bitmask(a);
+        }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
             return unsafe { _mm_movemask_epi8(t(a)) as u16 };
@@ -1917,7 +1936,10 @@ pub unsafe trait SIMD128: SIMD64 {
 
     /// T1: SSE2
     #[inline(always)]
-    fn u16x8_packus(self, a: V128, b: V128) -> V128 {
+    fn i16x8_packus(self, a: V128, b: V128) -> V128 {
+        if cfg!(miri) {
+            return crate::simulation::i16x8_packus(a, b);
+        }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_packus_epi16(t(a), t(b))) };

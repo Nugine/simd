@@ -192,7 +192,7 @@ macro_rules! dispatch {
 
     (@resolve_static, "sse2", $($arg_name: ident),*) => {
         #[cfg(all(
-            not(miri),
+            // not(miri),
             any(target_arch = "x86", target_arch = "x86_64"),
             target_feature = "sse2"
         ))]
@@ -259,7 +259,8 @@ macro_rules! dispatch {
     };
 
     (@resolve_dynamic, "sse2") => {
-        #[cfg(all(not(miri), any(target_arch = "x86", target_arch = "x86_64")))]
+        // #[cfg(all(not(miri), any(target_arch = "x86", target_arch = "x86_64")))]
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if $crate::isa::SSE2::is_enabled() {
             return sse2;
         }
@@ -365,7 +366,8 @@ macro_rules! dispatch {
         simd        = {$simd_fn:path},
         target      = {"sse2"},
     ) => {
-        #[cfg(all(not(miri), any(target_arch = "x86", target_arch = "x86_64")))]
+        // #[cfg(all(not(miri), any(target_arch = "x86", target_arch = "x86_64")))]
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         #[inline]
         #[target_feature(enable = "sse2")]
         $vis unsafe fn sse2($($arg_name:$arg_type),*) -> $ret {
