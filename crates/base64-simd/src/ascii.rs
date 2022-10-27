@@ -2,6 +2,8 @@ use vsimd::isa::AVX2;
 use vsimd::tools::slice_parts;
 use vsimd::{is_subtype, Scalable, SIMD256};
 
+use core::ops::Not;
+
 #[inline(always)]
 #[must_use]
 fn lookup_ascii_whitespace(c: u8) -> u8 {
@@ -74,6 +76,12 @@ pub unsafe fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, mut src: *const u
                 break;
             }
             src = src.add(32);
+        }
+        if (len % 32) >= 16 {
+            let x = s.v128_load_unaligned(src);
+            if has_ascii_whitespace(s, x).not() {
+                src = src.add(16);
+            }
         }
     } else {
         let end = src.add(len / 16 * 16);
