@@ -9,8 +9,6 @@
 
 SIMD-accelerated hex encoding and decoding.
 
-Inspired by [faster-hex](https://github.com/nervosnetwork/faster-hex).
-
 Documentation: <https://docs.rs/hex-simd>
 
 Repository: <https://github.com/Nugine/simd>

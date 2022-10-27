@@ -9,8 +9,6 @@
 
 SIMD-accelerated base64 encoding and decoding.
 
-Inspired by [base64](https://github.com/marshallpierce/rust-base64) and [radix64](https://github.com/ggriffiniii/radix64).
-
 References:
 
 + <http://0x80.pl/articles/index.html#base64-algorithm-new>
