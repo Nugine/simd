@@ -1,4 +1,4 @@
-use crate::{Base32, Error, OutRef, BASE32, BASE32HEX, BASE32HEX_NO_PAD, BASE32_NO_PAD};
+use crate::{AsOut, Base32, Error, Out, BASE32, BASE32HEX, BASE32HEX_NO_PAD, BASE32_NO_PAD};
 
 use rand::RngCore;
 
@@ -46,15 +46,13 @@ fn basic() {
         buf.clear();
         buf.resize(base32.encoded_length(input.len()), 0);
 
-        let out = OutRef::from_slice(&mut buf);
-        let ans = base32.encode_as_str(input.as_bytes(), out);
+        let ans = base32.encode_as_str(input.as_bytes(), buf.as_out());
         assert_eq!(ans, output);
 
         buf.clear();
         buf.resize(base32.decoded_length(output.as_bytes()).unwrap(), 0);
 
-        let out = OutRef::from_slice(&mut buf);
-        let ans = base32.decode(output.as_bytes(), out).unwrap();
+        let ans = base32.decode(output.as_bytes(), buf.as_out()).unwrap();
         assert_eq!(ans, input.as_bytes());
     }
 }
@@ -85,8 +83,7 @@ fn special() {
         let mut buf: Vec<u8> = Vec::new();
         buf.resize(base32.encoded_length(input.len()), 0);
 
-        let out = OutRef::from_slice(&mut buf);
-        let ans = base32.encode(input, out);
+        let ans = base32.encode(input, buf.as_out());
         assert!(base32.check(ans).is_ok());
 
         let ans = base32.decode_inplace(&mut buf).unwrap();
@@ -116,8 +113,8 @@ fn allocation() {
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
     check: for<'s> fn(&'_ Base32, &'s [u8]) -> Result<(), Error>,
-    encode: for<'s, 'd> fn(&'_ Base32, &'s [u8], OutRef<'d, [u8]>) -> &'d mut [u8],
-    decode: for<'s, 'd> fn(&'_ Base32, &'s [u8], OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error>,
+    encode: for<'s, 'd> fn(&'_ Base32, &'s [u8], Out<'d, [u8]>) -> &'d mut [u8],
+    decode: for<'s, 'd> fn(&'_ Base32, &'s [u8], Out<'d, [u8]>) -> Result<&'d mut [u8], Error>,
     decode_inplace: for<'b> fn(&'_ Base32, &'b mut [u8]) -> Result<&'b mut [u8], Error>,
 ) {
     println!();
@@ -136,8 +133,7 @@ fn safety_unit_test(
             dbgmsg!("base32 = {:?}", base32);
 
             let mut buf = vec![0u8; base32.encoded_length(n)];
-            let buf = OutRef::from_slice(&mut buf);
-            let encoded = encode(&base32, &bytes, buf);
+            let encoded = encode(&base32, &bytes, buf.as_out());
             assert!(check(&base32, encoded).is_ok());
 
             let mut buf = encoded.to_owned();
@@ -145,8 +141,7 @@ fn safety_unit_test(
             assert_eq!(ans, bytes);
 
             let mut buf = vec![0u8; base32.decoded_length(encoded).unwrap()];
-            let buf = OutRef::from_slice(&mut buf);
-            let ans = decode(&base32, encoded, buf).unwrap();
+            let ans = decode(&base32, encoded, buf.as_out()).unwrap();
             assert_eq!(ans, bytes);
         }
     }

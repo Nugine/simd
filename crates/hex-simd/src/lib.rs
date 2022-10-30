@@ -61,7 +61,7 @@ mod heap;
 #[cfg(test)]
 mod tests;
 
-pub use outref::OutRef;
+pub use outref::{AsOut, Out};
 pub use vsimd::ascii::AsciiCase;
 
 // -------------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ pub fn check(data: &[u8]) -> Result<(), Error> {
 /// This function will panic if the length of `dst` is not enough.
 #[inline]
 #[must_use]
-pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>, case: AsciiCase) -> &'d mut [u8] {
+pub fn encode<'s, 'd>(src: &'s [u8], mut dst: Out<'d, [u8]>, case: AsciiCase) -> &'d mut [u8] {
     assert!(dst.len() / 2 >= src.len());
     unsafe {
         let (src, len) = slice_parts(src);
@@ -125,7 +125,7 @@ pub fn encode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>, case: AsciiCase)
 /// # Panics
 /// This function will panic if the length of `dst` is not enough.
 #[inline]
-pub fn decode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error> {
+pub fn decode<'s, 'd>(src: &'s [u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
     ensure!(src.len() % 2 == 0);
     assert!(dst.len() >= src.len() / 2);
 
@@ -162,7 +162,7 @@ pub fn decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
 /// This function will panic if the length of `dst` is not enough.
 #[inline]
 #[must_use]
-pub fn encode_as_str<'s, 'd>(src: &'s [u8], dst: OutRef<'d, [u8]>, case: AsciiCase) -> &'d mut str {
+pub fn encode_as_str<'s, 'd>(src: &'s [u8], dst: Out<'d, [u8]>, case: AsciiCase) -> &'d mut str {
     let ans = encode(src, dst, case);
     unsafe { core::str::from_utf8_unchecked_mut(ans) }
 }

@@ -27,7 +27,7 @@ mod utf32;
 
 mod multiversion;
 
-pub use outref::OutRef;
+pub use outref::{AsOut, Out};
 
 // ------------------------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ pub fn utf32_swap_endianness_inplace(data: &mut [u32]) {
 /// This function asserts that `src.len() <= dst.len()`
 #[inline]
 #[must_use]
-pub fn utf32_swap_endianness<'s, 'd>(src: &'s [u32], mut dst: OutRef<'d, [u32]>) -> &'d mut [u32] {
+pub fn utf32_swap_endianness<'s, 'd>(src: &'s [u32], mut dst: Out<'d, [u32]>) -> &'d mut [u32] {
     assert!(src.len() <= dst.len());
     let len = src.len();
     let src = src.as_ptr();
@@ -94,7 +94,7 @@ pub fn utf16_swap_endianness_inplace(data: &mut [u16]) {
 /// This function asserts that `src.len() <= dst.len()`
 #[inline]
 #[must_use]
-pub fn utf16_swap_endianness<'s, 'd>(src: &'s [u16], mut dst: OutRef<'d, [u16]>) -> &'d mut [u16] {
+pub fn utf16_swap_endianness<'s, 'd>(src: &'s [u16], mut dst: Out<'d, [u16]>) -> &'d mut [u16] {
     assert!(src.len() <= dst.len());
     let len = src.len();
     let src = src.as_ptr();

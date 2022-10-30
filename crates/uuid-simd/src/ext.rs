@@ -1,4 +1,4 @@
-use crate::{AsciiCase, Error, OutRef};
+use crate::{AsciiCase, Error, Out, AsOut};
 
 use core::fmt;
 use core::mem::MaybeUninit;
@@ -49,10 +49,10 @@ pub trait UuidExt: Sized {
 #[inline(always)]
 unsafe fn parse_uuid(
     src: &[u8],
-    f: for<'s, 'd> fn(&'s [u8], OutRef<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error>,
+    f: for<'s, 'd> fn(&'s [u8], Out<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error>,
 ) -> Result<Uuid, Error> {
     let mut uuid = MaybeUninit::<Uuid>::uninit();
-    let out = OutRef::from_raw(uuid.as_mut_ptr().cast());
+    let out = Out::from_raw(uuid.as_mut_ptr().cast());
     f(src, out)?;
     Ok(uuid.assume_init())
 }
@@ -99,12 +99,12 @@ pub struct Hyphenated<'a>(&'a Uuid);
 unsafe fn format_uuid<R, const N: usize>(
     uuid: &Uuid,
     case: AsciiCase,
-    f: for<'s, 'd> fn(&'s [u8; 16], OutRef<'d, [u8; N]>, case: AsciiCase) -> &'d mut [u8; N],
+    f: for<'s, 'd> fn(&'s [u8; 16], Out<'d, [u8; N]>, case: AsciiCase) -> &'d mut [u8; N],
     g: impl FnOnce(&str) -> R,
 ) -> R {
     let mut buf = MaybeUninit::<[u8; N]>::uninit();
     let src = uuid.as_bytes();
-    let dst = OutRef::from_uninit(&mut buf);
+    let dst = buf.as_out();
     let ans = f(src, dst, case);
     g(core::str::from_utf8_unchecked(ans))
 }

@@ -1,5 +1,6 @@
+use base32_simd::AsOut;
 use simd_benches::FnGroup;
-use uuid_simd::{AsciiCase, OutRef, UuidExt};
+use uuid_simd::{AsciiCase, UuidExt};
 
 use std::mem::MaybeUninit;
 
@@ -40,8 +41,7 @@ pub fn bench_format(c: &mut Criterion) {
         let functions: &FnGroup<fn(&Uuid) -> [u8; 32]> = &[
             ("uuid-simd/auto", |u: &Uuid| {
                 let mut buf: MaybeUninit<[u8; 32]> = MaybeUninit::uninit();
-                let dst = OutRef::from_uninit(&mut buf);
-                *uuid_simd::format_simple(u.as_bytes(), dst, AsciiCase::Lower)
+                *uuid_simd::format_simple(u.as_bytes(), buf.as_out(), AsciiCase::Lower)
             }),
             ("uuid/fallback", |u: &Uuid| {
                 let mut buf = [0; 32];
@@ -62,8 +62,7 @@ pub fn bench_format(c: &mut Criterion) {
         let functions: &FnGroup<fn(&Uuid) -> [u8; 36]> = &[
             ("uuid-simd/auto", |u: &Uuid| {
                 let mut buf: MaybeUninit<[u8; 36]> = MaybeUninit::uninit();
-                let dst = OutRef::from_uninit(&mut buf);
-                *uuid_simd::format_hyphenated(u.as_bytes(), dst, AsciiCase::Lower)
+                *uuid_simd::format_hyphenated(u.as_bytes(), buf.as_out(), AsciiCase::Lower)
             }),
             ("uuid/fallback", |u: &Uuid| {
                 let mut buf = [0; 36];

@@ -1,4 +1,4 @@
-use hex_simd::{AsciiCase, OutRef};
+use hex_simd::{AsOut, AsciiCase};
 use simd_benches::{map_collect, rand_bytes, FnGroup};
 
 use criterion::{black_box, criterion_group, criterion_main, AxisScale, PlotConfiguration};
@@ -48,7 +48,7 @@ pub fn bench_decode(c: &mut Criterion) {
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("hex-simd/auto", |src, dst| {
-            hex_simd::decode(src, OutRef::from_slice(dst)).unwrap();
+            hex_simd::decode(src, dst.as_out()).unwrap();
         }),
         #[cfg(feature = "detect")]
         ("faster-hex/auto", |src, dst| {
@@ -96,7 +96,7 @@ pub fn bench_encode(c: &mut Criterion) {
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("hex-simd/auto", |src, dst| {
-            let _ = hex_simd::encode(src, OutRef::from_slice(dst), AsciiCase::Lower);
+            let _ = hex_simd::encode(src, dst.as_out(), AsciiCase::Lower);
         }),
         #[cfg(feature = "detect")]
         ("faster-hex/auto", |src, dst| {

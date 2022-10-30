@@ -61,7 +61,7 @@ vsimd::item_group! {
     pub use self::ext::*;
 }
 
-pub use outref::OutRef;
+pub use outref::{AsOut, Out};
 pub use vsimd::ascii::AsciiCase;
 
 // -------------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ use vsimd::tools::read;
 /// + The length of `src` doesn't match any UUID format variants.
 /// + The content of `src` is invalid.
 #[inline]
-pub fn parse<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error> {
+pub fn parse<'s, 'd>(src: &'s [u8], mut dst: Out<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error> {
     let n = src.len();
 
     if n == 32 {
@@ -115,7 +115,7 @@ pub fn parse<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d
 /// + The length of `src` doesn't match the "simple" format.
 /// + The content of `src` is invalid.
 #[inline]
-pub fn parse_simple<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error> {
+pub fn parse_simple<'s, 'd>(src: &'s [u8], mut dst: Out<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error> {
     ensure!(src.len() == 32);
     unsafe {
         let src = src.as_ptr();
@@ -133,7 +133,7 @@ pub fn parse_simple<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Res
 /// + The length of `src` doesn't match the "hyphenated" format.
 /// + The content of `src` is invalid.
 #[inline]
-pub fn parse_hyphenated<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error> {
+pub fn parse_hyphenated<'s, 'd>(src: &'s [u8], mut dst: Out<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error> {
     ensure!(src.len() == 36);
     unsafe {
         let src = src.as_ptr();
@@ -146,7 +146,7 @@ pub fn parse_hyphenated<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8; 16]>) ->
 /// Formats an UUID to a simple UUID string.
 #[inline]
 #[must_use]
-pub fn format_simple<'s, 'd>(src: &'s [u8; 16], mut dst: OutRef<'d, [u8; 32]>, case: AsciiCase) -> &'d mut [u8; 32] {
+pub fn format_simple<'s, 'd>(src: &'s [u8; 16], mut dst: Out<'d, [u8; 32]>, case: AsciiCase) -> &'d mut [u8; 32] {
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();
@@ -158,11 +158,7 @@ pub fn format_simple<'s, 'd>(src: &'s [u8; 16], mut dst: OutRef<'d, [u8; 32]>, c
 /// Formats an UUID to a hyphenated UUID string.
 #[inline]
 #[must_use]
-pub fn format_hyphenated<'s, 'd>(
-    src: &'s [u8; 16],
-    mut dst: OutRef<'d, [u8; 36]>,
-    case: AsciiCase,
-) -> &'d mut [u8; 36] {
+pub fn format_hyphenated<'s, 'd>(src: &'s [u8; 16], mut dst: Out<'d, [u8; 36]>, case: AsciiCase) -> &'d mut [u8; 36] {
     unsafe {
         let src = src.as_ptr();
         let dst = dst.as_mut_ptr().cast::<u8>();

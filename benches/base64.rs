@@ -1,4 +1,4 @@
-use base64_simd::OutRef;
+use base64_simd::AsOut;
 use simd_benches::{map_collect, rand_bytes, FnGroup};
 
 use criterion::{black_box, criterion_group, criterion_main, AxisScale, PlotConfiguration};
@@ -14,7 +14,7 @@ pub fn bench_encode(c: &mut Criterion) {
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("base64-simd/auto", |src, dst| {
-            let _ = base64_simd::STANDARD.encode(src, OutRef::from_slice(dst));
+            let _ = base64_simd::STANDARD.encode(src, dst.as_out());
         }),
         ("radix64/auto", |src, dst| {
             radix64::STD.encode_slice(src, dst);
@@ -56,7 +56,7 @@ pub fn bench_decode(c: &mut Criterion) {
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("base64-simd/auto", |src, dst| {
-            base64_simd::STANDARD.decode(src, OutRef::from_slice(dst)).unwrap();
+            base64_simd::STANDARD.decode(src, dst.as_out()).unwrap();
         }),
         ("radix64/auto", |src, dst| {
             radix64::STD.decode_slice(src, dst).unwrap();
@@ -122,7 +122,7 @@ pub fn bench_forgiving_decode(c: &mut Criterion) {
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("base64-simd/auto", |src, dst| {
-            base64_simd::forgiving_decode(src, OutRef::from_slice(dst)).unwrap();
+            base64_simd::forgiving_decode(src, dst.as_out()).unwrap();
         }), //
     ];
 

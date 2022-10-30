@@ -1,4 +1,4 @@
-use crate::{AsciiCase, Error, OutRef};
+use crate::{AsOut, AsciiCase, Error, Out};
 
 fn ok_cases() -> &'static [(&'static str, &'static str)] {
     const A1: &str = "67e5504410b1426f9247bb680e5fe0c8";
@@ -76,39 +76,39 @@ fn format_cases() -> &'static [(&'static str, &'static str)] {
 
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
-    parse: for<'s, 'd> fn(&'s [u8], OutRef<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error>,
-    format_simple: for<'s, 'd> fn(&'s [u8; 16], OutRef<'d, [u8; 32]>, AsciiCase) -> &'d mut [u8; 32],
-    format_hyphenated: for<'s, 'd> fn(&'s [u8; 16], OutRef<'d, [u8; 36]>, AsciiCase) -> &'d mut [u8; 36],
+    parse: for<'s, 'd> fn(&'s [u8], Out<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error>,
+    format_simple: for<'s, 'd> fn(&'s [u8; 16], Out<'d, [u8; 32]>, AsciiCase) -> &'d mut [u8; 32],
+    format_hyphenated: for<'s, 'd> fn(&'s [u8; 16], Out<'d, [u8; 36]>, AsciiCase) -> &'d mut [u8; 36],
 ) {
     for &(expected, input) in ok_cases() {
         let mut expected_buf = [0u8; 16];
-        let expected_bytes = hex_simd::decode(expected.as_bytes(), OutRef::from_slice(&mut expected_buf)).unwrap();
+        let expected_bytes = hex_simd::decode(expected.as_bytes(), expected_buf.as_mut_slice().as_out()).unwrap();
 
         let mut output_buf = [0; 16];
-        let output_bytes = parse(input.as_bytes(), OutRef::from_mut(&mut output_buf)).unwrap();
+        let output_bytes = parse(input.as_bytes(), output_buf.as_out()).unwrap();
 
         assert_eq!(output_bytes, expected_bytes);
     }
 
     for &input in err_cases() {
         let mut output_buf = [0; 16];
-        parse(input.as_bytes(), OutRef::from_mut(&mut output_buf)).unwrap_err();
+        parse(input.as_bytes(), output_buf.as_out()).unwrap_err();
     }
 
     for &(input, expected) in format_cases() {
         let mut src = [0; 16];
-        hex_simd::decode(input.as_bytes(), OutRef::from_slice(&mut src)).unwrap();
+        hex_simd::decode(input.as_bytes(), src.as_mut_slice().as_out()).unwrap();
 
         let mut output_buf = [0; 32];
-        let output = format_simple(&src, OutRef::from_mut(&mut output_buf), AsciiCase::Upper);
+        let output = format_simple(&src, output_buf.as_out(), AsciiCase::Upper);
         assert_eq!(output.as_slice(), input.to_ascii_uppercase().as_bytes());
-        let output = format_simple(&src, OutRef::from_mut(&mut output_buf), AsciiCase::Lower);
+        let output = format_simple(&src, output_buf.as_out(), AsciiCase::Lower);
         assert_eq!(output.as_slice(), input.to_ascii_lowercase().as_bytes());
 
         let mut output_buf = [0; 36];
-        let output = format_hyphenated(&src, OutRef::from_mut(&mut output_buf), AsciiCase::Upper);
+        let output = format_hyphenated(&src, output_buf.as_out(), AsciiCase::Upper);
         assert_eq!(output.as_slice(), expected.to_ascii_uppercase().as_bytes());
-        let output = format_hyphenated(&src, OutRef::from_mut(&mut output_buf), AsciiCase::Lower);
+        let output = format_hyphenated(&src, output_buf.as_out(), AsciiCase::Lower);
         assert_eq!(output.as_slice(), expected.to_ascii_lowercase().as_bytes());
     }
 }

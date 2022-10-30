@@ -1,6 +1,6 @@
 use crate::ascii::*;
 use crate::STANDARD_FORGIVING;
-use crate::{Error, OutRef};
+use crate::{Error, Out};
 
 use vsimd::tools::slice_mut;
 
@@ -35,7 +35,7 @@ pub fn forgiving_decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
 /// # Panics
 /// This function asserts that `src.len() <= dst.len()`
 #[inline]
-pub fn forgiving_decode<'s, 'd>(src: &'s [u8], mut dst: OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error> {
+pub fn forgiving_decode<'s, 'd>(src: &'s [u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
     assert!(src.len() <= dst.len());
 
     let pos = find_non_ascii_whitespace(src);
@@ -104,6 +104,8 @@ pub fn forgiving_decode_to_vec(data: &[u8]) -> Result<Vec<u8>, Error> {
 mod tests {
     use super::*;
 
+    use crate::AsOut;
+
     #[cfg_attr(not(target_arch = "wasm32"), test)]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
     fn test_forgiving() {
@@ -137,14 +139,14 @@ mod tests {
 
             let mut buf = src.to_owned().into_bytes();
 
-            let ans = crate::forgiving_decode_inplace(&mut buf).unwrap();
+            let ans = forgiving_decode_inplace(&mut buf).unwrap();
             assert_eq!(
                 ans, expected,
                 "src = {:?}, expected = {:02X?}, ans = {:02X?}",
                 src, expected, ans
             );
 
-            let ans = crate::forgiving_decode(src.as_bytes(), OutRef::from_slice(&mut buf)).unwrap();
+            let ans = crate::forgiving_decode(src.as_bytes(), buf.as_out()).unwrap();
             assert_eq!(ans, expected);
 
             #[cfg(feature = "alloc")]

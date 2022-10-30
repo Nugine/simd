@@ -1,4 +1,4 @@
-use crate::{Base64, Error, OutRef, STANDARD, STANDARD_NO_PAD, URL_SAFE, URL_SAFE_NO_PAD};
+use crate::{AsOut, Base64, Error, Out, STANDARD, STANDARD_NO_PAD, URL_SAFE, URL_SAFE_NO_PAD};
 
 use rand::RngCore;
 
@@ -26,15 +26,13 @@ fn basic() {
         buf.clear();
         buf.resize(base64.encoded_length(input.len()), 0);
 
-        let out = OutRef::from_slice(&mut buf);
-        let ans = base64.encode_as_str(input.as_bytes(), out);
+        let ans = base64.encode_as_str(input.as_bytes(), buf.as_out());
         assert_eq!(ans, output);
 
         buf.clear();
         buf.resize(base64.decoded_length(output.as_bytes()).unwrap(), 0);
 
-        let out = OutRef::from_slice(&mut buf);
-        let ans = base64.decode(output.as_bytes(), out).unwrap();
+        let ans = base64.decode(output.as_bytes(), buf.as_out()).unwrap();
         assert_eq!(ans, input.as_bytes());
     }
 }
@@ -72,8 +70,8 @@ macro_rules! dbgmsg {
 #[allow(clippy::type_complexity)]
 fn safety_unit_test(
     check: for<'s> fn(&'_ Base64, &'s [u8]) -> Result<(), Error>,
-    encode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutRef<'d, [u8]>) -> &'d mut [u8],
-    decode: for<'s, 'd> fn(&'_ Base64, &'s [u8], OutRef<'d, [u8]>) -> Result<&'d mut [u8], Error>,
+    encode: for<'s, 'd> fn(&'_ Base64, &'s [u8], Out<'d, [u8]>) -> &'d mut [u8],
+    decode: for<'s, 'd> fn(&'_ Base64, &'s [u8], Out<'d, [u8]>) -> Result<&'d mut [u8], Error>,
     decode_inplace: for<'b> fn(&'_ Base64, &'b mut [u8]) -> Result<&'b mut [u8], Error>,
 ) {
     // canonicity tests
@@ -95,7 +93,7 @@ fn safety_unit_test(
             let base64 = STANDARD;
 
             let is_valid = check(&base64, encoded.as_bytes()).is_ok();
-            let result: _ = base64.decode(encoded.as_bytes(), OutRef::from_slice(&mut buf));
+            let result: _ = base64.decode(encoded.as_bytes(), buf.as_mut_slice().as_out());
 
             assert_eq!(is_valid, result.is_ok());
             match expected {
@@ -132,8 +130,7 @@ fn safety_unit_test(
 
             {
                 let mut buf = vec![0u8; base64.encoded_length(n)];
-                let buf = OutRef::from_slice(&mut buf);
-                let ans = encode(&base64, &bytes, buf);
+                let ans = encode(&base64, &bytes, buf.as_out());
                 assert_eq!(ans, encoded);
                 assert!(check(&base64, ans).is_ok());
                 dbgmsg!("encoding ... ok");
@@ -148,8 +145,7 @@ fn safety_unit_test(
 
             {
                 let mut buf = vec![0u8; n];
-                let buf = OutRef::from_slice(&mut buf);
-                let ans = decode(&base64, encoded, buf).unwrap();
+                let ans = decode(&base64, encoded, buf.as_out()).unwrap();
                 assert_eq!(ans, bytes);
                 dbgmsg!("decoding ... ok");
             }

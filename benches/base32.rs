@@ -1,4 +1,4 @@
-use base32_simd::OutRef;
+use base32_simd::AsOut;
 use simd_benches::{map_collect, rand_bytes, FnGroup};
 
 use criterion::{black_box, criterion_group, criterion_main, AxisScale, PlotConfiguration};
@@ -14,7 +14,7 @@ pub fn bench_encode(c: &mut Criterion) {
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("base32-simd/auto", |src, dst| {
-            let _ = base32_simd::BASE32.encode(src, OutRef::from_slice(dst)); //
+            let _ = base32_simd::BASE32.encode(src, dst.as_out()); //
         }),
         ("base32ct/fallback", |src, dst| {
             use base32ct::Encoding;
@@ -49,7 +49,7 @@ pub fn bench_decode(c: &mut Criterion) {
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("base32-simd/auto", |src, dst| {
-            base32_simd::BASE32.decode(src, OutRef::from_slice(dst)).unwrap(); //
+            base32_simd::BASE32.decode(src, dst.as_out()).unwrap(); //
         }),
         ("base32ct/fallback", |src, dst| {
             use base32ct::Encoding;
