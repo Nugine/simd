@@ -171,6 +171,7 @@ pub unsafe fn decode_extra<const WRITE: bool>(
     Ok(())
 }
 
+#[inline(always)]
 pub(crate) unsafe fn decode_fallback(
     mut src: *const u8,
     mut dst: *mut u8,
@@ -204,6 +205,7 @@ pub(crate) unsafe fn decode_fallback(
     decode_extra::<true>(n, src, dst, table, forgiving)
 }
 
+#[inline(always)]
 pub(crate) unsafe fn decode_simd<S: SIMD256>(
     s: S,
     mut src: *const u8,

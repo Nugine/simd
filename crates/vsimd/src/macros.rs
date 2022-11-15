@@ -128,7 +128,7 @@ macro_rules! dispatch {
                 }
 
                 #[allow(unreachable_code)]
-                #[inline(never)]
+                #[inline]
                 $vis unsafe fn auto($($arg_name: $arg_type),*) -> $ret {
                     $crate::dispatch!(
                         @iter_resolve_static,

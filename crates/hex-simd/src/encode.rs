@@ -30,6 +30,7 @@ unsafe fn encode_short(mut src: *const u8, len: usize, mut dst: *mut u8, charset
     }
 }
 
+#[inline(always)]
 unsafe fn encode_long(mut src: *const u8, len: usize, mut dst: *mut u8, case: AsciiCase) {
     let charset = charset(case).as_ptr();
 
