@@ -14,10 +14,10 @@ doc pkg="vsimd":
     cargo doc --no-deps --all-features
     cargo doc --open -p {{pkg}}
 
-x86-bench dispatch *ARGS:
+bench dispatch *ARGS:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    mkdir -p target/x86-bench
+    mkdir -p target/simd-benches
     COMMIT_HASH=`git rev-parse --short HEAD`
 
     case "{{dispatch}}" in
@@ -39,21 +39,21 @@ x86-bench dispatch *ARGS:
             ;;
     esac
 
-    NAME=target/x86-bench/$COMMIT_HASH-{{dispatch}}
+    NAME=target/simd-benches/$COMMIT_HASH-{{dispatch}}
 
     time cargo criterion -p simd-benches --history-id $COMMIT_HASH --message-format json --features "$FEATURES" {{ARGS}} > $NAME.jsonl
     just analyze $COMMIT_HASH {{dispatch}} > $NAME.md
-    bat $NAME.md
+    bat --paging=never $NAME.md
 
 bench-all:
-    just x86-bench static
-    just x86-bench dynamic
-    just x86-bench fallback
+    just bench static
+    just bench dynamic
+    just bench fallback
 
 analyze commit dispatch:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    cargo run -q -p analyze -- target/x86-bench/{{commit}}-{{dispatch}}.jsonl
+    cargo run -q -p analyze -- target/simd-benches/{{commit}}-{{dispatch}}.jsonl
 
 js-bench:
     #!/bin/bash -e

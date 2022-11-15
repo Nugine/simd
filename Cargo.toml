@@ -2,6 +2,6 @@
 members = ["crates/*", "benches", "analyze"]
 resolver = "2"
 
-[profile.release]
+[profile.bench]
 lto = "fat"
 codegen-units = 1
