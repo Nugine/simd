@@ -1,29 +1,94 @@
 use crate::isa::InstructionSet;
-use crate::mask::*;
+use crate::pod::POD;
 use crate::vector::{V128, V256};
+use crate::{mask::*, unified};
 use crate::{SIMD128, SIMD256};
 
-pub unsafe trait Scalable<V: Copy>: InstructionSet {
-    fn and(self, a: V, b: V) -> V;
-    fn or(self, a: V, b: V) -> V;
-    fn xor(self, a: V, b: V) -> V;
-    fn andnot(self, a: V, b: V) -> V;
+pub unsafe trait Scalable<V: POD>: InstructionSet {
+    #[inline(always)]
+    fn and(self, a: V, b: V) -> V {
+        unified::and(self, a, b)
+    }
 
-    fn u8xn_splat(self, x: u8) -> V;
-    fn i8xn_splat(self, x: i8) -> V;
+    #[inline(always)]
+    fn or(self, a: V, b: V) -> V {
+        unified::or(self, a, b)
+    }
 
-    fn u8xn_add(self, a: V, b: V) -> V;
+    #[inline(always)]
+    fn xor(self, a: V, b: V) -> V {
+        unified::xor(self, a, b)
+    }
 
-    fn u8xn_sub(self, a: V, b: V) -> V;
+    #[inline(always)]
+    fn andnot(self, a: V, b: V) -> V {
+        unified::andnot(self, a, b)
+    }
 
-    fn u8xn_add_sat(self, a: V, b: V) -> V;
-    fn i8xn_add_sat(self, a: V, b: V) -> V;
+    #[inline(always)]
+    fn u8xn_splat(self, x: u8) -> V {
+        unified::splat::<_, u8, _>(self, x)
+    }
 
-    fn u8xn_sub_sat(self, a: V, b: V) -> V;
+    #[inline(always)]
+    fn i8xn_splat(self, x: i8) -> V {
+        unified::splat::<_, i8, _>(self, x)
+    }
 
-    fn u8xn_eq(self, a: V, b: V) -> V;
+    #[inline(always)]
+    fn u32xn_splat(self, x: u32) -> V {
+        unified::splat::<_, u32, _>(self, x)
+    }
 
-    fn i8xn_lt(self, a: V, b: V) -> V;
+    #[inline(always)]
+    fn u8xn_add(self, a: V, b: V) -> V {
+        unified::add::<_, u8, _>(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8xn_sub(self, a: V, b: V) -> V {
+        unified::sub::<_, u8, _>(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32xn_sub(self, a: V, b: V) -> V {
+        unified::sub::<_, u32, _>(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8xn_add_sat(self, a: V, b: V) -> V {
+        unified::add_sat::<_, u8, _>(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i8xn_add_sat(self, a: V, b: V) -> V {
+        unified::add_sat::<_, i8, _>(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8xn_sub_sat(self, a: V, b: V) -> V {
+        unified::sub_sat::<_, u8, _>(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u8xn_eq(self, a: V, b: V) -> V {
+        unified::eq::<_, u8, _>(self, a, b)
+    }
+
+    #[inline(always)]
+    fn i8xn_lt(self, a: V, b: V) -> V {
+        unified::lt::<_, i8, _>(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32xn_lt(self, a: V, b: V) -> V {
+        unified::lt::<_, u32, _>(self, a, b)
+    }
+
+    #[inline(always)]
+    fn u32xn_max(self, a: V, b: V) -> V {
+        unified::max::<_, u32, _>(self, a, b)
+    }
 
     fn u16xn_shl<const IMM8: i32>(self, a: V) -> V;
 
@@ -33,6 +98,8 @@ pub unsafe trait Scalable<V: Copy>: InstructionSet {
     fn u8xn_avgr(self, a: V, b: V) -> V;
 
     fn u8x16xn_swizzle(self, a: V, b: V) -> V;
+
+    fn all_zero(self, a: V) -> bool;
 
     fn mask8xn_all(self, a: V) -> bool;
     fn mask8xn_any(self, a: V) -> bool;
@@ -49,71 +116,6 @@ unsafe impl<S> Scalable<V128> for S
 where
     S: SIMD128,
 {
-    #[inline(always)]
-    fn and(self, a: V128, b: V128) -> V128 {
-        self.v128_and(a, b)
-    }
-
-    #[inline(always)]
-    fn or(self, a: V128, b: V128) -> V128 {
-        self.v128_or(a, b)
-    }
-
-    #[inline(always)]
-    fn xor(self, a: V128, b: V128) -> V128 {
-        self.v128_xor(a, b)
-    }
-
-    #[inline(always)]
-    fn andnot(self, a: V128, b: V128) -> V128 {
-        self.v128_andnot(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_splat(self, x: u8) -> V128 {
-        self.u8x16_splat(x)
-    }
-
-    #[inline(always)]
-    fn i8xn_splat(self, x: i8) -> V128 {
-        self.i8x16_splat(x)
-    }
-
-    #[inline(always)]
-    fn u8xn_add(self, a: V128, b: V128) -> V128 {
-        self.u8x16_add(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_sub(self, a: V128, b: V128) -> V128 {
-        self.u8x16_sub(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_add_sat(self, a: V128, b: V128) -> V128 {
-        self.u8x16_add_sat(a, b)
-    }
-
-    #[inline(always)]
-    fn i8xn_add_sat(self, a: V128, b: V128) -> V128 {
-        self.i8x16_add_sat(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_sub_sat(self, a: V128, b: V128) -> V128 {
-        self.u8x16_sub_sat(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_eq(self, a: V128, b: V128) -> V128 {
-        self.u8x16_eq(a, b)
-    }
-
-    #[inline(always)]
-    fn i8xn_lt(self, a: V128, b: V128) -> V128 {
-        self.i8x16_lt(a, b)
-    }
-
     #[inline(always)]
     fn u16xn_shl<const IMM8: i32>(self, a: V128) -> V128 {
         self.u16x8_shl::<IMM8>(a)
@@ -137,6 +139,11 @@ where
     #[inline(always)]
     fn u8x16xn_swizzle(self, a: V128, b: V128) -> V128 {
         self.u8x16_swizzle(a, b)
+    }
+
+    #[inline(always)]
+    fn all_zero(self, a: V128) -> bool {
+        self.v128_all_zero(a)
     }
 
     #[inline(always)]
@@ -180,71 +187,6 @@ where
     S: SIMD256,
 {
     #[inline(always)]
-    fn and(self, a: V256, b: V256) -> V256 {
-        self.v256_and(a, b)
-    }
-
-    #[inline(always)]
-    fn or(self, a: V256, b: V256) -> V256 {
-        self.v256_or(a, b)
-    }
-
-    #[inline(always)]
-    fn xor(self, a: V256, b: V256) -> V256 {
-        self.v256_xor(a, b)
-    }
-
-    #[inline(always)]
-    fn andnot(self, a: V256, b: V256) -> V256 {
-        self.v256_andnot(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_splat(self, x: u8) -> V256 {
-        self.u8x32_splat(x)
-    }
-
-    #[inline(always)]
-    fn i8xn_splat(self, x: i8) -> V256 {
-        self.i8x32_splat(x)
-    }
-
-    #[inline(always)]
-    fn u8xn_add(self, a: V256, b: V256) -> V256 {
-        self.u8x32_add(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_sub(self, a: V256, b: V256) -> V256 {
-        self.u8x32_sub(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_add_sat(self, a: V256, b: V256) -> V256 {
-        self.u8x32_add_sat(a, b)
-    }
-
-    #[inline(always)]
-    fn i8xn_add_sat(self, a: V256, b: V256) -> V256 {
-        self.i8x32_add_sat(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_sub_sat(self, a: V256, b: V256) -> V256 {
-        self.u8x32_sub_sat(a, b)
-    }
-
-    #[inline(always)]
-    fn u8xn_eq(self, a: V256, b: V256) -> V256 {
-        self.u8x32_eq(a, b)
-    }
-
-    #[inline(always)]
-    fn i8xn_lt(self, a: V256, b: V256) -> V256 {
-        self.i8x32_lt(a, b)
-    }
-
-    #[inline(always)]
     fn u16xn_shl<const IMM8: i32>(self, a: V256) -> V256 {
         self.u16x16_shl::<IMM8>(a)
     }
@@ -267,6 +209,11 @@ where
     #[inline(always)]
     fn u8x16xn_swizzle(self, a: V256, b: V256) -> V256 {
         self.u8x16x2_swizzle(a, b)
+    }
+
+    #[inline(always)]
+    fn all_zero(self, a: V256) -> bool {
+        self.v256_all_zero(a)
     }
 
     #[inline(always)]

@@ -1,10 +1,10 @@
 use crate::{Config, Kind};
 use crate::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 
-use vsimd::is_subtype;
 use vsimd::isa::{NEON, SSE2, WASM128};
 use vsimd::tools::{read, write};
 use vsimd::vector::{V128, V256};
+use vsimd::{is_subtype, POD};
 use vsimd::{Scalable, SIMD128, SIMD256};
 
 #[inline(always)]
@@ -293,7 +293,7 @@ const STANDARD_ENCODING_SHIFT_X2: V256 = STANDARD_ENCODING_SHIFT.x2();
 const URL_SAFE_ENCODING_SHIFT_X2: V256 = URL_SAFE_ENCODING_SHIFT.x2();
 
 #[inline(always)]
-fn encode_values<S: Scalable<V>, V: Copy>(s: S, x: V, shift_lut: V) -> V {
+fn encode_values<S: Scalable<V>, V: POD>(s: S, x: V, shift_lut: V) -> V {
     // x: {00aaaaaa|00bbbbbb|00cccccc|00dddddd} xn
 
     let x1 = s.u8xn_sub_sat(x, s.u8xn_splat(51));

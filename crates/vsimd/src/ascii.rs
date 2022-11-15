@@ -1,3 +1,4 @@
+use crate::pod::POD;
 use crate::Scalable;
 
 /// An enum type which represents the case of ascii letters.
@@ -10,7 +11,7 @@ pub enum AsciiCase {
 }
 
 #[inline(always)]
-fn convert_ascii_case<S: Scalable<V>, V: Copy, const C: u8>(s: S, x: V) -> V {
+fn convert_ascii_case<S: Scalable<V>, V: POD, const C: u8>(s: S, x: V) -> V {
     assert!(matches!(C, b'A' | b'a'));
     let x1 = s.u8xn_sub(x, s.u8xn_splat(C + 0x80));
     let x2 = s.i8xn_lt(x1, s.i8xn_splat(-0x80 + 26));
@@ -19,12 +20,12 @@ fn convert_ascii_case<S: Scalable<V>, V: Copy, const C: u8>(s: S, x: V) -> V {
 }
 
 #[inline(always)]
-pub fn to_ascii_lowercase<S: Scalable<V>, V: Copy>(s: S, x: V) -> V {
+pub fn to_ascii_lowercase<S: Scalable<V>, V: POD>(s: S, x: V) -> V {
     convert_ascii_case::<S, V, b'A'>(s, x)
 }
 
 #[inline(always)]
-pub fn to_ascii_uppercase<S: Scalable<V>, V: Copy>(s: S, x: V) -> V {
+pub fn to_ascii_uppercase<S: Scalable<V>, V: POD>(s: S, x: V) -> V {
     convert_ascii_case::<S, V, b'a'>(s, x)
 }
 

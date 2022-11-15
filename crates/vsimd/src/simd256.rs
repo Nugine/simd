@@ -148,35 +148,17 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn v256_and(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_and_si256(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::v128_and, a, b)
-        }
+        unified::and(self, a, b)
     }
 
     #[inline(always)]
     fn v256_or(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_or_si256(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::v128_or, a, b)
-        }
+        unified::or(self, a, b)
     }
 
     #[inline(always)]
     fn v256_xor(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_xor_si256(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::v128_xor, a, b)
-        }
+        unified::xor(self, a, b)
     }
 
     #[inline(always)]

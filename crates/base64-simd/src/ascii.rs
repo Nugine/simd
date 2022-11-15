@@ -1,6 +1,6 @@
 use vsimd::isa::AVX2;
 use vsimd::tools::slice_parts;
-use vsimd::{is_subtype, Scalable, SIMD256};
+use vsimd::{is_subtype, Scalable, POD, SIMD256};
 
 use core::ops::Not;
 
@@ -23,7 +23,7 @@ fn lookup_ascii_whitespace(c: u8) -> u8 {
 }
 
 #[inline(always)]
-fn has_ascii_whitespace<S: Scalable<V>, V: Copy>(s: S, x: V) -> bool {
+fn has_ascii_whitespace<S: Scalable<V>, V: POD>(s: S, x: V) -> bool {
     // ASCII whitespaces
     // TAB      0x09    00001001
     // LF       0x0a    00001010

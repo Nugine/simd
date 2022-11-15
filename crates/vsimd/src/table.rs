@@ -1,11 +1,12 @@
 use crate::isa::{NEON, SSSE3, WASM128};
+use crate::pod::POD;
 use crate::Scalable;
 
 #[inline(always)]
 pub fn u8x16xn_lookup<S, V>(s: S, lut: V, x: V) -> V
 where
     S: Scalable<V>,
-    V: Copy,
+    V: POD,
 {
     if is_subtype!(S, SSSE3) {
         return s.u8x16xn_swizzle(lut, x);

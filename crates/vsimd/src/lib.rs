@@ -49,6 +49,7 @@ pub mod vector;
 
 #[macro_use]
 pub mod pod;
+pub use self::pod::POD;
 
 mod simulation;
 mod unified;

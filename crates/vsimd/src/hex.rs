@@ -1,6 +1,7 @@
 use crate::alsw::{self, AlswLut};
 use crate::isa::{AVX2, NEON, SSSE3, WASM128};
 use crate::mask::{u8x16_highbit_any, u8x32_highbit_any};
+use crate::pod::POD;
 use crate::vector::{V128, V256, V64};
 use crate::{Scalable, SIMD128, SIMD256};
 
@@ -35,7 +36,7 @@ pub const fn unhex(x: u8) -> u8 {
 pub fn check_xn<S, V>(s: S, x: V) -> bool
 where
     S: Scalable<V>,
-    V: Copy,
+    V: POD,
 {
     let x1 = s.u8xn_sub(x, s.u8xn_splat(0x30 + 0x80));
     let x2 = s.u8xn_sub(s.and(x, s.u8xn_splat(0xdf)), s.u8xn_splat(0x41 + 0x80));
@@ -115,7 +116,7 @@ const DECODE_UZP2: V256 = V256::double_bytes([
 ]);
 
 #[inline(always)]
-fn merge_bits<S: Scalable<V>, V: Copy>(s: S, x: V) -> V {
+fn merge_bits<S: Scalable<V>, V: POD>(s: S, x: V) -> V {
     // x:  {0000hhhh|0000llll} xn
 
     let x1 = s.u16xn_shl::<4>(x);

@@ -169,85 +169,25 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
     fn v128_and(self, a: V128, b: V128) -> V128 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, SSE2) {
-            return unsafe { t(_mm_and_si128(t(a), t(b))) };
-        }
-        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(Self, NEON) {
-            return unsafe { t(vandq_u8(t(a), t(b))) };
-        }
-        #[cfg(target_arch = "wasm32")]
-        if is_subtype!(Self, WASM128) {
-            return unsafe { t(v128_and(t(a), t(b))) };
-        }
-        {
-            let _ = (a, b);
-            unreachable!()
-        }
+        unified::and(self, a, b)
     }
 
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
     fn v128_or(self, a: V128, b: V128) -> V128 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, SSE2) {
-            return unsafe { t(_mm_or_si128(t(a), t(b))) };
-        }
-        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(Self, NEON) {
-            return unsafe { t(vorrq_u8(t(a), t(b))) };
-        }
-        #[cfg(target_arch = "wasm32")]
-        if is_subtype!(Self, WASM128) {
-            return unsafe { t(v128_or(t(a), t(b))) };
-        }
-        {
-            let _ = (a, b);
-            unreachable!()
-        }
+        unified::or(self, a, b)
     }
 
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
     fn v128_xor(self, a: V128, b: V128) -> V128 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, SSE2) {
-            return unsafe { t(_mm_xor_si128(t(a), t(b))) };
-        }
-        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(Self, NEON) {
-            return unsafe { t(veorq_u8(t(a), t(b))) };
-        }
-        #[cfg(target_arch = "wasm32")]
-        if is_subtype!(Self, WASM128) {
-            return unsafe { t(v128_xor(t(a), t(b))) };
-        }
-        {
-            let _ = (a, b);
-            unreachable!()
-        }
+        unified::xor(self, a, b)
     }
 
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
     fn v128_andnot(self, a: V128, b: V128) -> V128 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, SSE2) {
-            return unsafe { t(_mm_andnot_si128(t(b), t(a))) };
-        }
-        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(Self, NEON) {
-            return unsafe { t(vbicq_u8(t(b), t(a))) };
-        }
-        #[cfg(target_arch = "wasm32")]
-        if is_subtype!(Self, WASM128) {
-            return unsafe { t(v128_andnot(t(a), t(b))) };
-        }
-        {
-            let _ = (a, b);
-            unreachable!()
-        }
+        unified::andnot(self, a, b)
     }
 
     /// T1: SSE41, NEON-A64, WASM128

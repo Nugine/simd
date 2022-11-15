@@ -3,6 +3,7 @@
 //
 
 use crate::algorithm::{avgr, lookup};
+use crate::pod::POD;
 use crate::table::u8x16xn_lookup;
 use crate::vector::{V128, V256};
 use crate::Scalable;
@@ -49,7 +50,7 @@ impl AlswLut<V128> {
 }
 
 #[inline(always)]
-pub fn check_ascii_xn<S: Scalable<V>, V: Copy>(s: S, x: V, check: AlswLut<V>) -> bool {
+pub fn check_ascii_xn<S: Scalable<V>, V: POD>(s: S, x: V, check: AlswLut<V>) -> bool {
     let shr3 = s.u32xn_shr::<3>(x);
     let h1 = s.u8xn_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
     let o1 = u8x16xn_lookup(s, check.offset, h1);
@@ -58,7 +59,7 @@ pub fn check_ascii_xn<S: Scalable<V>, V: Copy>(s: S, x: V, check: AlswLut<V>) ->
 }
 
 #[inline(always)]
-pub fn decode_ascii_xn<S: Scalable<V>, V: Copy>(s: S, x: V, check: AlswLut<V>, decode: AlswLut<V>) -> (V, V) {
+pub fn decode_ascii_xn<S: Scalable<V>, V: POD>(s: S, x: V, check: AlswLut<V>, decode: AlswLut<V>) -> (V, V) {
     let shr3 = s.u32xn_shr::<3>(x);
 
     let h1 = s.u8xn_avgr(shr3, u8x16xn_lookup(s, check.hash, x));

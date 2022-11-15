@@ -906,3 +906,159 @@ pub fn min<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
         unreachable!()
     }
 }
+
+#[inline(always)]
+pub fn and<S, V>(s: S, a: V, b: V) -> V
+where
+    S: InstructionSet,
+    V: POD,
+{
+    if is_pod_type!(V, V256) {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(S, AVX2) {
+            return unsafe { tc(&_mm256_and_si256(tc(&a), tc(&b))) };
+        }
+        {
+            let (a, b): (V256, V256) = unsafe { (tc(&a), tc(&b)) };
+            let (a, b) = (a.to_v128x2(), b.to_v128x2());
+            let c0 = and::<S, V128>(s, a.0, b.0);
+            let c1 = and::<S, V128>(s, a.1, b.1);
+            return unsafe { tc(&V256::from_v128x2((c0, c1))) };
+        }
+    }
+    if is_pod_type!(V, V128) {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(S, SSE2) {
+            return unsafe { tc(&_mm_and_si128(tc(&a), tc(&b))) };
+        }
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
+        if is_subtype!(S, NEON) {
+            return unsafe { tc(&vandq_u8(tc(&a), tc(&b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(S, WASM128) {
+            return unsafe { tc(&v128_and(tc(&a), tc(&b))) };
+        }
+    }
+    {
+        let _ = (s, a, b);
+        unreachable!()
+    }
+}
+
+#[inline(always)]
+pub fn or<S, V>(s: S, a: V, b: V) -> V
+where
+    S: InstructionSet,
+    V: POD,
+{
+    if is_pod_type!(V, V256) {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(S, AVX2) {
+            return unsafe { tc(&_mm256_or_si256(tc(&a), tc(&b))) };
+        }
+        {
+            let (a, b): (V256, V256) = unsafe { (tc(&a), tc(&b)) };
+            let (a, b) = (a.to_v128x2(), b.to_v128x2());
+            let c0 = or::<S, V128>(s, a.0, b.0);
+            let c1 = or::<S, V128>(s, a.1, b.1);
+            return unsafe { tc(&V256::from_v128x2((c0, c1))) };
+        }
+    }
+    if is_pod_type!(V, V128) {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(S, SSE2) {
+            return unsafe { tc(&_mm_or_si128(tc(&a), tc(&b))) };
+        }
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
+        if is_subtype!(S, NEON) {
+            return unsafe { tc(&vorrq_u8(tc(&a), tc(&b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(S, WASM128) {
+            return unsafe { tc(&v128_or(tc(&a), tc(&b))) };
+        }
+    }
+    {
+        let _ = (s, a, b);
+        unreachable!()
+    }
+}
+
+#[inline(always)]
+pub fn xor<S, V>(s: S, a: V, b: V) -> V
+where
+    S: InstructionSet,
+    V: POD,
+{
+    if is_pod_type!(V, V256) {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(S, AVX2) {
+            return unsafe { tc(&_mm256_xor_si256(tc(&a), tc(&b))) };
+        }
+        {
+            let (a, b): (V256, V256) = unsafe { (tc(&a), tc(&b)) };
+            let (a, b) = (a.to_v128x2(), b.to_v128x2());
+            let c0 = xor::<S, V128>(s, a.0, b.0);
+            let c1 = xor::<S, V128>(s, a.1, b.1);
+            return unsafe { tc(&V256::from_v128x2((c0, c1))) };
+        }
+    }
+    if is_pod_type!(V, V128) {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(S, SSE2) {
+            return unsafe { tc(&_mm_xor_si128(tc(&a), tc(&b))) };
+        }
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
+        if is_subtype!(S, NEON) {
+            return unsafe { tc(&veorq_u8(tc(&a), tc(&b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(S, WASM128) {
+            return unsafe { tc(&v128_xor(tc(&a), tc(&b))) };
+        }
+    }
+    {
+        let _ = (s, a, b);
+        unreachable!()
+    }
+}
+
+#[inline(always)]
+pub fn andnot<S, V>(s: S, a: V, b: V) -> V
+where
+    S: InstructionSet,
+    V: POD,
+{
+    if is_pod_type!(V, V256) {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(S, AVX2) {
+            return unsafe { tc(&_mm256_andnot_si256(tc(&a), tc(&b))) };
+        }
+        {
+            let (a, b): (V256, V256) = unsafe { (tc(&a), tc(&b)) };
+            let (a, b) = (a.to_v128x2(), b.to_v128x2());
+            let c0 = andnot::<S, V128>(s, a.0, b.0);
+            let c1 = andnot::<S, V128>(s, a.1, b.1);
+            return unsafe { tc(&V256::from_v128x2((c0, c1))) };
+        }
+    }
+    if is_pod_type!(V, V128) {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if is_subtype!(S, SSE2) {
+            return unsafe { tc(&_mm_andnot_si128(tc(&a), tc(&b))) };
+        }
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
+        if is_subtype!(S, NEON) {
+            return unsafe { tc(&vbicq_u8(tc(&a), tc(&b))) };
+        }
+        #[cfg(target_arch = "wasm32")]
+        if is_subtype!(S, WASM128) {
+            return unsafe { tc(&v128_andnot(tc(&a), tc(&b))) };
+        }
+    }
+    {
+        let _ = (s, a, b);
+        unreachable!()
+    }
+}
