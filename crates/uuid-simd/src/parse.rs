@@ -2,14 +2,11 @@ use crate::spec::*;
 use crate::Error;
 
 use vsimd::hex::unhex;
-use vsimd::isa::InstructionSet;
-use vsimd::isa::SSE2;
-use vsimd::tools::is_same_type;
+use vsimd::is_isa_type;
+use vsimd::isa::{InstructionSet, SSE2};
 use vsimd::tools::{read, write};
-use vsimd::vector::V256;
-use vsimd::vector::V64;
-use vsimd::SIMD128;
-use vsimd::SIMD256;
+use vsimd::vector::{V256, V64};
+use vsimd::{SIMD128, SIMD256};
 
 #[inline(always)]
 const fn shl4(x: u8) -> u8 {
@@ -53,7 +50,7 @@ pub unsafe fn parse_hyphenated_fallback(src: *const u8, dst: *mut u8) -> Result<
 
 #[inline(always)]
 pub unsafe fn parse_simple_simd<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(), Error> {
-    if is_same_type::<S, SSE2>() {
+    if is_isa_type!(S, SSE2) {
         return parse_simple_simd_sse2(SSE2::new(), src, dst);
     }
     {

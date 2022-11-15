@@ -1,24 +1,76 @@
-use crate::tools::is_same_type;
 use crate::{SIMD128, SIMD256, SIMD64};
 
 pub unsafe trait InstructionSet: Copy + 'static {
+    const ID: InstructionSetTypeId;
+
     unsafe fn new() -> Self;
 
     fn is_enabled() -> bool;
+}
 
-    fn is_subtype_of<T: InstructionSet>() -> bool;
+#[inline(always)]
+#[must_use]
+pub fn detect<S: InstructionSet>() -> Option<S> {
+    S::is_enabled().then(|| unsafe { S::new() })
+}
 
-    #[inline(always)]
-    #[must_use]
-    fn detect() -> Option<Self> {
-        Self::is_enabled().then(|| unsafe { Self::new() })
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InstructionSetTypeId {
+    Fallback,
+    SSE2,
+    SSSE3,
+    SSE41,
+    AVX2,
+    NEON,
+    WASM128,
+}
+
+#[inline(always)]
+#[must_use]
+pub const fn is_subtype_of(self_ty: InstructionSetTypeId, super_ty: InstructionSetTypeId) -> bool {
+    #[allow(clippy::enum_glob_use)]
+    use InstructionSetTypeId::*;
+
+    match self_ty {
+        Fallback => matches!(super_ty, Fallback),
+        SSE2 => matches!(super_ty, Fallback | SSE2),
+        SSSE3 => matches!(super_ty, Fallback | SSE2 | SSSE3),
+        SSE41 => matches!(super_ty, Fallback | SSE2 | SSSE3 | SSE41),
+        AVX2 => matches!(super_ty, Fallback | SSE2 | SSSE3 | SSE41 | AVX2),
+        NEON => matches!(super_ty, Fallback | NEON),
+        WASM128 => matches!(super_ty, Fallback | WASM128),
     }
+}
+
+#[macro_export]
+macro_rules! is_isa_type {
+    ($self:ident, $isa:ident) => {{
+        matches!(
+            <$self as $crate::isa::InstructionSet>::ID,
+            <$isa as $crate::isa::InstructionSet>::ID
+        )
+    }};
+}
+
+#[macro_export]
+macro_rules! is_subtype {
+    ($self:ident, $super:ident) => {{
+        $crate::isa::is_subtype_of(
+            <$self as $crate::isa::InstructionSet>::ID,
+            <$super as $crate::isa::InstructionSet>::ID,
+        )
+    }};
+    ($self:ident, $super:ident | $($other:ident)|+) => {{
+        $crate::is_subtype!($self, $super) $(||$crate::is_subtype!($self, $other))+
+    }};
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct Fallback(());
 
 unsafe impl InstructionSet for Fallback {
+    const ID: InstructionSetTypeId = InstructionSetTypeId::Fallback;
+
     #[inline(always)]
     unsafe fn new() -> Self {
         Self(())
@@ -27,11 +79,6 @@ unsafe impl InstructionSet for Fallback {
     #[inline(always)]
     fn is_enabled() -> bool {
         true
-    }
-
-    #[inline(always)]
-    fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>()
     }
 }
 
@@ -93,6 +140,8 @@ macro_rules! x86_is_enabled {
 pub struct SSE2(());
 
 unsafe impl InstructionSet for SSE2 {
+    const ID: InstructionSetTypeId = InstructionSetTypeId::SSE2;
+
     #[inline(always)]
     unsafe fn new() -> Self {
         Self(())
@@ -101,11 +150,6 @@ unsafe impl InstructionSet for SSE2 {
     #[inline(always)]
     fn is_enabled() -> bool {
         x86_is_enabled!("sse2")
-    }
-
-    #[inline(always)]
-    fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>() || Fallback::is_subtype_of::<T>()
     }
 }
 
@@ -117,6 +161,8 @@ unsafe impl SIMD256 for SSE2 {}
 pub struct SSSE3(());
 
 unsafe impl InstructionSet for SSSE3 {
+    const ID: InstructionSetTypeId = InstructionSetTypeId::SSSE3;
+
     #[inline(always)]
     unsafe fn new() -> Self {
         Self(())
@@ -125,11 +171,6 @@ unsafe impl InstructionSet for SSSE3 {
     #[inline(always)]
     fn is_enabled() -> bool {
         x86_is_enabled!("ssse3")
-    }
-
-    #[inline(always)]
-    fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>() || SSE2::is_subtype_of::<T>()
     }
 }
 
@@ -141,6 +182,8 @@ unsafe impl SIMD256 for SSSE3 {}
 pub struct SSE41(());
 
 unsafe impl InstructionSet for SSE41 {
+    const ID: InstructionSetTypeId = InstructionSetTypeId::SSE41;
+
     #[inline(always)]
     unsafe fn new() -> Self {
         Self(())
@@ -149,11 +192,6 @@ unsafe impl InstructionSet for SSE41 {
     #[inline(always)]
     fn is_enabled() -> bool {
         x86_is_enabled!("sse4.1")
-    }
-
-    #[inline(always)]
-    fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>() || SSSE3::is_subtype_of::<T>()
     }
 }
 
@@ -165,6 +203,8 @@ unsafe impl SIMD256 for SSE41 {}
 pub struct AVX2(());
 
 unsafe impl InstructionSet for AVX2 {
+    const ID: InstructionSetTypeId = InstructionSetTypeId::AVX2;
+
     #[inline(always)]
     unsafe fn new() -> Self {
         Self(())
@@ -173,11 +213,6 @@ unsafe impl InstructionSet for AVX2 {
     #[inline(always)]
     fn is_enabled() -> bool {
         x86_is_enabled!("avx2")
-    }
-
-    #[inline(always)]
-    fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>() || SSE41::is_subtype_of::<T>()
     }
 }
 
@@ -190,6 +225,8 @@ unsafe impl SIMD256 for AVX2 {}
 pub struct NEON(());
 
 unsafe impl InstructionSet for NEON {
+    const ID: InstructionSetTypeId = InstructionSetTypeId::NEON;
+
     #[inline(always)]
     unsafe fn new() -> Self {
         Self(())
@@ -217,11 +254,6 @@ unsafe impl InstructionSet for NEON {
             false
         }
     }
-
-    #[inline(always)]
-    fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>() || Fallback::is_subtype_of::<T>()
-    }
 }
 
 unsafe impl SIMD64 for NEON {}
@@ -232,6 +264,8 @@ unsafe impl SIMD256 for NEON {}
 pub struct WASM128(());
 
 unsafe impl InstructionSet for WASM128 {
+    const ID: InstructionSetTypeId = InstructionSetTypeId::WASM128;
+
     #[inline(always)]
     unsafe fn new() -> Self {
         Self(())
@@ -247,11 +281,6 @@ unsafe impl InstructionSet for WASM128 {
         {
             false
         }
-    }
-
-    #[inline(always)]
-    fn is_subtype_of<T: InstructionSet>() -> bool {
-        is_same_type::<Self, T>() || Fallback::is_subtype_of::<T>()
     }
 }
 

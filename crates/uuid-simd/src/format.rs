@@ -1,8 +1,9 @@
 use crate::spec::*;
 
 use vsimd::ascii::AsciiCase;
+use vsimd::is_isa_type;
 use vsimd::isa::{InstructionSet, SSE2};
-use vsimd::tools::{is_same_type, read, write};
+use vsimd::tools::{read, write};
 use vsimd::vector::V256;
 use vsimd::{SIMD128, SIMD256};
 
@@ -66,7 +67,7 @@ const fn char_lut_simd(case: AsciiCase) -> V256 {
 
 #[inline(always)]
 pub unsafe fn format_simple_simd<S: SIMD256>(s: S, src: *const u8, dst: *mut u8, case: AsciiCase) {
-    if is_same_type::<S, SSE2>() {
+    if is_isa_type!(S, SSE2) {
         return format_simple_simd_sse2(SSE2::new(), src, dst, case);
     }
     {

@@ -1289,7 +1289,7 @@ pub unsafe trait SIMD128: SIMD64 {
 mod tests {
     use super::*;
 
-    use crate::isa::InstructionSet;
+    use crate::isa::detect;
 
     use const_str::hex;
 
@@ -1299,15 +1299,15 @@ mod tests {
         fn test(a: [u8; 16], expected: bool) {
             let a = V128::from_bytes(a);
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-            if let Some(s) = SSE2::detect() {
+            if let Some(s) = detect::<SSE2>() {
                 assert_eq!(s.u8x16_any_zero(a), expected);
             }
             #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
-            if let Some(s) = NEON::detect() {
+            if let Some(s) = detect::<NEON>() {
                 assert_eq!(s.u8x16_any_zero(a), expected);
             }
             #[cfg(target_arch = "wasm32")]
-            if let Some(s) = WASM128::detect() {
+            if let Some(s) = detect::<WASM128>() {
                 assert_eq!(s.u8x16_any_zero(a), expected);
             }
         }

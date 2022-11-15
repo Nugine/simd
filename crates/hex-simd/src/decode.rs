@@ -2,9 +2,9 @@ use crate::Error;
 
 use vsimd::hex::unhex;
 use vsimd::isa::{InstructionSet, AVX2, SSE2};
-use vsimd::tools::{is_same_type, read};
+use vsimd::tools::read;
 use vsimd::vector::V64;
-use vsimd::{is_subtype, SIMD128, SIMD256};
+use vsimd::{is_isa_type, is_subtype, SIMD128, SIMD256};
 
 #[inline(always)]
 fn shl4(x: u8) -> u8 {
@@ -73,7 +73,7 @@ unsafe fn decode32<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> Result<(),
 
 #[inline(always)]
 pub unsafe fn decode_simd<S: SIMD256>(s: S, src: *const u8, len: usize, dst: *mut u8) -> Result<(), Error> {
-    if is_same_type::<S, SSE2>() {
+    if is_isa_type!(S, SSE2) {
         return decode_simd_sse2(SSE2::new(), src, len, dst);
     }
     if is_subtype!(S, AVX2) {
