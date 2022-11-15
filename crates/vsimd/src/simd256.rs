@@ -1,6 +1,6 @@
 use crate::isa::{AVX2, NEON, SSE2, WASM128};
 use crate::vector::{V128, V256};
-use crate::SIMD128;
+use crate::{unified, SIMD128};
 
 #[cfg(any(
     any(target_arch = "x86", target_arch = "x86_64"),
@@ -207,222 +207,102 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn u8x32_splat(self, x: u8) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_set1_epi8(x as i8)) };
-        }
-        {
-            self.u8x16_splat(x).x2()
-        }
+        unified::splat(self, x)
     }
 
     #[inline(always)]
     fn u16x16_splat(self, x: u16) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_set1_epi16(x as i16)) };
-        }
-        {
-            self.u16x8_splat(x).x2()
-        }
+        unified::splat(self, x)
     }
 
     #[inline(always)]
     fn u32x8_splat(self, x: u32) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_set1_epi32(x as i32)) };
-        }
-        {
-            self.u32x4_splat(x).x2()
-        }
+        unified::splat(self, x)
     }
 
     #[inline(always)]
     fn u64x4_splat(self, x: u64) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_set1_epi64x(x as i64)) };
-        }
-        {
-            self.u64x2_splat(x).x2()
-        }
+        unified::splat(self, x)
     }
 
     #[inline(always)]
     fn i8x32_splat(self, x: i8) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_set1_epi8(x)) };
-        }
-        {
-            self.i8x16_splat(x).x2()
-        }
+        unified::splat(self, x)
     }
 
     #[inline(always)]
     fn i16x16_splat(self, x: i16) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_set1_epi16(x)) };
-        }
-        {
-            self.i16x8_splat(x).x2()
-        }
+        unified::splat(self, x)
     }
 
     #[inline(always)]
     fn i32x8_splat(self, x: i32) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_set1_epi32(x)) };
-        }
-        {
-            self.i32x4_splat(x).x2()
-        }
+        unified::splat(self, x)
     }
 
     #[inline(always)]
     fn i64x4_splat(self, x: i64) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_set1_epi64x(x)) };
-        }
-        {
-            self.i64x2_splat(x).x2()
-        }
+        unified::splat(self, x)
     }
 
     #[inline(always)]
     fn u8x32_add(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_add_epi8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u8x16_add, a, b)
-        }
+        unified::add::<_, u8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u16x16_add(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_add_epi16(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u16x8_add, a, b)
-        }
+        unified::add::<_, u16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u32x8_add(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_add_epi32(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u32x4_add, a, b)
-        }
+        unified::add::<_, u32, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u64x4_add(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_add_epi64(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u64x2_add, a, b)
-        }
+        unified::add::<_, u64, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u8x32_sub(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_sub_epi8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u8x16_sub, a, b)
-        }
+        unified::sub::<_, u8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u16x16_sub(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_sub_epi16(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u16x8_sub, a, b)
-        }
+        unified::sub::<_, u16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u32x8_sub(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_sub_epi32(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u32x4_sub, a, b)
-        }
+        unified::sub::<_, u32, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u64x4_sub(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_sub_epi64(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u64x2_sub, a, b)
-        }
+        unified::sub::<_, u64, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u8x32_sub_sat(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_subs_epu8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u8x16_sub_sat, a, b)
-        }
+        unified::sub_sat::<_, u8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u16x16_sub_sat(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_subs_epu16(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u16x8_sub_sat, a, b)
-        }
+        unified::sub_sat::<_, u16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i8x32_sub_sat(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_subs_epi8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::i8x16_sub_sat, a, b)
-        }
+        unified::sub_sat::<_, i8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i16x16_sub_sat(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_subs_epi16(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::i16x8_sub_sat, a, b)
-        }
+        unified::sub_sat::<_, i16, _>(self, a, b)
     }
 
     #[inline(always)]
@@ -493,239 +373,107 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn u8x32_eq(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_cmpeq_epi8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u8x16_eq, a, b)
-        }
+        unified::eq::<_, u8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u16x16_eq(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_cmpeq_epi16(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u16x8_eq, a, b)
-        }
+        unified::eq::<_, u16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u32x8_eq(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_cmpeq_epi32(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u32x4_eq, a, b)
-        }
+        unified::eq::<_, u32, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u8x32_lt(self, a: V256, b: V256) -> V256 {
-        if is_subtype!(Self, AVX2) {
-            let shift = self.u8x32_splat(u8::MAX / 2);
-            let a = self.u8x32_sub(a, shift);
-            let b = self.u8x32_sub(b, shift);
-            return self.i8x32_lt(a, b);
-        }
-        {
-            simd256_vop!(self, Self::u8x16_lt, a, b)
-        }
+        unified::lt::<_, u8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u16x16_lt(self, a: V256, b: V256) -> V256 {
-        if is_subtype!(Self, AVX2) {
-            let shift = self.u16x16_splat(u16::MAX / 2);
-            let a = self.u16x16_sub(a, shift);
-            let b = self.u16x16_sub(b, shift);
-            return self.i16x16_lt(a, b);
-        }
-        {
-            simd256_vop!(self, Self::u16x8_lt, a, b)
-        }
+        unified::lt::<_, u16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u32x8_lt(self, a: V256, b: V256) -> V256 {
-        if is_subtype!(Self, AVX2) {
-            let shift = self.u32x8_splat(u32::MAX / 2);
-            let a = self.u32x8_sub(a, shift);
-            let b = self.u32x8_sub(b, shift);
-            return self.i32x8_lt(a, b);
-        }
-        {
-            simd256_vop!(self, Self::u32x4_lt, a, b)
-        }
+        unified::lt::<_, u32, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i8x32_lt(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_cmpgt_epi8(t(b), t(a))) };
-        }
-        {
-            simd256_vop!(self, Self::i8x16_lt, a, b)
-        }
+        unified::lt::<_, i8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i16x16_lt(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_cmpgt_epi16(t(b), t(a))) };
-        }
-        {
-            simd256_vop!(self, Self::i16x8_lt, a, b)
-        }
+        unified::lt::<_, i16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i32x8_lt(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_cmpgt_epi32(t(b), t(a))) };
-        }
-        {
-            simd256_vop!(self, Self::i32x4_lt, a, b)
-        }
+        unified::lt::<_, i32, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u8x32_max(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_max_epu8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u8x16_max, a, b)
-        }
+        unified::max::<_, u8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u16x16_max(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_max_epu16(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u16x8_max, a, b)
-        }
+        unified::max::<_, u16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u32x8_max(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_max_epu32(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u32x4_max, a, b)
-        }
+        unified::max::<_, u32, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i8x32_max(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_max_epi8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::i8x16_max, a, b)
-        }
+        unified::max::<_, i8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i16x16_max(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_max_epi16(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::i16x8_max, a, b)
-        }
+        unified::max::<_, i16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i32x8_max(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_max_epi32(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::i32x4_max, a, b)
-        }
+        unified::max::<_, i32, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u8x32_min(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_min_epu8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u8x16_min, a, b)
-        }
+        unified::min::<_, u8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u16x16_min(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_min_epu16(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u16x8_min, a, b)
-        }
+        unified::min::<_, u16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u32x8_min(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_min_epu32(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u32x4_min, a, b)
-        }
+        unified::min::<_, u32, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i8x32_min(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_min_epi8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::i8x16_min, a, b)
-        }
+        unified::min::<_, i8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i16x16_min(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_min_epi16(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::i16x8_min, a, b)
-        }
+        unified::min::<_, i16, _>(self, a, b)
     }
 
     #[inline(always)]
     fn i32x8_min(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_min_epi32(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::i32x4_min, a, b)
-        }
+        unified::min::<_, i32, _>(self, a, b)
     }
 
     #[inline(always)]
@@ -1159,23 +907,11 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn i8x32_add_sat(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_adds_epi8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::i8x16_add_sat, a, b)
-        }
+        unified::add_sat::<_, i8, _>(self, a, b)
     }
 
     #[inline(always)]
     fn u8x32_add_sat(self, a: V256, b: V256) -> V256 {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(Self, AVX2) {
-            return unsafe { t(_mm256_adds_epu8(t(a), t(b))) };
-        }
-        {
-            simd256_vop!(self, Self::u8x16_add_sat, a, b)
-        }
+        unified::add_sat::<_, u8, _>(self, a, b)
     }
 }

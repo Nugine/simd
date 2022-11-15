@@ -94,3 +94,10 @@ pub unsafe fn boxed_str(b: Box<[u8]>) -> Box<str> {
     let ptr = Box::into_raw(b);
     Box::from_raw(core::str::from_utf8_unchecked_mut(&mut *ptr))
 }
+
+#[inline(always)]
+#[track_caller]
+pub unsafe fn transmute_copy<A, B>(a: &A) -> B {
+    assert!(core::mem::size_of::<A>() == core::mem::size_of::<B>()); // TODO: inline const
+    core::mem::transmute_copy(a)
+}

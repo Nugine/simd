@@ -26,6 +26,17 @@ macro_rules! is_subtype {
 }
 
 #[macro_export]
+macro_rules! is_same_type {
+    ($self:ident, $super:ident) => {{
+        $crate::tools::is_same_type::<$self, $super>()
+    }};
+    ($self:ident, $super:ident | $($other:ident)|+) => {{
+        $crate::tools::is_same_type::<$self, $super>()
+         $(|| $crate::tools::is_same_type::<$self, $other>())+
+    }};
+}
+
+#[macro_export]
 macro_rules! shared_docs {
     () => {
         r#"

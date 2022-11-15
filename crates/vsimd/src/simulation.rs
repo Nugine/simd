@@ -1,10 +1,13 @@
 use crate::vector::V128;
 
-use core::cmp::{max, min};
 use core::mem::transmute as t;
+
+#[cfg(miri)]
+use core::cmp::{max, min};
 
 // TODO: waiting for MIRI's support
 
+#[cfg(miri)]
 #[inline(always)]
 pub fn u8x16_max(a: V128, b: V128) -> V128 {
     let (a, b) = (a.as_bytes(), b.as_bytes());
@@ -15,6 +18,7 @@ pub fn u8x16_max(a: V128, b: V128) -> V128 {
     V128::from_bytes(c)
 }
 
+#[cfg(miri)]
 #[inline(always)]
 pub fn u8x16_min(a: V128, b: V128) -> V128 {
     let (a, b) = (a.as_bytes(), b.as_bytes());

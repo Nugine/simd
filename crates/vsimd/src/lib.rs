@@ -48,6 +48,7 @@ pub mod isa;
 pub mod vector;
 
 mod simulation;
+mod unified;
 
 mod simd64;
 pub use self::simd64::SIMD64;
