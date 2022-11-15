@@ -47,6 +47,9 @@ pub mod isa;
 
 pub mod vector;
 
+#[macro_use]
+pub mod pod;
+
 mod simulation;
 mod unified;
 
@@ -63,10 +66,8 @@ pub use self::simd256::SIMD256;
 mod scalable;
 pub use self::scalable::Scalable;
 
-#[macro_use]
 mod algorithm;
 
-pub mod pod;
 pub mod tools;
 
 #[macro_use]
