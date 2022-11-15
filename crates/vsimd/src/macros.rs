@@ -213,10 +213,9 @@ macro_rules! dispatch {
     };
 
     (@resolve_static, "neon", $($arg_name: ident),*) => {
-        #[cfg(all(
-            feature = "unstable",
-            any(target_arch = "arm", target_arch = "aarch64"),
-            target_feature = "neon",
+        #[cfg(any(
+            all(feature = "unstable", target_arch = "arm", target_feature = "neon"),
+            all(target_arch = "aarch64", target_feature = "neon"),
         ))]
         {
             return unsafe { neon($($arg_name),*) }
@@ -278,7 +277,7 @@ macro_rules! dispatch {
     };
 
     (@resolve_dynamic, "neon") => {
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if $crate::isa::NEON::is_enabled() {
             return neon;
         }
@@ -393,7 +392,7 @@ macro_rules! dispatch {
         simd        = {$simd_fn:path},
         target      = {"neon"},
     ) => {
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         #[inline]
         #[target_feature(enable = "neon")]
         $vis unsafe fn neon($($arg_name:$arg_type),*) -> $ret {

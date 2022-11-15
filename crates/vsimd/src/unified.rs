@@ -7,7 +7,7 @@ use crate::vector::{V128, V256};
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 use crate::isa::{AVX2, SSE2, SSE41};
 
-#[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+#[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
 use crate::isa::NEON;
 
 #[cfg(target_arch = "wasm32")]
@@ -22,7 +22,7 @@ use core::arch::x86_64::*;
 #[cfg(all(feature = "unstable", target_arch = "arm"))]
 use core::arch::arm::*;
 
-#[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+#[cfg(target_arch = "aarch64")]
 use core::arch::aarch64::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -58,7 +58,7 @@ pub fn splat<S: InstructionSet, T: Copy + 'static, V: Copy + 'static>(s: S, x: T
                 return unsafe { tc(&_mm_set1_epi64x(tc(&x))) };
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(S, NEON) {
             if is_same_type!(T, u8 | i8) {
                 return unsafe { tc(&vld1q_dup_u8(&tc(&x))) };
@@ -137,7 +137,7 @@ pub fn add<S: InstructionSet, T: Copy + 'static, V: Copy + 'static>(s: S, a: V, 
                 return unsafe { tc(&_mm_add_epi64(tc(&a), tc(&b))) };
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(S, NEON) {
             if is_same_type!(T, u8 | i8) {
                 return unsafe { tc(&vaddq_u8(tc(&a), tc(&b))) };
@@ -216,7 +216,7 @@ pub fn sub<S: InstructionSet, T: Copy + 'static, V: Copy + 'static>(s: S, a: V, 
                 return unsafe { tc(&_mm_sub_epi64(tc(&a), tc(&b))) };
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(S, NEON) {
             if is_same_type!(T, u8 | i8) {
                 return unsafe { tc(&vsubq_u8(tc(&a), tc(&b))) };
@@ -292,7 +292,7 @@ pub fn eq<S: InstructionSet, T: Copy + 'static, V: Copy + 'static>(s: S, a: V, b
                 return unsafe { tc(&_mm_cmpeq_epi32(tc(&a), tc(&b))) };
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(S, NEON) {
             if is_same_type!(T, u8 | i8) {
                 return unsafe { tc(&vceqq_u8(tc(&a), tc(&b))) };
@@ -413,7 +413,7 @@ pub fn lt<S: InstructionSet, T: Copy + 'static, V: Copy + 'static>(s: S, a: V, b
                 };
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(S, NEON) {
             if is_same_type!(T, i8) {
                 return unsafe { tc(&vcltq_s8(tc(&a), tc(&b))) };
@@ -518,7 +518,7 @@ pub fn add_sat<S: InstructionSet, T: Copy + 'static, V: Copy + 'static>(s: S, a:
                 return unsafe { tc(&_mm_adds_epu16(tc(&a), tc(&b))) };
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(S, NEON) {
             if is_same_type!(T, i8) {
                 return unsafe { tc(&vqaddq_s8(tc(&a), tc(&b))) };
@@ -603,7 +603,7 @@ pub fn sub_sat<S: InstructionSet, T: Copy + 'static, V: Copy + 'static>(s: S, a:
                 return unsafe { tc(&_mm_subs_epu16(tc(&a), tc(&b))) };
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(S, NEON) {
             if is_same_type!(T, i8) {
                 return unsafe { tc(&vqsubq_s8(tc(&a), tc(&b))) };
@@ -720,7 +720,7 @@ pub fn max<S: InstructionSet, T: Copy + 'static, V: Copy + 'static>(s: S, a: V, 
                 return unsafe { tc(&_mm_max_pd(tc(&a), tc(&b))) };
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(S, NEON) {
             if is_same_type!(T, i8) {
                 return unsafe { tc(&vmaxq_s8(tc(&a), tc(&b))) };
@@ -851,7 +851,7 @@ pub fn min<S: InstructionSet, T: Copy + 'static, V: Copy + 'static>(s: S, a: V, 
                 return unsafe { tc(&_mm_min_pd(tc(&a), tc(&b))) };
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(S, NEON) {
             if is_same_type!(T, i8) {
                 return unsafe { tc(&vminq_s8(tc(&a), tc(&b))) };

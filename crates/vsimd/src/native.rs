@@ -12,7 +12,7 @@ enum Arch {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     Sse2,
 
-    #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+    #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
     Neon,
 
     #[cfg(target_arch = "wasm32")]
@@ -39,7 +39,7 @@ impl Native {
                 return Self(Arch::Sse2);
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         {
             if is_feature_detected!("neon") {
                 return Self(Arch::Neon);
@@ -68,7 +68,7 @@ impl Native {
                 Arch::Fallback => f(),
             }
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         {
             match self.0 {
                 Arch::Neon => unsafe { arm::neon(f) },
@@ -84,7 +84,7 @@ impl Native {
         }
         #[cfg(not(any( //
             any(target_arch = "x86", target_arch = "x86_64"), //
-            all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")), //
+            any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"), //
             target_arch = "wasm32" //
         )))]
         {
@@ -114,7 +114,7 @@ mod x86 {
     generic_dispatch!(sse2, "sse2");
 }
 
-#[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+#[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
 mod arm {
     generic_dispatch!(neon, "neon");
 }

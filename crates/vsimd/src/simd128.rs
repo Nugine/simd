@@ -8,7 +8,7 @@ use crate::isa::SSSE3;
 
 #[cfg(any(
     any(target_arch = "x86", target_arch = "x86_64"),
-    all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")),
+    any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"),
     target_arch = "wasm32"
 ))]
 use core::mem::transmute as t;
@@ -22,7 +22,7 @@ use core::arch::x86_64::*;
 #[cfg(all(feature = "unstable", target_arch = "arm"))]
 use core::arch::arm::*;
 
-#[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+#[cfg(target_arch = "aarch64")]
 use core::arch::aarch64::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -38,7 +38,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return t(_mm_load_si128(addr.cast()));
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return self.v128_load_unaligned(addr);
         }
@@ -59,7 +59,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return t(_mm_loadu_si128(addr.cast()));
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return t(vld1q_u8(addr.cast()));
         }
@@ -82,7 +82,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return _mm_store_si128(addr.cast(), t(a));
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return self.v128_store_unaligned(addr, a);
         }
@@ -106,7 +106,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return _mm_storeu_si128(addr.cast(), t(a));
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return vst1q_u8(addr.cast(), t(a));
         }
@@ -127,7 +127,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_setzero_si128()) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vdupq_n_u8(0)) };
         }
@@ -152,7 +152,7 @@ pub unsafe trait SIMD128: SIMD64 {
                 t(_mm_xor_si128(a, _mm_cmpeq_epi8(a, a)))
             };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vmvnq_u8(t(a))) };
         }
@@ -173,7 +173,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_and_si128(t(a), t(b))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vandq_u8(t(a), t(b))) };
         }
@@ -194,7 +194,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_or_si128(t(a), t(b))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vorrq_u8(t(a), t(b))) };
         }
@@ -215,7 +215,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_xor_si128(t(a), t(b))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(veorq_u8(t(a), t(b))) };
         }
@@ -236,7 +236,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_andnot_si128(t(b), t(a))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vbicq_u8(t(b), t(a))) };
         }
@@ -269,7 +269,7 @@ pub unsafe trait SIMD128: SIMD64 {
                 (a[0] | a[1]) == 0
             };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { vmaxvq_u8(t(a)) == 0 };
         }
@@ -410,7 +410,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_mullo_epi16(t(a), t(b))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vmulq_s16(t(a), t(b))) };
         }
@@ -431,7 +431,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE41) {
             return unsafe { t(_mm_mullo_epi32(t(a), t(b))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vmulq_s32(t(a), t(b))) };
         }
@@ -455,7 +455,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_slli_epi16::<IMM8>(t(a))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vshlq_n_u16::<IMM8>(t(a))) };
         }
@@ -476,7 +476,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_slli_epi32::<IMM8>(t(a))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vshlq_n_u32::<IMM8>(t(a))) };
         }
@@ -500,7 +500,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_srli_epi16::<IMM8>(t(a))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vshrq_n_u16::<IMM8>(t(a))) };
         }
@@ -521,7 +521,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_srli_epi32::<IMM8>(t(a))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vshrq_n_u32::<IMM8>(t(a))) };
         }
@@ -686,7 +686,7 @@ pub unsafe trait SIMD128: SIMD64 {
                 t([c.0, c.1])
             };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vqtbl1q_u8(t(a), t(b))) };
         }
@@ -707,7 +707,7 @@ pub unsafe trait SIMD128: SIMD64 {
             return self.u8x16_swizzle(a, crate::bswap::SHUFFLE_U16X8);
         }
 
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vrev16q_u8(t(a))) };
         }
@@ -725,7 +725,7 @@ pub unsafe trait SIMD128: SIMD64 {
             return self.u8x16_swizzle(a, crate::bswap::SHUFFLE_U32X4);
         }
 
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vrev32q_u8(t(a))) };
         }
@@ -743,7 +743,7 @@ pub unsafe trait SIMD128: SIMD64 {
             return self.u8x16_swizzle(a, crate::bswap::SHUFFLE_U64X2);
         }
 
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vrev64q_u8(t(a))) };
         }
@@ -773,7 +773,7 @@ pub unsafe trait SIMD128: SIMD64 {
                 m != u64::MAX
             };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { vminvq_u8(t(a)) == 0 };
         }
@@ -797,7 +797,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { _mm_movemask_epi8(t(a)) as u16 };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             unimplemented!()
         }
@@ -821,7 +821,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             unimplemented!()
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { vmaxvq_u8(t(a)) };
         }
@@ -841,7 +841,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             unimplemented!()
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { vminvq_u8(t(a)) };
         }
@@ -859,7 +859,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2 | WASM128) {
             return self.v128_xor(self.v128_and(self.v128_xor(b, c), a), c);
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vbslq_u8(t(a), t(b), t(c))) };
         }
@@ -880,7 +880,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzipq_u8(t(a), t(b)).0) };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzip1q_u8(t(a), t(b))) };
         }
@@ -907,7 +907,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzipq_u8(t(a), t(b)).1) };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzip2q_u8(t(a), t(b))) };
         }
@@ -934,7 +934,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzipq_u16(t(a), t(b)).0) };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzip1q_u16(t(a), t(b))) };
         }
@@ -961,7 +961,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzipq_u16(t(a), t(b)).1) };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzip2q_u16(t(a), t(b))) };
         }
@@ -988,7 +988,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzipq_u32(t(a), t(b)).0) };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzip1q_u32(t(a), t(b))) };
         }
@@ -1015,7 +1015,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzipq_u32(t(a), t(b)).1) };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vzip2q_u32(t(a), t(b))) };
         }
@@ -1038,7 +1038,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_unpacklo_epi64(t(a), t(b))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe {
                 let (a, b): ([u64; 2], [u64; 2]) = (t(a), t(b));
@@ -1064,7 +1064,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_unpackhi_epi64(t(a), t(b))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe {
                 let (a, b): ([u64; 2], [u64; 2]) = (t(a), t(b));
@@ -1094,7 +1094,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             return unsafe { t(vuzpq_u8(t(a), t(b)).0) };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vuzp1q_u8(t(a), t(b))) };
         }
@@ -1121,7 +1121,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, NEON) {
             return unsafe { t(vuzpq_u8(t(a), t(b)).1) };
         }
-        #[cfg(all(feature = "unstable", target_arch = "aarch64"))]
+        #[cfg(target_arch = "aarch64")]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vuzp2q_u8(t(a), t(b))) };
         }
@@ -1242,7 +1242,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if is_subtype!(Self, SSE2) {
             return unsafe { t(_mm_avg_epu8(t(a), t(b))) };
         }
-        #[cfg(all(feature = "unstable", any(target_arch = "arm", target_arch = "aarch64")))]
+        #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
         if is_subtype!(Self, NEON) {
             return unsafe { t(vrhaddq_u8(t(a), t(b))) };
         }
