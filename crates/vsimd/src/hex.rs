@@ -261,8 +261,8 @@ pub mod sse2 {
         let l1 = s.u8x16_add(lo, c1);
 
         let c2 = s.u8x16_splat(0x39);
-        let h2 = s.v128_and(s.u8x16_lt(c2, h1), offset);
-        let l2 = s.v128_and(s.u8x16_lt(c2, l1), offset);
+        let h2 = s.v128_and(s.i8x16_lt(c2, h1), offset);
+        let l2 = s.v128_and(s.i8x16_lt(c2, l1), offset);
 
         let h3 = s.u8x16_add(h1, h2);
         let l3 = s.u8x16_add(l1, l2);
