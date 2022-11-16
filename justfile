@@ -111,112 +111,32 @@ fmt:
     cargo fmt
     # cargo sort -w > /dev/null
 
-
-x86-test *ARGS:
+test crate:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    source ./scripts/test.sh
-    cd {{invocation_directory()}}
+    ./scripts/testgen.py --crate {{crate}} | bash -ex
 
-    export RUSTFLAGS="-Zsanitizer=address -C target-feature=+avx2"
-    x86_test --lib {{ARGS}}
-    export RUSTFLAGS="-Zsanitizer=address -C target-feature=+sse4.1"
-    x86_test --lib {{ARGS}}
-    export RUSTFLAGS="-Zsanitizer=address"
-    x86_test --lib {{ARGS}}
-    export RUSTFLAGS="-C target-feature=+avx2"
-    x86_test {{ARGS}}
-    export RUSTFLAGS="-C target-feature=+sse4.1"
-    x86_test {{ARGS}}
-    export RUSTFLAGS=""
-    x86_test {{ARGS}}
-
-arm-test *ARGS:
+x86-test crate:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    source ./scripts/test.sh
-    cd {{invocation_directory()}}
+    ./scripts/testgen.py --crate {{crate}} --mode x86 | bash -ex
 
-    export RUSTFLAGS="-C target-feature=+neon"
-    arm_test {{ARGS}}
-    export RUSTFLAGS=""
-    arm_test {{ARGS}}
-
-wasm-test *ARGS:
+arm-test crate:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    source ./scripts/test.sh
-    cd {{invocation_directory()}}
+    ./scripts/testgen.py --crate {{crate}} --mode arm | bash -ex
 
-    export RUSTFLAGS="-C target-feature=+simd128"
-    wasm_test {{ARGS}}
-    export RUSTFLAGS=""
-    wasm_test {{ARGS}}
-
-miri-test *ARGS:
+wasm-test crate:
     #!/bin/bash -ex
-    cd {{invocation_directory()}}
-    cargo miri test {{ARGS}}
+    cd {{justfile_directory()}}
+    ./scripts/testgen.py --crate {{crate}} --mode wasm | bash -ex
 
-test PKG *ARGS:
+miri-test crate:
     #!/bin/bash -ex
-    cd {{justfile_directory()}}/crates/{{PKG}}
-    just x86-test  {{ARGS}}
-    just arm-test  {{ARGS}}
-    just wasm-test {{ARGS}}
-    just miri-test {{ARGS}}
+    cd {{justfile_directory()}}
+    ./scripts/testgen.py --crate {{crate}} --mode miri | bash -ex
 
 test-all:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    source ./scripts/test.sh
-
-    members=()
-    members+=("vsimd")
-    members+=("uuid-simd")
-    members+=("hex-simd")
-    members+=("base64-simd")
-    members+=("unicode-simd")
-    members+=("base32-simd")
-
-    function test_all() {
-        pids=""
-        for member in "${members[@]}"; do
-            pushd crates/$member
-            if [ ! -z "$DISABLE_PARALLEL" ]; then
-                $1
-            else
-                $1 &
-                pids+="$! "
-            fi
-            popd
-        done
-        for pid in $pids; do
-            wait $pid
-        done
-    }
-
-    export RUSTFLAGS="-Zsanitizer=address -C target-feature=+avx2"
-    test_all 'x86_test --lib'
-    export RUSTFLAGS="-Zsanitizer=address -C target-feature=+sse4.1"
-    test_all 'x86_test --lib'
-    export RUSTFLAGS="-Zsanitizer=address"
-    test_all 'x86_test --lib'
-    export RUSTFLAGS="-C target-feature=+avx2"
-    test_all 'x86_test'
-    export RUSTFLAGS="-C target-feature=+sse4.1"
-    test_all 'x86_test'
-    export RUSTFLAGS=""
-    test_all 'x86_test'
-
-    export RUSTFLAGS="-C target-feature=+neon"
-    test_all 'arm_test'
-    export RUSTFLAGS=""
-    test_all 'arm_test'
-
-    export RUSTFLAGS="-C target-feature=+simd128"
-    DISABLE_PARALLEL=1 test_all 'wasm_test'
-    export RUSTFLAGS=""
-    DISABLE_PARALLEL=1 test_all 'wasm_test'
-
-    test_all 'cargo miri test'
+    ./scripts/testgen.py | bash -ex

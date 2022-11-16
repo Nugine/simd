@@ -40,62 +40,30 @@ jobs:
       - run: |
           cargo build --release --workspace --exclude simd-benches
 
-  x86-test:
+  test:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: extractions/setup-just@v1
-      - run: |
-          cargo install cross
-      - run: |
-          for member in $(ls crates); do
-            pushd crates/$member
-            just x86-test
-            popd
-          done
-
-  arm-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: extractions/setup-just@v1
-      - run: |
-          cargo install cross
-      - run: |
-          for member in $(ls crates); do
-            pushd crates/$member
-            just arm-test
-            popd
-          done
-  
-  wasm-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: extractions/setup-just@v1
-      - run: |
-          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - run: |
-          for member in $(ls crates); do
-            pushd crates/$member
-            just wasm-test
-            popd
-          done
-
-  miri-test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testgen:
+          - x86_64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - armv7-unknown-linux-gnueabihf
+          - wasm32-unknown-unknown
+          - miri
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
         with: 
           components: miri
       - uses: extractions/setup-just@v1
+      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - run: cargo install cross
       - run: |
-          for member in $(ls crates); do
-            pushd crates/$member
-            just miri-test
-            popd
-          done
+          T="${{ matrix.testgen }}"
+          if [ "$T" = "miri" ]; then
+            ./scripts/testgen.py --mode miri | bash -ex
+          else
+            ./scripts/testgen.py --target $T | bash -ex
+          fi
