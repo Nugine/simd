@@ -45,25 +45,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        testgen:
+        target:
           - x86_64-unknown-linux-gnu
           - i686-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
           - armv7-unknown-linux-gnueabihf
           - wasm32-unknown-unknown
-          - miri
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: extractions/setup-just@v1
+      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - run: cargo install cross
+      - run: |
+          T="${{ matrix.target }}"
+          ./scripts/testgen.py --target $T | bash -ex
+
+  miri:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
         with: 
           components: miri
-      - uses: extractions/setup-just@v1
-      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - run: cargo install cross
       - run: |
-          T="${{ matrix.testgen }}"
-          if [ "$T" = "miri" ]; then
-            ./scripts/testgen.py --mode miri | bash -ex
-          else
-            ./scripts/testgen.py --target $T | bash -ex
-          fi
+          cargo miri test --workspace --exclude simd-benches --exclude simd-analyze

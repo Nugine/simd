@@ -34,7 +34,6 @@ RUSTFLAGS = {
         "-C target-feature=+simd128",
         "",
     ],
-    "miri": [""],
 }
 
 TARGETS = {
@@ -47,7 +46,6 @@ TARGETS = {
         "armv7-unknown-linux-gnueabihf",
     ],
     "wasm": [None],
-    "miri": [None],
 }
 
 TARGET_REMAP = {
@@ -58,7 +56,7 @@ TARGET_REMAP = {
     "wasm32-unknown-unknown": "wasm",
 }
 
-TEST_MODES = ["x86", "arm", "wasm", "miri"]
+TEST_MODES = ["x86", "arm", "wasm"]
 
 
 def gen(mode, target, rustflag):
@@ -74,8 +72,6 @@ def gen(mode, target, rustflag):
             print(f'RUSTFLAGS="{rustflag}" {prog} test --target {target} {lib} --no-default-features {feat} $@')
         elif mode == "wasm":
             print(f'RUSTFLAGS="{rustflag}" wasm-pack test --node -- --no-default-features {feat} $@')
-        elif mode == "miri":
-            print(f'RUSTFLAGS="{rustflag}" cargo miri test --no-default-features {feat} $@')
         else:
             pass
 

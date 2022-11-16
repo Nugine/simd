@@ -134,9 +134,10 @@ wasm-test crate:
 miri-test crate:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    ./scripts/testgen.py --crate {{crate}} --mode miri | bash -ex
+    cargo miri test -p {{crate}}
 
 test-all:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
     ./scripts/testgen.py | bash -ex
+    cargo miri test --workspace --exclude simd-benches --exclude simd-analyze
