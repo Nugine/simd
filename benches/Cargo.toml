@@ -8,8 +8,8 @@ publish = false
 path = "lib.rs"
 
 [[bin]]
-name = "sb-quick"
-path = "quick.rs"
+name = "simd-benches"
+path = "main.rs"
 
 [[bench]]
 name = "uuid"

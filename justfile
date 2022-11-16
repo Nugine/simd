@@ -53,7 +53,7 @@ bench-all:
 analyze commit dispatch:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    cargo run -q -p analyze -- target/simd-benches/{{commit}}-{{dispatch}}.jsonl
+    cargo run -q -p simd-analyze -- target/simd-benches/{{commit}}-{{dispatch}}.jsonl
 
 js-bench:
     #!/bin/bash -e
@@ -80,8 +80,8 @@ wasi-bench:
     cd {{justfile_directory()}}
 
     export RUSTFLAGS="-C target-feature=+simd128"
-    cargo build --release --bin sb-quick -p simd-benches --target wasm32-wasi
-    F=./target/wasm32-wasi/release/sb-quick.wasm
+    cargo build --release --bin simd-benches -p simd-benches --target wasm32-wasi
+    F=./target/wasm32-wasi/release/simd-benches.wasm
 
     wasmer -V
     wasmer run --enable-all $F

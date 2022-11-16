@@ -1,11 +1,11 @@
 [package]
-name = "analyze"
+name = "simd-analyze"
 version = "0.0.0"
 edition = "2021"
 publish = false
 
 [[bin]]
-name = "analyze"
+name = "simd-analyze"
 path = "main.rs"
 
 [dependencies]
