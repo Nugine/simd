@@ -77,7 +77,7 @@ fn safety_unit_test(
     let ok_cases: Vec<Vec<u8>> = {
         let mut ans = Vec::new();
 
-        for n in 0..256usize {
+        for n in 0..128usize {
             dbgmsg!("generating ok case n = {}", n);
 
             let iter = (0..16).cycle().take(n).map(|x| char::from_digit(x, 16).unwrap() as u8);
@@ -155,7 +155,7 @@ fn safety_unit_test(
         assert!(decode(src, buf.as_out()).is_err(), "src = {src:?}");
     }
 
-    for n in 0..256 {
+    for n in 0..128 {
         dbgmsg!("rand case n = {}", n);
         let bytes = rand_bytes(n);
         let src = bytes.as_slice();
