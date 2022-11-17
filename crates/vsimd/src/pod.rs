@@ -54,7 +54,12 @@ pub enum PodTypeId {
 macro_rules! is_pod_type {
     ($self:ident, $x:ident $(| $xs:ident)*) => {{
         // TODO: inline const
-        matches!(<$self as $crate::pod::POD>::ID, $crate::pod::PodTypeId::$x $(| $crate::pod::PodTypeId::$xs)*)
+        use $crate::pod::POD;
+        struct IsPodType<T>(T);
+        impl <T: POD> IsPodType<T> {
+            const VALUE: bool = { matches!(<T as POD>::ID, $crate::pod::PodTypeId::$x $(| $crate::pod::PodTypeId::$xs)*) };
+        }
+        IsPodType::<$self>::VALUE
     }};
 }
 
@@ -62,12 +67,13 @@ macro_rules! is_pod_type {
 mod tests {
     use super::*;
 
-    const _: () = {
+    #[test]
+    fn pod() {
         const fn is_8bits<T: POD>() -> bool {
             is_pod_type!(T, u8 | i8)
         }
 
         assert!(is_8bits::<u8>());
         assert!(is_8bits::<i8>());
-    };
+    }
 }

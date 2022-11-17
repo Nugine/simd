@@ -4,7 +4,8 @@
     feature = "unstable",
     feature(stdsimd),
     feature(arm_target_feature),
-    feature(portable_simd)
+    feature(portable_simd),
+    feature(inline_const)
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(test, deny(warnings))]
