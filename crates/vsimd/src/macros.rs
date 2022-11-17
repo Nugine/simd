@@ -18,26 +18,6 @@ macro_rules! debug_assert_ptr_align {
 macro_rules! shared_docs {
     () => {
         r#"
-# CPU feature detection
-
-The feature flag *detect* is enabled by default.
-
-When the feature flag *detect* is enabled, the APIs will **test at runtime** whether **the CPU (and OS)** supports the required instruction set. The runtime detection will be skipped if the fastest implementation is already available at compile-time.
-
-When the feature flag *detect* is disabled, the APIs will **test at compile-time** whether **the compiler flags** supports the required instruction set.
-
-If the environment supports SIMD acceleration, the APIs will call SIMD functions under the hood. Otherwise, the APIs will call fallback functions.
-
-When the feature flag *unstable* is enabled, this crate requires the nightly toolchain to compile.
-
-# `no_std` support
-
-You can disable the default features to use this crate in a `no_std` environment.
-
-You can enable the feature flag *alloc* if the environment supports heap allocation.
-
-Currently the feature flag *detect* depends on the standard library. Dynamic CPU feature detection is not available in `no_std` environments.
-
 # Profile settings
 
 To ensure maximum performance, the following [profile settings](https://doc.rust-lang.org/cargo/reference/profiles.html#profile-settings) are recommended when compiling this crate:
@@ -47,6 +27,26 @@ opt-level = 3
 lto = "fat"
 codegen-units = 1
 ```
+
+# CPU feature detection
+
+The feature flag `detect` is enabled by default.
+
+When the feature flag `detect` is enabled, the APIs will *test at runtime* whether *the CPU (and OS)* supports the required instruction set. The runtime detection will be skipped if the fastest implementation is already available at compile-time.
+
+When the feature flag `detect` is disabled, the APIs will *test at compile-time* whether *the compiler flags* supports the required instruction set.
+
+If the environment supports SIMD acceleration, the APIs will call SIMD functions under the hood. Otherwise, the APIs will call fallback functions.
+
+When the feature flag `unstable` is enabled, this crate requires the nightly toolchain to compile.
+
+# `no_std` support
+
+You can disable the default features to use this crate in a `no_std` environment.
+
+You can enable the feature flag `alloc` if the environment supports heap allocation.
+
+Currently the feature flag `detect` depends on the standard library. Dynamic CPU feature detection is not available in `no_std` environments.
 "#
     };
 }
