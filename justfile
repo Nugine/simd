@@ -80,7 +80,7 @@ wasi-bench:
     cd {{justfile_directory()}}
 
     export RUSTFLAGS="-C target-feature=+simd128"
-    cargo build --release --bin simd-benches -p simd-benches --target wasm32-wasi
+    cargo build --profile bench --bin simd-benches -p simd-benches --target wasm32-wasi
     F=./target/wasm32-wasi/release/simd-benches.wasm
 
     wasmer -V
