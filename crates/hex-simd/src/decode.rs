@@ -2,7 +2,7 @@ use crate::Error;
 
 use vsimd::hex::unhex;
 use vsimd::is_isa_type;
-use vsimd::isa::{InstructionSet, AVX2, SSE2};
+use vsimd::isa::{InstructionSet, AVX2, SSE2, WASM128};
 use vsimd::matches_isa;
 use vsimd::tools::read;
 use vsimd::vector::V64;
@@ -32,6 +32,19 @@ unsafe fn decode_short(mut src: *const u8, len: usize, mut dst: *mut u8) -> Resu
         dst = dst.add(1);
     }
     ensure!(flag != 0xff);
+    Ok(())
+}
+
+/// FIXME: work around for suboptimal auto-vectorization (AVX2, WASM128)
+#[inline(always)]
+unsafe fn decode_short_sc(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
+    let end = src.add(len);
+    while src < end {
+        let flag = decode_bits(src, dst);
+        ensure!(flag != 0xff);
+        src = src.add(2);
+        dst = dst.add(1);
+    }
     Ok(())
 }
 
@@ -134,7 +147,11 @@ pub unsafe fn decode_simd_v256<S: SIMD256>(
         len -= 16;
     }
 
-    decode_short(src, len, dst)
+    if matches_isa!(S, AVX2 | WASM128) {
+        decode_short_sc(src, len, dst)
+    } else {
+        decode_short(src, len, dst)
+    }
 }
 
 #[inline(always)]

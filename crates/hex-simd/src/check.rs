@@ -1,35 +1,31 @@
 use crate::Error;
 
 use vsimd::hex::unhex;
-use vsimd::isa::AVX2;
+use vsimd::isa::{AVX2, WASM128};
 use vsimd::{matches_isa, SIMD256};
 
 #[inline(always)]
 unsafe fn check_short(mut src: *const u8, len: usize) -> Result<(), Error> {
-    // FIXME:
-    // The later version triggers incorrect auto-vectorization when avx2 is enabled.
-    // https://github.com/Nugine/simd/issues/14
-    // https://github.com/rust-lang/rust/issues/102709
-    //
-
-    if cfg!(target_feature = "avx2") {
-        let end = src.add(len);
-        while src < end {
-            let x = src.read();
-            ensure!(unhex(x) != 0xff);
-            src = src.add(1);
-        }
-    } else {
-        let mut flag = 0;
-        let end = src.add(len);
-        while src < end {
-            let x = src.read();
-            flag |= unhex(x);
-            src = src.add(1);
-        }
-        ensure!(flag != 0xff);
+    let mut flag = 0;
+    let end = src.add(len);
+    while src < end {
+        let x = src.read();
+        flag |= unhex(x);
+        src = src.add(1);
     }
+    ensure!(flag != 0xff);
+    Ok(())
+}
 
+/// FIXME: work around for suboptimal auto-vectorization (AVX2, WASM128)
+#[inline(always)]
+unsafe fn check_short_sc(mut src: *const u8, len: usize) -> Result<(), Error> {
+    let end = src.add(len);
+    while src < end {
+        let x = src.read();
+        ensure!(unhex(x) != 0xff);
+        src = src.add(1);
+    }
     Ok(())
 }
 
@@ -79,5 +75,9 @@ pub unsafe fn check_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize) -
         }
     }
 
-    check_short(src, len)
+    if matches_isa!(S, AVX2 | WASM128) {
+        check_short_sc(src, len)
+    } else {
+        check_short(src, len)
+    }
 }
