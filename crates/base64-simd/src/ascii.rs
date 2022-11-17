@@ -1,6 +1,6 @@
 use vsimd::isa::AVX2;
 use vsimd::tools::slice_parts;
-use vsimd::{is_subtype, Scalable, POD, SIMD256};
+use vsimd::{matches_isa, Scalable, POD, SIMD256};
 
 use core::ops::Not;
 
@@ -68,7 +68,7 @@ pub unsafe fn find_non_ascii_whitespace_fallback(src: *const u8, len: usize) -> 
 pub unsafe fn find_non_ascii_whitespace_simd<S: SIMD256>(s: S, mut src: *const u8, len: usize) -> usize {
     let base = src;
 
-    if is_subtype!(S, AVX2) {
+    if matches_isa!(S, AVX2) {
         let end = src.add(len / 32 * 32);
         while src < end {
             let x = s.v256_load_unaligned(src);

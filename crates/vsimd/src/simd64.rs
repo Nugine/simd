@@ -18,11 +18,11 @@ pub unsafe trait SIMD64: InstructionSet {
     #[must_use]
     fn u8x8_unzip_even(self, a: V64, b: V64) -> V64 {
         #[cfg(all(feature = "unstable", target_arch = "arm"))]
-        if is_subtype!(Self, NEON) {
+        if matches_isa!(Self, NEON) {
             return unsafe { t(vuzp_u8(t(a), t(b)).0) };
         }
         #[cfg(target_arch = "aarch64")]
-        if is_subtype!(Self, NEON) {
+        if matches_isa!(Self, NEON) {
             return unsafe { t(vuzp1_u8(t(a), t(b))) };
         }
         {

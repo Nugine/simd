@@ -2,7 +2,7 @@ use crate::Error;
 
 use vsimd::hex::unhex;
 use vsimd::isa::AVX2;
-use vsimd::{is_subtype, SIMD256};
+use vsimd::{matches_isa, SIMD256};
 
 #[inline(always)]
 unsafe fn check_short(mut src: *const u8, len: usize) -> Result<(), Error> {
@@ -40,7 +40,7 @@ pub unsafe fn check_fallback(src: *const u8, len: usize) -> Result<(), Error> {
 
 #[inline(always)]
 pub unsafe fn check_simd<S: SIMD256>(s: S, mut src: *const u8, mut len: usize) -> Result<(), Error> {
-    if is_subtype!(S, AVX2) {
+    if matches_isa!(S, AVX2) {
         if len == 16 {
             let x = s.v128_load_unaligned(src);
             ensure!(vsimd::hex::check_xn(s, x));

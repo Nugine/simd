@@ -146,10 +146,10 @@ fn decode32<S: SIMD256>(s: S, x: V256) -> (V256, V256) {
 pub fn decode_ascii16<S: SIMD128>(s: S, x: V128) -> Result<V64, ()> {
     let (y, is_invalid) = decode16(s, x);
 
-    let ans = if is_subtype!(S, SSSE3 | WASM128) {
+    let ans = if matches_isa!(S, SSSE3 | WASM128) {
         const UZP1: V128 = DECODE_UZP1.to_v128x2().0;
         s.u8x16_swizzle(y, UZP1).to_v64x2().0
-    } else if is_subtype!(S, NEON) {
+    } else if matches_isa!(S, NEON) {
         let (a, b) = y.to_v64x2();
         s.u8x8_unzip_even(a, b)
     } else {
@@ -168,10 +168,10 @@ pub fn decode_ascii16<S: SIMD128>(s: S, x: V128) -> Result<V64, ()> {
 pub fn decode_ascii32<S: SIMD256>(s: S, x: V256) -> Result<V128, ()> {
     let (y, is_invalid) = decode32(s, x);
 
-    let ans = if is_subtype!(S, SSSE3 | WASM128) {
+    let ans = if matches_isa!(S, SSSE3 | WASM128) {
         let (a, b) = s.u8x16x2_swizzle(y, DECODE_UZP1).to_v128x2();
         s.u64x2_zip_lo(a, b)
-    } else if is_subtype!(S, NEON) {
+    } else if matches_isa!(S, NEON) {
         let (a, b) = y.to_v128x2();
         s.u8x16_unzip_even(a, b)
     } else {
@@ -192,16 +192,16 @@ pub fn decode_ascii32x2<S: SIMD256>(s: S, x: (V256, V256)) -> Result<V256, ()> {
     let (y2, is_invalid2) = decode32(s, x.1);
     let is_invalid = s.v256_or(is_invalid1, is_invalid2);
 
-    let ans = if is_subtype!(S, AVX2) {
+    let ans = if matches_isa!(S, AVX2) {
         let ab = s.u8x16x2_swizzle(y1, DECODE_UZP1);
         let cd = s.u8x16x2_swizzle(y2, DECODE_UZP2);
         let acbd = s.v256_or(ab, cd);
         s.u64x4_permute::<0b_1101_1000>(acbd) // 0213
-    } else if is_subtype!(S, SSSE3 | WASM128) {
+    } else if matches_isa!(S, SSSE3 | WASM128) {
         let ab = s.u8x16x2_swizzle(y1, DECODE_UZP1);
         let cd = s.u8x16x2_swizzle(y2, DECODE_UZP1);
         s.u64x4_unzip_even(ab, cd)
-    } else if is_subtype!(S, NEON) {
+    } else if matches_isa!(S, NEON) {
         s.u8x32_unzip_even(y1, y2)
     } else {
         unreachable!()

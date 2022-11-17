@@ -4,7 +4,7 @@ use crate::{BASE32HEX_CHARSET, BASE32_CHARSET};
 use vsimd::isa::{NEON, SSE41, SSSE3, WASM128};
 use vsimd::tools::{read, write};
 use vsimd::vector::V256;
-use vsimd::{is_subtype, SIMD256};
+use vsimd::{matches_isa, SIMD256};
 
 pub const fn encoded_length_unchecked(len: usize, padding: bool) -> usize {
     let l = len / 5 * 8;
@@ -180,7 +180,7 @@ fn split_bits<S: SIMD256>(s: S, x: V256) -> V256 {
         0x06, 0x05, 0x07, 0x06, 0x08, 0x07, 0x09, 0x08, //
     ]);
 
-    if is_subtype!(S, SSSE3) {
+    if matches_isa!(S, SSSE3) {
         const SPLIT_M1: u64 = u16x4_to_u64([1 << 5, 1 << 7, 1 << 9, 1 << 11]);
         const SPLIT_M2: u64 = u16x4_to_u64([1 << 2, 1 << 4, 1 << 6, 1 << 8]);
 
@@ -192,7 +192,7 @@ fn split_bits<S: SIMD256>(s: S, x: V256) -> V256 {
         return s.v256_or(x4, x5);
     }
 
-    if is_subtype!(S, NEON | WASM128) {
+    if matches_isa!(S, NEON | WASM128) {
         const SPLIT_M1: u64 = u16x4_to_u64([1 << 1, 1 << 3, 1 << 5, 1 << 7]);
         const SPLIT_M2: u64 = u16x4_to_u64([1 << 2, 1 << 4, 1 << 6, 1 << 8]);
         const SPLIT_M3: u16 = u16::from_le_bytes([0x00, 0x1f]);
@@ -233,16 +233,16 @@ const BASE32HEX_ENCODING_LUT: EncodingLutX2 = EncodingLutX2::new(BASE32HEX_CHARS
 
 #[inline(always)]
 fn encode_values<S: SIMD256>(s: S, x: V256, lut: EncodingLutX2) -> V256 {
-    if is_subtype!(S, SSE41) {
+    if matches_isa!(S, SSE41) {
         let x1 = s.u8x16x2_swizzle(lut.low, x);
         let x2 = s.u8x16x2_swizzle(lut.high, x);
         let x3 = s.u8x32_lt(s.u8x32_splat(0x0f), x);
         return s.u8x32_blendv(x1, x2, x3);
     }
-    if is_subtype!(S, NEON) && cfg!(target_arch = "aarch64") {
+    if matches_isa!(S, NEON) && cfg!(target_arch = "aarch64") {
         return s.u8x32_swizzle(lut.full, x);
     }
-    if is_subtype!(S, NEON | WASM128) {
+    if matches_isa!(S, NEON | WASM128) {
         let m = s.u8x32_splat(0x0f);
         let x1 = s.v256_and(x, m);
         let x2 = s.u8x16x2_swizzle(lut.low, x1);

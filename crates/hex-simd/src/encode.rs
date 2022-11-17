@@ -1,7 +1,9 @@
 use vsimd::ascii::AsciiCase;
+use vsimd::is_isa_type;
 use vsimd::isa::{InstructionSet, AVX2, SSE2};
+use vsimd::matches_isa;
 use vsimd::tools::{read, write};
-use vsimd::{is_isa_type, is_subtype, SIMD128, SIMD256};
+use vsimd::{SIMD128, SIMD256};
 
 #[inline(always)]
 fn charset(case: AsciiCase) -> &'static [u8; 16] {
@@ -54,11 +56,13 @@ pub unsafe fn encode_fallback(src: *const u8, len: usize, dst: *mut u8, case: As
 
 #[inline(always)]
 pub unsafe fn encode_simd<S: SIMD256>(s: S, src: *const u8, len: usize, dst: *mut u8, case: AsciiCase) {
-    if is_isa_type!(S, SSE2) {
-        return encode_simd_sse2(SSE2::new(), src, len, dst, case);
-    }
-    if is_subtype!(S, AVX2) {
-        return encode_simd_v256(s, src, len, dst, case);
+    if cfg!(any(target_arch = "x86", target_arch = "x86_64")) {
+        if is_isa_type!(S, SSE2) {
+            return encode_simd_sse2(SSE2::new(), src, len, dst, case);
+        }
+        if matches_isa!(S, AVX2) {
+            return encode_simd_v256(s, src, len, dst, case);
+        }
     }
     encode_simd_v128(s, src, len, dst, case);
 }

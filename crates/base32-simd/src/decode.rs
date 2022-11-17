@@ -8,7 +8,7 @@ use vsimd::isa::{AVX2, NEON, SSE41, WASM128};
 use vsimd::mask::u8x32_highbit_any;
 use vsimd::tools::{read, write};
 use vsimd::vector::V256;
-use vsimd::{is_subtype, simd256_vop, SIMD256};
+use vsimd::{matches_isa, simd256_vop, SIMD256};
 
 use core::ops::Not;
 
@@ -193,10 +193,10 @@ pub(crate) unsafe fn decode_simd<S: SIMD256>(
 
 #[inline(always)]
 fn u32x8_blend_0x55<S: SIMD256>(s: S, a: V256, b: V256) -> V256 {
-    if is_subtype!(S, AVX2) {
+    if matches_isa!(S, AVX2) {
         return s.u32x8_blend::<0x55>(a, b);
     }
-    if is_subtype!(S, SSE41) {
+    if matches_isa!(S, SSE41) {
         return simd256_vop!(s, S::u16x8_blend::<0x33>, a, b);
     }
     unreachable!()
@@ -204,7 +204,7 @@ fn u32x8_blend_0x55<S: SIMD256>(s: S, a: V256, b: V256) -> V256 {
 
 #[inline(always)]
 fn merge_bits<S: SIMD256>(s: S, x: V256) -> V256 {
-    if is_subtype!(S, SSE41) {
+    if matches_isa!(S, SSE41) {
         const MERGE_M1: u32 = u32::from_le_bytes([1 << 7, 1 << 2, 1 << 5, 1 << 0]);
         const MERGE_S1: V256 = V256::double_bytes([
             0x01, 0x00, 0x02, 0x04, 0x06, //
@@ -225,7 +225,7 @@ fn merge_bits<S: SIMD256>(s: S, x: V256) -> V256 {
         return s.v256_or(x4, x5);
     }
 
-    if is_subtype!(S, NEON | WASM128) {
+    if matches_isa!(S, NEON | WASM128) {
         const MERGE_M1: u16 = u16::from_le_bytes([0x1f, 0x00]);
         const MERGE_M2: u64 = u16x4_to_u64([1 << 3, 1 << 1, 1 << 7, 1 << 5]);
         const MERGE_M3: u64 = u16x4_to_u64([1 << 6, 1 << 4, 1 << 2, 1 << 0]);

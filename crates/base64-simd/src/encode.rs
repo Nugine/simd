@@ -4,7 +4,7 @@ use crate::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 use vsimd::isa::{NEON, SSE2, WASM128};
 use vsimd::tools::{read, write};
 use vsimd::vector::{V128, V256};
-use vsimd::{is_subtype, POD};
+use vsimd::{matches_isa, POD};
 use vsimd::{Scalable, SIMD128, SIMD256};
 
 #[inline(always)]
@@ -177,7 +177,7 @@ fn split_bits_x2<S: SIMD256>(s: S, x: V256) -> V256 {
     let x0 = s.u8x16x2_swizzle(x, SPLIT_SHUFFLE);
     // x0: {bbbbcccc|aaaaaabb|ccdddddd|bbbbcccc} x8 (1021)
 
-    if is_subtype!(S, SSE2) {
+    if matches_isa!(S, SSE2) {
         let m1 = s.u32x8_splat(u32::from_le_bytes([0x00, 0xfc, 0xc0, 0x0f]));
         let x1 = s.v256_and(x0, m1);
         // x1: {00000000|aaaaaa00|cc000000|0000cccc} x8
@@ -198,7 +198,7 @@ fn split_bits_x2<S: SIMD256>(s: S, x: V256) -> V256 {
         // {00aaaaaa|00bbbbbb|00cccccc|00dddddd} x8
     }
 
-    if is_subtype!(S, NEON | WASM128) {
+    if matches_isa!(S, NEON | WASM128) {
         let m1 = s.u32x8_splat(u32::from_le_bytes([0x00, 0xfc, 0x00, 0x00]));
         let x1 = s.u16x16_shr::<10>(s.v256_and(x0, m1));
         // x1: {00aaaaaa|000000000|00000000|00000000} x8
@@ -230,7 +230,7 @@ fn split_bits_x1<S: SIMD128>(s: S, x: V128) -> V128 {
     let x0 = s.u8x16_swizzle(x, SHUFFLE);
     // x0: {bbbbcccc|aaaaaabb|ccdddddd|bbbbcccc} x8 (1021)
 
-    if is_subtype!(S, SSE2) {
+    if matches_isa!(S, SSE2) {
         let m1 = s.u32x4_splat(u32::from_le_bytes([0x00, 0xfc, 0xc0, 0x0f]));
         let x1 = s.v128_and(x0, m1);
 
@@ -246,7 +246,7 @@ fn split_bits_x1<S: SIMD128>(s: S, x: V128) -> V128 {
         return s.v128_or(x3, x4);
     }
 
-    if is_subtype!(S, NEON | WASM128) {
+    if matches_isa!(S, NEON | WASM128) {
         let m1 = s.u32x4_splat(u32::from_le_bytes([0x00, 0xfc, 0x00, 0x00]));
         let x1 = s.u16x8_shr::<10>(s.v128_and(x0, m1));
 

@@ -27,19 +27,32 @@ pub enum InstructionSetTypeId {
 
 #[inline(always)]
 #[must_use]
-pub const fn is_subtype_of(self_ty: InstructionSetTypeId, super_ty: InstructionSetTypeId) -> bool {
+pub const fn is_subtype_of(self_ty: InstructionSetTypeId, super_tys: &[InstructionSetTypeId]) -> bool {
     #[allow(clippy::enum_glob_use)]
     use InstructionSetTypeId::*;
 
-    match self_ty {
-        Fallback => matches!(super_ty, Fallback),
-        SSE2 => matches!(super_ty, Fallback | SSE2),
-        SSSE3 => matches!(super_ty, Fallback | SSE2 | SSSE3),
-        SSE41 => matches!(super_ty, Fallback | SSE2 | SSSE3 | SSE41),
-        AVX2 => matches!(super_ty, Fallback | SSE2 | SSSE3 | SSE41 | AVX2),
-        NEON => matches!(super_ty, Fallback | NEON),
-        WASM128 => matches!(super_ty, Fallback | WASM128),
+    let mut i = 0;
+    while i < super_tys.len() {
+        let super_ty = super_tys[i];
+
+        let inherits = match self_ty {
+            Fallback => matches!(super_ty, Fallback),
+            SSE2 => matches!(super_ty, Fallback | SSE2),
+            SSSE3 => matches!(super_ty, Fallback | SSE2 | SSSE3),
+            SSE41 => matches!(super_ty, Fallback | SSE2 | SSSE3 | SSE41),
+            AVX2 => matches!(super_ty, Fallback | SSE2 | SSSE3 | SSE41 | AVX2),
+            NEON => matches!(super_ty, Fallback | NEON),
+            WASM128 => matches!(super_ty, Fallback | WASM128),
+        };
+
+        if inherits {
+            return true;
+        }
+
+        i += 1;
     }
+
+    false
 }
 
 #[macro_export]
@@ -54,15 +67,54 @@ macro_rules! is_isa_type {
 
 #[macro_export]
 macro_rules! is_subtype {
-    ($self:ident, $super:ident) => {{
-        $crate::isa::is_subtype_of(
-            <$self as $crate::isa::InstructionSet>::ID,
-            <$super as $crate::isa::InstructionSet>::ID,
-        )
-    }};
+    ($self:ident, $super:ident) => {
+        $crate::is_subtype!(@eval $self, &[<$super as $crate::isa::InstructionSet>::ID])
+    };
     ($self:ident, $super:ident | $($other:ident)|+) => {{
-        $crate::is_subtype!($self, $super) $(||$crate::is_subtype!($self, $other))+
+        const SUPER_TYS: &[$crate::isa::InstructionSetTypeId] = &[
+            <$super as $crate::isa::InstructionSet>::ID,
+            $(<$other as $crate::isa::InstructionSet>::ID),+
+        ];
+        $crate::is_subtype!(@eval $self, SUPER_TYS)
     }};
+    (@eval $self:ident, $super_tys:expr) => {{
+        // TODO: inline const
+        use $crate::isa::InstructionSet;
+        struct IsSubType<S>(S);
+        impl<S: InstructionSet> IsSubType<S> {
+            const VALUE: bool = { $crate::isa::is_subtype_of(<S as InstructionSet>::ID, $super_tys) };
+        }
+        IsSubType::<$self>::VALUE
+    }}
+}
+
+#[macro_export]
+macro_rules! matches_isa {
+    ($self:ident, $super:ident) => {
+        $crate::matches_isa!(@arch $super) && $crate::is_subtype!($self, $super)
+    };
+    ($self:ident, $super:ident | $($other:ident)|+) => {{
+        const MATCHES_ARCH: bool = $crate::matches_isa!(@arch $super) $(|| $crate::matches_isa!(@arch $other))+;
+        MATCHES_ARCH && $crate::is_subtype!($self, $super | $($other)|+)
+    }};
+    (@arch SSE2) => {
+        cfg!(any(target_arch = "x86", target_arch = "x86_64"))
+    };
+    (@arch SSSE3) => {
+        cfg!(any(target_arch = "x86", target_arch = "x86_64"))
+    };
+    (@arch SSE41) => {
+        cfg!(any(target_arch = "x86", target_arch = "x86_64"))
+    };
+    (@arch AVX2) => {
+        cfg!(any(target_arch = "x86", target_arch = "x86_64"))
+    };
+    (@arch NEON) => {
+        cfg!(any(target_arch = "arm", target_arch = "aarch64"))
+    };
+    (@arch WASM128) => {
+        cfg!(target_arch = "wasm32")
+    };
 }
 
 #[derive(Debug, Clone, Copy)]

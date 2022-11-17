@@ -33,7 +33,7 @@ use core::arch::wasm32::*;
 pub fn splat<S: InstructionSet, T: POD, V: POD>(s: S, x: T) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&_mm256_set1_epi8(tc(&x))) };
             }
@@ -45,7 +45,7 @@ pub fn splat<S: InstructionSet, T: POD, V: POD>(s: S, x: T) -> V {
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&_mm_set1_epi8(tc(&x))) };
             }
@@ -60,7 +60,7 @@ pub fn splat<S: InstructionSet, T: POD, V: POD>(s: S, x: T) -> V {
             }
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&vld1q_dup_u8(&tc(&x))) };
             }
@@ -75,7 +75,7 @@ pub fn splat<S: InstructionSet, T: POD, V: POD>(s: S, x: T) -> V {
             }
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&u8x16_splat(tc(&x))) };
             }
@@ -100,7 +100,7 @@ pub fn splat<S: InstructionSet, T: POD, V: POD>(s: S, x: T) -> V {
 pub fn add<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&_mm256_add_epi8(tc(&a), tc(&b))) };
             }
@@ -124,7 +124,7 @@ pub fn add<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&_mm_add_epi8(tc(&a), tc(&b))) };
             }
@@ -139,7 +139,7 @@ pub fn add<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&vaddq_u8(tc(&a), tc(&b))) };
             }
@@ -154,7 +154,7 @@ pub fn add<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&u8x16_add(tc(&a), tc(&b))) };
             }
@@ -179,7 +179,7 @@ pub fn add<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
 pub fn sub<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&_mm256_sub_epi8(tc(&a), tc(&b))) };
             }
@@ -203,7 +203,7 @@ pub fn sub<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&_mm_sub_epi8(tc(&a), tc(&b))) };
             }
@@ -218,7 +218,7 @@ pub fn sub<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&vsubq_u8(tc(&a), tc(&b))) };
             }
@@ -233,7 +233,7 @@ pub fn sub<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&u8x16_sub(tc(&a), tc(&b))) };
             }
@@ -258,7 +258,7 @@ pub fn sub<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
 pub fn eq<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&_mm256_cmpeq_epi8(tc(&a), tc(&b))) };
             }
@@ -282,7 +282,7 @@ pub fn eq<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&_mm_cmpeq_epi8(tc(&a), tc(&b))) };
             }
@@ -294,7 +294,7 @@ pub fn eq<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&vceqq_u8(tc(&a), tc(&b))) };
             }
@@ -310,7 +310,7 @@ pub fn eq<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             if is_pod_type!(T, u8 | i8) {
                 return unsafe { tc(&u8x16_eq(tc(&a), tc(&b))) };
             }
@@ -335,7 +335,7 @@ pub fn eq<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
 pub fn lt<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm256_cmpgt_epi8(tc(&b), tc(&a))) };
             }
@@ -380,7 +380,7 @@ pub fn lt<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm_cmplt_epi8(tc(&a), tc(&b))) };
             }
@@ -415,7 +415,7 @@ pub fn lt<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&vcltq_s8(tc(&a), tc(&b))) };
             }
@@ -444,7 +444,7 @@ pub fn lt<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&i8x16_lt(tc(&a), tc(&b))) };
             }
@@ -481,7 +481,7 @@ pub fn lt<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
 pub fn add_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm256_adds_epi8(tc(&a), tc(&b))) };
             }
@@ -505,7 +505,7 @@ pub fn add_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm_adds_epi8(tc(&a), tc(&b))) };
             }
@@ -520,7 +520,7 @@ pub fn add_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&vqaddq_s8(tc(&a), tc(&b))) };
             }
@@ -541,7 +541,7 @@ pub fn add_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&i8x16_add_sat(tc(&a), tc(&b))) };
             }
@@ -566,7 +566,7 @@ pub fn add_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
 pub fn sub_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm256_subs_epi8(tc(&a), tc(&b))) };
             }
@@ -590,7 +590,7 @@ pub fn sub_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm_subs_epi8(tc(&a), tc(&b))) };
             }
@@ -605,7 +605,7 @@ pub fn sub_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&vqsubq_s8(tc(&a), tc(&b))) };
             }
@@ -626,7 +626,7 @@ pub fn sub_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&i8x16_sub_sat(tc(&a), tc(&b))) };
             }
@@ -650,7 +650,7 @@ pub fn sub_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
 pub fn max<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm256_max_epi8(tc(&a), tc(&b))) };
             }
@@ -692,7 +692,7 @@ pub fn max<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE41) {
+        if matches_isa!(S, SSE41) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm_max_epi8(tc(&a), tc(&b))) };
             }
@@ -707,7 +707,7 @@ pub fn max<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             if is_pod_type!(T, i16) {
                 return unsafe { tc(&_mm_max_epi16(tc(&a), tc(&b))) };
             }
@@ -722,7 +722,7 @@ pub fn max<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&vmaxq_s8(tc(&a), tc(&b))) };
             }
@@ -746,7 +746,7 @@ pub fn max<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&i8x16_max(tc(&a), tc(&b))) };
             }
@@ -780,7 +780,7 @@ pub fn max<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
 pub fn min<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm256_min_epi8(tc(&a), tc(&b))) };
             }
@@ -822,7 +822,7 @@ pub fn min<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE41) {
+        if matches_isa!(S, SSE41) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&_mm_min_epi8(tc(&a), tc(&b))) };
             }
@@ -838,7 +838,7 @@ pub fn min<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             if is_pod_type!(T, i16) {
                 return unsafe { tc(&_mm_min_epi16(tc(&a), tc(&b))) };
             }
@@ -853,7 +853,7 @@ pub fn min<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&vminq_s8(tc(&a), tc(&b))) };
             }
@@ -877,7 +877,7 @@ pub fn min<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             if is_pod_type!(T, i8) {
                 return unsafe { tc(&i8x16_min(tc(&a), tc(&b))) };
             }
@@ -915,7 +915,7 @@ where
 {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             return unsafe { tc(&_mm256_and_si256(tc(&a), tc(&b))) };
         }
         {
@@ -928,15 +928,15 @@ where
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             return unsafe { tc(&_mm_and_si128(tc(&a), tc(&b))) };
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             return unsafe { tc(&vandq_u8(tc(&a), tc(&b))) };
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             return unsafe { tc(&v128_and(tc(&a), tc(&b))) };
         }
     }
@@ -954,7 +954,7 @@ where
 {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             return unsafe { tc(&_mm256_or_si256(tc(&a), tc(&b))) };
         }
         {
@@ -967,15 +967,15 @@ where
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             return unsafe { tc(&_mm_or_si128(tc(&a), tc(&b))) };
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             return unsafe { tc(&vorrq_u8(tc(&a), tc(&b))) };
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             return unsafe { tc(&v128_or(tc(&a), tc(&b))) };
         }
     }
@@ -993,7 +993,7 @@ where
 {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             return unsafe { tc(&_mm256_xor_si256(tc(&a), tc(&b))) };
         }
         {
@@ -1006,15 +1006,15 @@ where
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             return unsafe { tc(&_mm_xor_si128(tc(&a), tc(&b))) };
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             return unsafe { tc(&veorq_u8(tc(&a), tc(&b))) };
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             return unsafe { tc(&v128_xor(tc(&a), tc(&b))) };
         }
     }
@@ -1032,7 +1032,7 @@ where
 {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, AVX2) {
+        if matches_isa!(S, AVX2) {
             return unsafe { tc(&_mm256_andnot_si256(tc(&a), tc(&b))) };
         }
         {
@@ -1045,15 +1045,15 @@ where
     }
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if is_subtype!(S, SSE2) {
+        if matches_isa!(S, SSE2) {
             return unsafe { tc(&_mm_andnot_si128(tc(&a), tc(&b))) };
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
-        if is_subtype!(S, NEON) {
+        if matches_isa!(S, NEON) {
             return unsafe { tc(&vbicq_u8(tc(&a), tc(&b))) };
         }
         #[cfg(target_arch = "wasm32")]
-        if is_subtype!(S, WASM128) {
+        if matches_isa!(S, WASM128) {
             return unsafe { tc(&v128_andnot(tc(&a), tc(&b))) };
         }
     }
