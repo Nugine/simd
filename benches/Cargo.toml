@@ -41,7 +41,14 @@ detect = [
     "uuid-simd/detect",
     "radix64/simd",
 ]
-unstable = ["criterion/real_blackbox"]
+unstable = [
+    "base32-simd/unstable",
+    "base64-simd/unstable",
+    "hex-simd/unstable",
+    "unicode-simd/unstable",
+    "uuid-simd/unstable",
+    "criterion/real_blackbox",
+]
 
 [dependencies.base32-simd]
 path = "../crates/base32-simd"
