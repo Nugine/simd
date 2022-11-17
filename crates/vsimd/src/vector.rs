@@ -1,47 +1,121 @@
 use core::mem::transmute;
 
-#[cfg(feature = "unstable")]
-use core::simd::{u8x16, u8x32, u8x64, u8x8, Simd};
-
-#[cfg(not(feature = "unstable"))]
-#[derive(Debug, Clone, Copy)]
-#[repr(C, align(8))]
-pub struct V64([u8; 8]);
-
-#[cfg(not(feature = "unstable"))]
-#[derive(Debug, Clone, Copy)]
-#[repr(C, align(16))]
-pub struct V128([u8; 16]);
-
-#[cfg(not(feature = "unstable"))]
-#[derive(Debug, Clone, Copy)]
-#[repr(C, align(32))]
-pub struct V256([u8; 32]);
-
-#[cfg(not(feature = "unstable"))]
-#[derive(Debug, Clone, Copy)]
-#[repr(C, align(64))]
-pub struct V512([u8; 64]);
+// vectors should have `repr(simd)` if possible.
 
 #[cfg(feature = "unstable")]
-#[derive(Debug, Clone, Copy)]
-#[repr(transparent)]
-pub struct V64(u8x8);
+item_group! {
+    use core::simd::{u8x16, u8x32, u8x64, u8x8};
 
-#[cfg(feature = "unstable")]
-#[derive(Debug, Clone, Copy)]
-#[repr(transparent)]
-pub struct V128(u8x16);
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V64(u8x8);
 
-#[cfg(feature = "unstable")]
-#[derive(Debug, Clone, Copy)]
-#[repr(transparent)]
-pub struct V256(u8x32);
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V128(u8x16);
 
-#[cfg(feature = "unstable")]
-#[derive(Debug, Clone, Copy)]
-#[repr(transparent)]
-pub struct V512(u8x64);
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V256(u8x32);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V512(u8x64);
+}
+
+#[cfg(all(not(feature = "unstable"), any(target_arch = "x86", target_arch = "x86_64")))]
+item_group! {
+    #[cfg(target_arch = "x86")]
+    use core::arch::x86::*;
+
+    #[cfg(target_arch = "x86_64")]
+    use core::arch::x86_64::*;
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V64(u64);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V128(__m128i);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V256(__m256i);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(C, align(64))]
+    pub struct V512(__m256i, __m256i);
+}
+
+#[cfg(all(not(feature = "unstable"), target_arch = "aarch64"))]
+item_group! {
+    use core::arch::aarch64::*;
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V64(uint8x8_t);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V128(uint8x16_t);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V256(uint8x16x2_t);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V512(uint8x16x4_t);
+}
+
+#[cfg(all(not(feature = "unstable"), target_arch = "wasm32"))]
+item_group! {
+    #[cfg(target_arch = "wasm32")]
+    use core::arch::wasm32::*;
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V64(u64);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V128(v128);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(C, align(32))]
+    pub struct V256(v128, v128);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(C, align(64))]
+    pub struct V512(v128, v128, v128, v128);
+}
+
+#[cfg(all(
+    not(feature = "unstable"),
+    not(any(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_arch = "aarch64",
+        target_arch = "wasm32"
+    ))
+))]
+item_group! {
+    #[derive(Debug, Clone, Copy)]
+    #[repr(C, align(8))]
+    pub struct V64([u8; 8]);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(C, align(16))]
+    pub struct V128([u8; 16]);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(C, align(32))]
+    pub struct V256([u8; 32]);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(C, align(64))]
+    pub struct V512([u8; 64]);
+}
 
 impl V64 {
     #[inline(always)]
@@ -159,77 +233,5 @@ impl V512 {
     #[must_use]
     pub const fn double_bytes(bytes: [u8; 32]) -> Self {
         unsafe { transmute([bytes, bytes]) }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl From<V64> for Simd<u8, 8> {
-    #[inline(always)]
-    #[must_use]
-    fn from(v: V64) -> Self {
-        unsafe { transmute(v) }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl From<V128> for Simd<u8, 16> {
-    #[inline(always)]
-    #[must_use]
-    fn from(v: V128) -> Self {
-        unsafe { transmute(v) }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl From<V256> for Simd<u8, 32> {
-    #[inline(always)]
-    #[must_use]
-    fn from(v: V256) -> Self {
-        unsafe { transmute(v) }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl From<V512> for Simd<u8, 64> {
-    #[inline(always)]
-    #[must_use]
-    fn from(v: V512) -> Self {
-        unsafe { transmute(v) }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl From<Simd<u8, 8>> for V64 {
-    #[inline(always)]
-    #[must_use]
-    fn from(v: Simd<u8, 8>) -> Self {
-        unsafe { transmute(v) }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl From<Simd<u8, 16>> for V128 {
-    #[inline(always)]
-    #[must_use]
-    fn from(v: Simd<u8, 16>) -> Self {
-        unsafe { transmute(v) }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl From<Simd<u8, 32>> for V256 {
-    #[inline(always)]
-    #[must_use]
-    fn from(v: Simd<u8, 32>) -> Self {
-        unsafe { transmute(v) }
-    }
-}
-
-#[cfg(feature = "unstable")]
-impl From<Simd<u8, 64>> for V512 {
-    #[inline(always)]
-    #[must_use]
-    fn from(v: Simd<u8, 64>) -> Self {
-        unsafe { transmute(v) }
     }
 }
