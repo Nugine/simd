@@ -4,14 +4,18 @@ use crate::{SIMD128, SIMD256};
 
 use core::ops::Not;
 
-/// x: `{{0xff or 0x00}}x32`
 #[inline(always)]
 pub fn mask8x16_all<S: SIMD128>(s: S, x: V128) -> bool {
     if matches_isa!(S, SSE2 | WASM128) {
         return s.u8x16_bitmask(x) == u16::MAX;
     }
     if matches_isa!(S, NEON) {
-        return s.u8x16_any_zero(x).not();
+        if cfg!(target_arch = "arm") {
+            return s.u8x16_any_zero(x).not();
+        }
+        if cfg!(target_arch = "aarch64") {
+            return s.u8x16_reduce_min(x) != 0;
+        }
     }
     unreachable!()
 }
@@ -29,7 +33,6 @@ pub fn mask8x32_all<S: SIMD256>(s: S, x: V256) -> bool {
     unreachable!()
 }
 
-/// x: `{{0xff or 0x00}}x32`
 #[inline(always)]
 pub fn mask8x16_any<S: SIMD128>(s: S, x: V128) -> bool {
     if matches_isa!(S, SSE2 | WASM128) {

@@ -205,8 +205,9 @@ pub unsafe trait SIMD128: SIMD64 {
         #[cfg(all(feature = "unstable", target_arch = "arm"))]
         if matches_isa!(Self, NEON) {
             return unsafe {
-                let a: [u64; 2] = t(a);
-                (a[0] | a[1]) == 0
+                let a1: uint32x2x2_t = t(a);
+                let a2: uint32x2_t = vorr_u32(a1.0, a1.1);
+                vget_lane_u32::<0>(vpmax_u32(a2, a2)) == 0
             };
         }
         #[cfg(target_arch = "aarch64")]
