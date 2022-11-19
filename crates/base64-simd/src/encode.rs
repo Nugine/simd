@@ -75,6 +75,7 @@ unsafe fn encode_extra(extra: usize, src: *const u8, dst: *mut u8, charset: *con
     }
 }
 
+#[inline]
 pub(crate) unsafe fn encode_fallback(mut src: *const u8, mut len: usize, mut dst: *mut u8, config: Config) {
     let kind = config.kind;
     let padding = config.extra.padding();
@@ -114,6 +115,7 @@ pub(crate) unsafe fn encode_fallback(mut src: *const u8, mut len: usize, mut dst
     encode_extra(len, src, dst, charset, padding);
 }
 
+#[inline(always)]
 pub(crate) unsafe fn encode_simd<S: SIMD256>(
     s: S,
     mut src: *const u8,

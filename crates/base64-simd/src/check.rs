@@ -9,6 +9,7 @@ use vsimd::SIMD256;
 
 use core::ptr::null_mut;
 
+#[inline]
 pub(crate) unsafe fn check_fallback(mut src: *const u8, mut n: usize, config: Config) -> Result<(), Error> {
     let kind = config.kind;
     let forgiving = config.extra.forgiving();
@@ -36,6 +37,7 @@ pub(crate) unsafe fn check_fallback(mut src: *const u8, mut n: usize, config: Co
     }
 }
 
+#[inline(always)]
 pub(crate) unsafe fn check_simd<S: SIMD256>(
     s: S,
     mut src: *const u8,

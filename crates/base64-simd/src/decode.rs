@@ -171,7 +171,7 @@ pub unsafe fn decode_extra<const WRITE: bool>(
     Ok(())
 }
 
-#[inline(always)]
+#[inline]
 pub(crate) unsafe fn decode_fallback(
     mut src: *const u8,
     mut dst: *mut u8,
