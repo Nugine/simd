@@ -141,3 +141,21 @@ test-all:
     cd {{justfile_directory()}}
     ./scripts/testgen.py | bash -ex
     cargo miri test --workspace --exclude simd-benches --exclude simd-analyze
+
+dump-asm:
+    #!/bin/bash -ex
+    cd {{justfile_directory()}}
+    ./scripts/dump-symbols.py --mode asm | bash -ex
+    COMMIT_HASH=`git rev-parse --short HEAD`
+    cd target/symbols
+    tokei -f -s files -t assembly -c 150 > $COMMIT_HASH-asm.txt
+    tokei -f -s lines -t assembly -c 150
+
+dump-llvm-ir:
+    #!/bin/bash -ex
+    cd {{justfile_directory()}}
+    ./scripts/dump-symbols.py --mode llvm-ir | bash -ex
+    COMMIT_HASH=`git rev-parse --short HEAD`
+    cd target/symbols
+    tokei -f -s files -t LLVM -c 150 > $COMMIT_HASH-llvm-ir.txt
+    tokei -f -s lines -t LLVM -c 150
