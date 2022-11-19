@@ -1033,6 +1033,7 @@ where
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if matches_isa!(S, AVX2) {
+            let (a, b) = (b, a);
             return unsafe { tc(&_mm256_andnot_si256(tc(&a), tc(&b))) };
         }
         {
@@ -1046,6 +1047,7 @@ where
     if is_pod_type!(V, V128) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if matches_isa!(S, SSE2) {
+            let (a, b) = (b, a);
             return unsafe { tc(&_mm_andnot_si128(tc(&a), tc(&b))) };
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
