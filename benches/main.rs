@@ -58,7 +58,7 @@ fn main() {
             let time = bench_base64(n, &data);
             let time_per_op = (time / n as u128) as f64;
             let throughput = throughput(n as u128 * data.len() as u128, time);
-            println!("long  | n = {n:<8} time = {time_per_op:>8}ns, throughout = {throughput:.6}GiB/s");
+            println!("long  | n = {n:<8} time = {time_per_op:>8} ns, throughout = {throughput:.6} GiB/s");
         }
 
         {
@@ -67,7 +67,7 @@ fn main() {
             let time = bench_base64(n, data);
             let time_per_op = time / n as u128;
             let throughput = throughput(n as u128 * data.len() as u128, time);
-            println!("short | n = {n:<8} time = {time_per_op:>8}ns, throughout = {throughput:.6}GiB/s");
+            println!("short | n = {n:<8} time = {time_per_op:>8} ns, throughout = {throughput:.6} GiB/s");
         }
         println!();
     }
@@ -80,7 +80,7 @@ fn main() {
         let time_per_op = time / n as u128;
         let throughput = throughput(n as u128 * data.len() as u128, time);
         println!(
-            "long  | n = {n:<8} time = {:>8}ns, throughout = {:.6}GiB/s",
+            "long  | n = {n:<8} time = {:>8} ns, throughout = {:.6} GiB/s",
             time_per_op, throughput
         );
         println!();
@@ -94,8 +94,29 @@ fn main() {
         let time_per_op = time / n as u128;
         let throughput = throughput(n as u128 * data.len() as u128 * 4, time);
         println!(
-            "long  | n = {n:<8} time = {:>8}ns, throughput = {:.6}GiB/s",
+            "long  | n = {n:<8} time = {:>8} ns, throughput = {:.6} GiB/s",
             time_per_op, throughput
         );
+
+        println!();
+    }
+
+    #[cfg(feature = "unstable")]
+    {
+        println!("vsimd::unstable::is_ascii");
+        let data = "helloworld".repeat(100_000);
+        let n = 1000;
+        let time = time(|| {
+            for _ in 0..n {
+                assert!(vsimd::unstable::is_ascii(data.as_bytes()));
+            }
+        });
+        let time_per_op = time / n as u128;
+        let throughput = throughput(n as u128 * data.len() as u128, time);
+        println!(
+            "long  | n = {n:<8} time = {:>8} ns, throughout = {:.6} GiB/s",
+            time_per_op, throughput
+        );
+        println!();
     }
 }

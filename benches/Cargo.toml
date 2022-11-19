@@ -34,6 +34,7 @@ harness = false
 [features]
 default = []
 detect = [
+    "vsimd/detect",
     "base32-simd/detect",
     "base64-simd/detect",
     "hex-simd/detect",
@@ -42,6 +43,7 @@ detect = [
     "radix64/simd",
 ]
 unstable = [
+    "vsimd/unstable",
     "base32-simd/unstable",
     "base64-simd/unstable",
     "hex-simd/unstable",
@@ -49,6 +51,9 @@ unstable = [
     "uuid-simd/unstable",
     "criterion/real_blackbox",
 ]
+
+[dependencies.vsimd]
+path = "../crates/vsimd"
 
 [dependencies.base32-simd]
 path = "../crates/base32-simd"
