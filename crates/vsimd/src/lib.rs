@@ -5,7 +5,8 @@
     feature(stdsimd),
     feature(arm_target_feature),
     feature(portable_simd),
-    feature(inline_const)
+    feature(inline_const),
+    feature(array_chunks)
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(test, deny(warnings))]
@@ -81,3 +82,6 @@ pub mod hex;
 pub mod mask;
 pub mod native;
 pub mod table;
+
+#[cfg(feature = "unstable")]
+pub mod unstable;
