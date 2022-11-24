@@ -181,7 +181,6 @@ macro_rules! dispatch {
 
     (@resolve_static, "sse2", $($arg_name: ident),*) => {
         #[cfg(all(
-            // not(miri),
             any(target_arch = "x86", target_arch = "x86_64"),
             target_feature = "sse2"
         ))]
@@ -247,7 +246,6 @@ macro_rules! dispatch {
     };
 
     (@resolve_dynamic, "sse2") => {
-        // #[cfg(all(not(miri), any(target_arch = "x86", target_arch = "x86_64")))]
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if $crate::isa::SSE2::is_enabled() {
             return sse2;
@@ -354,7 +352,6 @@ macro_rules! dispatch {
         simd        = {$simd_fn:path},
         target      = {"sse2"},
     ) => {
-        // #[cfg(all(not(miri), any(target_arch = "x86", target_arch = "x86_64")))]
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         #[inline]
         #[target_feature(enable = "sse2")]
@@ -386,7 +383,7 @@ macro_rules! dispatch {
         target      = {"simd128"},
     ) => {
         #[cfg(target_arch = "wasm32")]
-        #[inline]
+        #[cfg_attr(not(vsimd_dump_symbols), inline)]
         #[target_feature(enable = "simd128")]
         $vis unsafe fn simd128($($arg_name:$arg_type),*) -> $ret {
             use $crate::isa::{WASM128, InstructionSet as _};

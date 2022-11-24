@@ -154,8 +154,10 @@ dump-asm:
     ./scripts/dump-symbols.py --mode asm | bash -ex
     COMMIT_HASH=`git rev-parse --short HEAD`
     cd target/symbols
-    tokei -f -s files -t assembly -c 150 > $COMMIT_HASH-asm.txt
+    F=$COMMIT_HASH-asm.txt
+    tokei -f -s files -t assembly -c 150 > $F
     tokei -f -s lines -t assembly -c 150
+    echo target/symbols/$F
 
 dump-llvm-ir:
     #!/bin/bash -ex
@@ -163,8 +165,10 @@ dump-llvm-ir:
     ./scripts/dump-symbols.py --mode llvm-ir | bash -ex
     COMMIT_HASH=`git rev-parse --short HEAD`
     cd target/symbols
-    tokei -f -s files -t LLVM -c 150 > $COMMIT_HASH-llvm-ir.txt
+    F=$COMMIT_HASH-llvm-ir.txt
+    tokei -f -s files -t LLVM -c 150 > $F
     tokei -f -s lines -t LLVM -c 150
+    echo target/symbols/$F
 
 bench-quick:
     RUSTFLAGS='-Ctarget-cpu=native' cargo run -p simd-benches --bin simd-benches --profile bench --features unstable
