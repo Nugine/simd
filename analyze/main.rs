@@ -90,6 +90,7 @@ fn gather_table_data(data: &[Data]) -> Result<Vec<TableData>> {
         "base32-encode",
         "uuid-format",
         "uuid-parse",
+        "ascii-check",
     ];
 
     let mut tables: HashMap<String, TableData> = default();

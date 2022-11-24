@@ -25,6 +25,10 @@ bench dispatch *ARGS:
             export RUSTFLAGS="-C target-cpu=native"
             FEATURES=""
             ;;
+        static-unstable)
+            export RUSTFLAGS="-C target-cpu=native"
+            FEATURES="unstable"
+            ;;
         dynamic)
             export RUSTFLAGS=""
             FEATURES="detect"
@@ -41,6 +45,8 @@ bench dispatch *ARGS:
 
     NAME=target/simd-benches/$COMMIT_HASH-{{dispatch}}
 
+    export CARGO_TERM_QUIET=true
+    cargo build -p simd-analyze
     time cargo criterion -p simd-benches --history-id $COMMIT_HASH --message-format json --features "$FEATURES" {{ARGS}} > $NAME.jsonl
     just analyze $COMMIT_HASH {{dispatch}} > $NAME.md
     bat --paging=never $NAME.md
@@ -53,7 +59,7 @@ bench-all:
 analyze commit dispatch:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    cargo run -q -p simd-analyze -- target/simd-benches/{{commit}}-{{dispatch}}.jsonl
+    ./target/debug/simd-analyze target/simd-benches/{{commit}}-{{dispatch}}.jsonl
 
 js-bench:
     #!/bin/bash -e
@@ -159,3 +165,6 @@ dump-llvm-ir:
     cd target/symbols
     tokei -f -s files -t LLVM -c 150 > $COMMIT_HASH-llvm-ir.txt
     tokei -f -s lines -t LLVM -c 150
+
+bench-quick:
+    RUSTFLAGS='-Ctarget-cpu=native' cargo run -p simd-benches --bin simd-benches --profile bench --features unstable

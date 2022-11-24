@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "unstable", feature(portable_simd), feature(array_chunks))]
+
 use rand::RngCore;
 
 pub fn rand_bytes(len: usize) -> Vec<u8> {
@@ -30,5 +32,131 @@ pub mod faster_hex {
             }
         }
         ::faster_hex::hex_check_fallback(src)
+    }
+}
+
+#[inline]
+#[must_use]
+pub fn is_ascii(src: &[u8]) -> bool {
+    #[cfg(all(feature = "unstable", target_arch = "x86_64", target_feature = "sse2"))]
+    {
+        is_ascii_sse2(src)
+    }
+    #[cfg(not(all(feature = "unstable", target_arch = "x86_64", target_feature = "sse2")))]
+    {
+        src.is_ascii()
+    }
+}
+
+#[cfg(all(feature = "unstable", target_arch = "x86_64", target_feature = "sse2"))]
+#[inline]
+#[must_use]
+fn is_ascii_sse2(src: &[u8]) -> bool {
+    use core::ops::Not;
+    use core::simd::*;
+
+    macro_rules! ensure {
+        ($cond:expr) => {
+            if !$cond {
+                return false;
+            }
+        };
+    }
+
+    #[inline(always)]
+    unsafe fn loadu<T>(p: *const u8) -> T {
+        p.cast::<T>().read_unaligned()
+    }
+
+    #[inline(always)]
+    fn check4(x: u32) -> bool {
+        (x & 0x8080_8080) == 0
+    }
+
+    #[inline(always)]
+    fn check8(x: u64) -> bool {
+        (x & 0x8080_8080_8080_8080) == 0
+    }
+
+    #[inline(always)]
+    fn check16(x: u8x16) -> bool {
+        x.cast::<i8>().simd_lt(i8x16::splat(0)).any().not()
+    }
+
+    /// len in 0..=8
+    #[inline(always)]
+    unsafe fn check_tiny(mut src: *const u8, mut len: usize) -> bool {
+        if len == 8 {
+            return check8(loadu(src));
+        }
+        if len >= 4 {
+            ensure!(check4(loadu(src)));
+            src = src.add(4);
+            len -= 4;
+        }
+        {
+            let mut acc: u8 = 0;
+            let end = src.add(len);
+            for _ in 0..3 {
+                if src < end {
+                    acc |= src.read();
+                    src = src.add(1);
+                }
+            }
+            acc < 0x80
+        }
+    }
+
+    /// len in 9..=16
+    #[inline(always)]
+    unsafe fn check_short(src: *const u8, len: usize) -> bool {
+        let x1: u64 = loadu(src);
+        let x2: u64 = loadu(src.add(len - 8));
+        check8(x1 | x2)
+    }
+
+    /// len in 17..64
+    #[inline(always)]
+    unsafe fn check_medium(src: *const u8, len: usize) -> bool {
+        let mut x: u8x16 = loadu(src);
+        if len >= 32 {
+            x |= loadu::<u8x16>(src.add(16));
+        }
+        if len >= 48 {
+            x |= loadu::<u8x16>(src.add(32));
+        }
+        x |= loadu::<u8x16>(src.add(len - 16));
+        check16(x)
+    }
+
+    /// len >= 64
+    #[inline(always)]
+    unsafe fn check_long(mut src: *const u8, mut len: usize) -> bool {
+        let end = src.add(len / 64 * 64);
+        while src < end {
+            let x: [u8x16; 4] = loadu(src);
+            ensure!(check16(x[0] | x[1] | x[2] | x[3]));
+            src = src.add(64);
+        }
+        len %= 64;
+        if len != 0 {
+            ensure!(check_medium(src, len))
+        }
+        true
+    }
+
+    unsafe {
+        let len = src.len();
+        let src = src.as_ptr();
+
+        if len <= 8 {
+            check_tiny(src, len)
+        } else if len <= 16 {
+            check_short(src, len)
+        } else if len < 64 {
+            check_medium(src, len)
+        } else {
+            check_long(src, len)
+        }
     }
 }

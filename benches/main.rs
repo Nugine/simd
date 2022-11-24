@@ -103,12 +103,12 @@ fn main() {
 
     #[cfg(feature = "unstable")]
     {
-        println!("vsimd::unstable::is_ascii");
+        println!("is_ascii");
         let data = "helloworld".repeat(100_000);
-        let n = 1000;
+        let n = 10000;
         let time = time(|| {
             for _ in 0..n {
-                assert!(vsimd::unstable::is_ascii(data.as_bytes()));
+                assert!(simd_benches::is_ascii(data.as_bytes()));
             }
         });
         let time_per_op = time / n as u128;
