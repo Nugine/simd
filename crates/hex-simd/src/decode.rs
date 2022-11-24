@@ -2,7 +2,7 @@ use crate::Error;
 
 use vsimd::hex::unhex;
 use vsimd::is_isa_type;
-use vsimd::isa::{InstructionSet, AVX2, SSE2, WASM128};
+use vsimd::isa::{Fallback, InstructionSet, AVX2, SSE2, WASM128};
 use vsimd::matches_isa;
 use vsimd::tools::read;
 use vsimd::vector::V64;
@@ -23,29 +23,31 @@ unsafe fn decode_bits(src: *const u8, dst: *mut u8) -> u8 {
 }
 
 #[inline(always)]
-unsafe fn decode_short(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
-    let end = src.add(len);
-    let mut flag = 0;
-    while src < end {
-        flag |= decode_bits(src, dst);
-        src = src.add(2);
-        dst = dst.add(1);
-    }
-    ensure!(flag != 0xff);
-    Ok(())
-}
-
-/// FIXME: work around for suboptimal auto-vectorization (AVX2, WASM128)
-#[inline(always)]
-unsafe fn decode_short_sc(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error> {
-    let end = src.add(len);
-    while src < end {
-        let flag = decode_bits(src, dst);
+unsafe fn decode_short<S>(mut src: *const u8, len: usize, mut dst: *mut u8) -> Result<(), Error>
+where
+    S: InstructionSet,
+{
+    // FIXME: work around for suboptimal auto-vectorization (AVX2, WASM128)
+    if matches_isa!(S, AVX2 | WASM128) {
+        let end = src.add(len);
+        while src < end {
+            let flag = decode_bits(src, dst);
+            ensure!(flag != 0xff);
+            src = src.add(2);
+            dst = dst.add(1);
+        }
+        Ok(())
+    } else {
+        let end = src.add(len);
+        let mut flag = 0;
+        while src < end {
+            flag |= decode_bits(src, dst);
+            src = src.add(2);
+            dst = dst.add(1);
+        }
         ensure!(flag != 0xff);
-        src = src.add(2);
-        dst = dst.add(1);
+        Ok(())
     }
-    Ok(())
 }
 
 #[inline(always)]
@@ -62,7 +64,7 @@ unsafe fn decode_long(mut src: *const u8, len: usize, mut dst: *mut u8) -> Resul
         }
         ensure!(flag != 0xff);
     }
-    decode_short(src, len % 16, dst)
+    decode_short::<Fallback>(src, len % 16, dst)
 }
 
 #[inline(always)]
@@ -147,11 +149,7 @@ pub unsafe fn decode_simd_v256<S: SIMD256>(
         len -= 16;
     }
 
-    if matches_isa!(S, AVX2 | WASM128) {
-        decode_short_sc(src, len, dst)
-    } else {
-        decode_short(src, len, dst)
-    }
+    decode_short::<S>(src, len, dst)
 }
 
 #[inline(always)]
@@ -178,7 +176,7 @@ pub unsafe fn decode_simd_v128<S: SIMD256>(
         dst = dst.add(8);
         len -= 16;
     }
-    decode_short(src, len, dst)
+    decode_short::<S>(src, len, dst)
 }
 
 #[inline(always)]
@@ -202,5 +200,5 @@ pub unsafe fn decode_simd_sse2(s: SSE2, mut src: *const u8, mut len: usize, mut 
         return Ok(());
     }
 
-    decode_short(src, len, dst)
+    decode_short::<SSE2>(src, len, dst)
 }
