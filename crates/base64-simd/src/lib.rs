@@ -249,7 +249,7 @@ impl Base64 {
     /// This function will panic if the length of `dst` is not enough.
     #[inline]
     #[must_use]
-    pub fn encode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: Out<'d, [u8]>) -> &'d mut [u8] {
+    pub fn encode<'d>(&self, src: &[u8], mut dst: Out<'d, [u8]>) -> &'d mut [u8] {
         unsafe {
             let m = encoded_length_unchecked(src.len(), self.config);
             assert!(dst.len() >= m);
@@ -268,7 +268,7 @@ impl Base64 {
     /// This function will panic if the length of `dst` is not enough.
     #[inline]
     #[must_use]
-    pub fn encode_as_str<'s, 'd>(&'_ self, src: &'s [u8], dst: Out<'d, [u8]>) -> &'d mut str {
+    pub fn encode_as_str<'d>(&self, src: &[u8], dst: Out<'d, [u8]>) -> &'d mut str {
         let ans = self.encode(src, dst);
         unsafe { core::str::from_utf8_unchecked_mut(ans) }
     }
@@ -281,7 +281,7 @@ impl Base64 {
     /// # Panics
     /// This function will panic if the length of `dst` is not enough.
     #[inline]
-    pub fn decode<'s, 'd>(&'_ self, src: &'s [u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
+    pub fn decode<'d>(&self, src: &[u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
         unsafe {
             let (n, m) = decoded_length(src, self.config)?;
             assert!(dst.len() >= m);
@@ -299,7 +299,7 @@ impl Base64 {
     /// # Errors
     /// This function returns `Err` if the content of `data` is invalid.
     #[inline]
-    pub fn decode_inplace<'d>(&'_ self, data: &'d mut [u8]) -> Result<&'d mut [u8], Error> {
+    pub fn decode_inplace<'d>(&self, data: &'d mut [u8]) -> Result<&'d mut [u8], Error> {
         unsafe {
             let (n, m) = decoded_length(data, self.config)?;
 

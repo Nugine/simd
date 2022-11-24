@@ -35,7 +35,7 @@ pub fn forgiving_decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
 /// # Panics
 /// This function asserts that `src.len() <= dst.len()`
 #[inline]
-pub fn forgiving_decode<'s, 'd>(src: &'s [u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
+pub fn forgiving_decode<'d>(src: &[u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
     assert!(src.len() <= dst.len());
 
     let pos = find_non_ascii_whitespace(src);
