@@ -23,7 +23,7 @@ function bench(name, iter, input, f) {
         `${name.padEnd(16)}|`,
         `len = ${input.length.toString().padStart(8)}  |`,
         `iter = ${iter.toString().padStart(7)}  |`,
-        `dt = ${dt.toFixed(3).toString().padStart(5)}s  |`,
+        `dt = ${dt.toFixed(3).toString().padStart(8)}s  |`,
         `freq = ${freq.toFixed(3).toString().padStart(12)}/s  |`,
         `time = ${time.toFixed(0).toString().padStart(10)}ns/op`
     ];
