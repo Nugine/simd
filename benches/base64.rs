@@ -8,13 +8,17 @@ pub fn bench_encode(c: &mut Criterion) {
     let mut group = c.benchmark_group("base64-encode");
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
-    let cases = [16, 32, 64, 256, 1024, 4096, 65536];
+    let cases = [16, 32, 64, 256, 1024, 4096, 65536, 1048576];
     let inputs: Vec<Vec<u8>> = map_collect(cases, rand_bytes);
 
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("base64-simd/auto", |src, dst| {
             let _ = base64_simd::STANDARD.encode(src, dst.as_out());
+        }),
+        #[cfg(feature = "parallel")]
+        ("base64-simd/parallel", |src, dst| {
+            let _ = simd_benches::par_base64_encode(src, dst);
         }),
         ("radix64/auto", |src, dst| {
             radix64::STD.encode_slice(src, dst);

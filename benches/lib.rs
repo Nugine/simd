@@ -160,3 +160,69 @@ fn is_ascii_sse2(src: &[u8]) -> bool {
         }
     }
 }
+
+#[allow(clippy::needless_lifetimes)]
+#[cfg(feature = "parallel")]
+#[inline]
+#[must_use]
+pub fn par_base64_encode<'s, 'd>(src: &'s [u8], dst: &'d mut [u8]) -> &'d mut [u8] {
+    use base64_simd::AsOut;
+    use vsimd::tools::{slice, slice_mut};
+
+    let p = rayon::current_num_threads();
+    if p < 2 {
+        return base64_simd::STANDARD.encode(src, dst.as_out());
+    }
+
+    let encoded_len = base64_simd::STANDARD.encoded_length(src.len());
+    assert!(dst.len() >= encoded_len);
+
+    rayon::in_place_scope(|scope| unsafe {
+        let n = src.len();
+        let m = dst.len();
+        let b = n / 3 / p;
+
+        let mut src = src.as_ptr();
+        let mut dst = dst.as_mut_ptr();
+
+        for _ in 1..p {
+            {
+                let src: &'s [u8] = slice(src, b * 3);
+                let dst: &'d mut [u8] = slice_mut(dst, b * 4);
+                scope.spawn(move |_| {
+                    let _ = base64_simd::STANDARD_NO_PAD.encode(src, dst.as_out());
+                });
+            }
+            src = src.add(b * 3);
+            dst = dst.add(b * 4);
+        }
+        {
+            let src: &'s [u8] = slice(src, n - (p - 1) * b * 3);
+            let dst: &'d mut [u8] = slice_mut(dst, m - (p - 1) * b * 4);
+            scope.spawn(move |_| {
+                let _ = base64_simd::STANDARD.encode(src, dst.as_out());
+            });
+        }
+    });
+
+    unsafe { dst.get_unchecked_mut(..encoded_len) }
+}
+
+#[cfg(test)]
+mod tests {
+    /// cargo test -p simd-benches --lib --release --features parallel
+    #[cfg(feature = "parallel")]
+    #[test]
+    fn test_par_base64_encode() {
+        use super::*;
+        use base64_simd::AsOut;
+        let mut buf1 = vec![0; 1_000_000];
+        let mut buf2 = vec![0; 1_000_000];
+        for n in 0..100_000 {
+            let src = rand_bytes(n);
+            let ans1 = par_base64_encode(&src, &mut buf1);
+            let ans2 = base64_simd::STANDARD.encode(&src, buf2.as_out());
+            assert!(ans1 == ans2);
+        }
+    }
+}
