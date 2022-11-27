@@ -116,22 +116,22 @@ fmt:
 test crate:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    ./scripts/testgen.py --crate {{crate}} | bash -ex
+    python3 ./scripts/testgen.py --crate {{crate}} | bash -ex
 
 x86-test crate:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    ./scripts/testgen.py --crate {{crate}} --mode x86 | bash -ex
+    python3 ./scripts/testgen.py --crate {{crate}} --mode x86 | bash -ex
 
 arm-test crate:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    ./scripts/testgen.py --crate {{crate}} --mode arm | bash -ex
+    python3 ./scripts/testgen.py --crate {{crate}} --mode arm | bash -ex
 
 wasm-test crate:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    ./scripts/testgen.py --crate {{crate}} --mode wasm | bash -ex
+    python3 ./scripts/testgen.py --crate {{crate}} --mode wasm | bash -ex
 
 miri-test crate:
     #!/bin/bash -ex
@@ -141,13 +141,13 @@ miri-test crate:
 test-all:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    ./scripts/testgen.py | bash -ex
+    python3 ./scripts/testgen.py | bash -ex
     cargo miri test --workspace --exclude simd-benches --exclude simd-analyze
 
 dump-asm:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    ./scripts/dump-symbols.py --mode asm | bash -ex
+    python3 ./scripts/dump-symbols.py --mode asm | bash -ex
     COMMIT_HASH=`git rev-parse --short HEAD`
     cd target/symbols
     F=$COMMIT_HASH-asm.txt
@@ -158,7 +158,7 @@ dump-asm:
 dump-llvm-ir:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    ./scripts/dump-symbols.py --mode llvm-ir | bash -ex
+    python3 ./scripts/dump-symbols.py --mode llvm-ir | bash -ex
     COMMIT_HASH=`git rev-parse --short HEAD`
     cd target/symbols
     F=$COMMIT_HASH-llvm-ir.txt

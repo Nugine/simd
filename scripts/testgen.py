@@ -1,6 +1,6 @@
-#!/usr/bin/python3
 from itertools import product
 import argparse
+import subprocess
 
 CRATES = [
     "vsimd",
@@ -59,21 +59,27 @@ TARGET_REMAP = {
 TEST_MODES = ["x86", "arm", "wasm"]
 
 
-def gen(mode, target, rustflag):
+def gen(mode: str, target: str, rustflag: str, host: str):
     for feat in product(*FEATURES):
         feat = ",".join(s for s in feat if len(s) > 0)
         if len(feat) > 0:
             feat = "--features " + feat
 
         if mode == "x86" or mode == "arm":
-            use_cross = mode == "arm" or target == "i686-unknown-linux-gnu"
+            use_cross = target != host
             prog = "cross" if use_cross else "cargo"
             lib = "--lib" if mode == "x86" else ""
             print(f'RUSTFLAGS="{rustflag}" {prog} test --target {target} {lib} --no-default-features {feat} $@')
         elif mode == "wasm":
             print(f'RUSTFLAGS="{rustflag}" wasm-pack test --node -- --no-default-features {feat} $@')
-        else:
-            pass
+
+
+def get_rustc_host():
+    v = subprocess.check_output(["rustc", "-V", "-v"]).decode()
+    for line in v.splitlines():
+        if line.startswith("host:"):
+            return line.split()[1]
+    raise Exception("Failed to get host")
 
 
 if __name__ == "__main__":
@@ -82,6 +88,8 @@ if __name__ == "__main__":
     opt.add_argument("--crate", type=str, choices=CRATES)
     opt.add_argument("--target", type=str)
     args = opt.parse_args()
+
+    host = get_rustc_host()
 
     modes = TEST_MODES
     targets = TARGETS
@@ -109,5 +117,5 @@ if __name__ == "__main__":
 
                 for crate in crates:
                     print(f"pushd crates/{crate}")
-                    gen(mode, target, rustflag)
+                    gen(mode, target, rustflag, host)
                     print("popd")

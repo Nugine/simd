@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import argparse
 
 SYMBOLS = {
@@ -65,19 +64,18 @@ if __name__ == "__main__":
                     if target == "wasm32-unknown-unknown":
                         rustflags.append("-C target-feature=+simd128")
 
-                    match args.mode:
-                        case "asm":
-                            extra_flags = "--wasm" if target == "wasm32-unknown-unknown" else ""
-                            print(
-                                f'RUSTFLAGS="{space_join(rustflags)}" '
-                                f"cargo asm -p {pkg} --simplify --features unstable --target {target} {extra_flags} -- {symbol} "
-                                f"| awk NF"
-                                f"> target/symbols/{target}/{symbol}.asm"
-                            )
-                        case "llvm-ir":
-                            rustflags.append("-Cdebuginfo=0")
-                            print(
-                                f'RUSTFLAGS="{space_join(rustflags)}" '
-                                f"cargo asm -p {pkg} --llvm --features unstable --target {target} -- {symbol} "
-                                f"> target/symbols/{target}/{symbol}.ll"
-                            )
+                    if args.mode == "asm":
+                        extra_flags = "--wasm" if target == "wasm32-unknown-unknown" else ""
+                        print(
+                            f'RUSTFLAGS="{space_join(rustflags)}" '
+                            f"cargo asm -p {pkg} --simplify --features unstable --target {target} {extra_flags} -- {symbol} "
+                            f"| awk NF"
+                            f"> target/symbols/{target}/{symbol}.asm"
+                        )
+                    elif args.mode == "llvm-ir":
+                        rustflags.append("-Cdebuginfo=0")
+                        print(
+                            f'RUSTFLAGS="{space_join(rustflags)}" '
+                            f"cargo asm -p {pkg} --llvm --features unstable --target {target} -- {symbol} "
+                            f"> target/symbols/{target}/{symbol}.ll"
+                        )

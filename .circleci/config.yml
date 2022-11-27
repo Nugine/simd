@@ -1,0 +1,26 @@
+version: 2.1
+orbs:
+  python: circleci/python@2.1.1
+
+jobs:
+  test-aarch64:
+    machine:
+      image: ubuntu-2004:current
+    resource_class: arm.large
+    steps:
+      - checkout
+      - run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain nightly -y
+      - run: |
+          rustc -V -v
+          python3 -V
+      - run: |
+          python3 ./scripts/testgen.py --target aarch64-unknown-linux-gnu | bash -ex
+
+workflows:
+  test:
+    jobs:
+      - test-aarch64:
+          filters:
+            branches:
+              only: main

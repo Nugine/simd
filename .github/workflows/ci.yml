@@ -63,8 +63,7 @@ jobs:
           tool: cross
       - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - run: |
-          T="${{ matrix.target }}"
-          ./scripts/testgen.py --target $T | bash -ex
+          python3 ./scripts/testgen.py --target "${{ matrix.target }}" | bash -ex
 
   miri:
     runs-on: ubuntu-latest
