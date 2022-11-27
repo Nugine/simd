@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - benchmark
+  schedule: # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
+    - cron: '0 0 * * 0' # at midnight of each sunday
+
+name: Benchmark
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dispatch:
+          - static-unstable
+          - dynamic
+          - fallback
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: taiki-e/install-action@v1
+        with:
+          tool: just,bat,cargo-criterion
+      - run: just bench ${{ matrix.dispatch }}
+      - run: |
+          COMMIT_HASH=`git rev-parse --short HEAD`
+          NAME=target/simd-benches/$COMMIT_HASH-${{ matrix.dispatch }}
+          echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
+          echo "artifactPath=$NAME.md" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v2
+        with:
+          name: benchmark-${{ env.COMMIT_HASH }}-${{ matrix.dispatch }}.md
+          path: ${{ env.artifactPath }}
