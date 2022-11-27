@@ -50,20 +50,12 @@ bench dispatch *ARGS:
     NAME=target/simd-benches/$COMMIT_HASH-{{dispatch}}
 
     export CARGO_TERM_QUIET=true
-    cargo build -p simd-analyze
+    if [ ! -f ./target/debug/simd-analyze ]; then
+        cargo build -p simd-analyze
+    fi
     time cargo criterion -p simd-benches --history-id $COMMIT_HASH --message-format json --features "$FEATURES" {{ARGS}} > $NAME.jsonl
-    just analyze $COMMIT_HASH {{dispatch}} > $NAME.md
+    ./target/debug/simd-analyze ./target/simd-benches/$COMMIT_HASH-{{dispatch}}.jsonl > $NAME.md
     bat --paging=never $NAME.md
-
-bench-all:
-    just bench static
-    just bench dynamic
-    just bench fallback
-
-analyze commit dispatch:
-    #!/bin/bash -ex
-    cd {{justfile_directory()}}
-    ./target/debug/simd-analyze target/simd-benches/{{commit}}-{{dispatch}}.jsonl
 
 js-bench:
     #!/bin/bash -e
