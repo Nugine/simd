@@ -24,12 +24,14 @@ jobs:
         with:
           tool: just,bat,cargo-criterion
       - run: just bench ${{ matrix.dispatch }}
-      - run: |
+      - name: Show results
+        run: |
           COMMIT_HASH=`git rev-parse --short HEAD`
           NAME=target/simd-benches/$COMMIT_HASH-${{ matrix.dispatch }}
           echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
           echo "artifactPath=$NAME.md" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v2
+          bat --paging=never $NAME.md
+      - uses: actions/upload-artifact@v3
         with:
-          name: benchmark-${{ env.COMMIT_HASH }}-${{ matrix.dispatch }}.md
+          name: benchmark-${{ env.COMMIT_HASH }}
           path: ${{ env.artifactPath }}

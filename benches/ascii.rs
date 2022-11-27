@@ -18,8 +18,11 @@ pub fn bench_check(c: &mut Criterion) {
     let inputs: Vec<Vec<u8>> = map_collect(cases, gen_ascii);
 
     let functions: &FnGroup<fn(&[u8])> = &[
+        ("unicode-simd/auto", |src: &[u8]| {
+            assert!(unicode_simd::is_ascii_ct(src));
+        }),
         #[cfg(all(feature = "unstable", target_arch = "x86_64", target_feature = "sse2"))]
-        ("simd/sse2", |src: &[u8]| {
+        ("simd-benches/sse2", |src: &[u8]| {
             assert!(simd_benches::is_ascii(src)); //
         }),
         ("encoding_rs/auto", |src: &[u8]| {
