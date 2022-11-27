@@ -8,8 +8,13 @@ pub fn bench_encode(c: &mut Criterion) {
     let mut group = c.benchmark_group("base64-encode");
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
-    let cases = [16, 32, 64, 256, 1024, 4096, 65536, 1048576];
-    let inputs: Vec<Vec<u8>> = map_collect(cases, rand_bytes);
+    let inputs: Vec<Vec<u8>> = {
+        let mut cases = vec![16, 32, 64, 256, 1024, 4096, 64 * 1024];
+        if cfg!(feature = "parallel") {
+            cases.extend_from_slice(&[256 * 1024, 512 * 1024, 1024 * 1024]);
+        }
+        map_collect(cases, rand_bytes)
+    };
 
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[

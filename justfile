@@ -29,6 +29,10 @@ bench dispatch *ARGS:
             export RUSTFLAGS="-C target-cpu=native"
             FEATURES="unstable"
             ;;
+        static-experimental)
+            export RUSTFLAGS="-C target-cpu=native"
+            FEATURES="unstable,parallel"
+            ;;
         dynamic)
             export RUSTFLAGS=""
             FEATURES="detect"

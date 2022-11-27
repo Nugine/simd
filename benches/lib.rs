@@ -167,45 +167,32 @@ fn is_ascii_sse2(src: &[u8]) -> bool {
 #[must_use]
 pub fn par_base64_encode<'s, 'd>(src: &'s [u8], dst: &'d mut [u8]) -> &'d mut [u8] {
     use base64_simd::AsOut;
-    use vsimd::tools::{slice, slice_mut};
+    use rayon::prelude::{IndexedParallelIterator, ParallelIterator};
+    use rayon::slice::{ParallelSlice, ParallelSliceMut};
 
     let p = rayon::current_num_threads();
-    if p < 2 {
+    let b = src.len() / 3;
+    if p < 2 || b < p {
         return base64_simd::STANDARD.encode(src, dst.as_out());
     }
 
     let encoded_len = base64_simd::STANDARD.encoded_length(src.len());
-    assert!(dst.len() >= encoded_len);
+    let dst = &mut dst[..encoded_len];
 
-    rayon::in_place_scope(|scope| unsafe {
-        let n = src.len();
-        let m = dst.len();
-        let b = n / 3 / p;
+    let chunks = (b + p) / p;
 
-        let mut src = src.as_ptr();
-        let mut dst = dst.as_mut_ptr();
+    let src_chunks = src.par_chunks(chunks * 3);
+    let dst_chunks = dst.par_chunks_mut(chunks * 4);
 
-        for _ in 1..p {
-            {
-                let src: &'s [u8] = slice(src, b * 3);
-                let dst: &'d mut [u8] = slice_mut(dst, b * 4);
-                scope.spawn(move |_| {
-                    let _ = base64_simd::STANDARD_NO_PAD.encode(src, dst.as_out());
-                });
-            }
-            src = src.add(b * 3);
-            dst = dst.add(b * 4);
-        }
-        {
-            let src: &'s [u8] = slice(src, n - (p - 1) * b * 3);
-            let dst: &'d mut [u8] = slice_mut(dst, m - (p - 1) * b * 4);
-            scope.spawn(move |_| {
-                let _ = base64_simd::STANDARD.encode(src, dst.as_out());
-            });
+    src_chunks.zip(dst_chunks).for_each(|(s, d)| {
+        if s.len() % 3 == 0 {
+            let _ = base64_simd::STANDARD_NO_PAD.encode(s, d.as_out());
+        } else {
+            let _ = base64_simd::STANDARD.encode(s, d.as_out());
         }
     });
 
-    unsafe { dst.get_unchecked_mut(..encoded_len) }
+    dst
 }
 
 #[cfg(test)]
@@ -216,13 +203,13 @@ mod tests {
     fn test_par_base64_encode() {
         use super::*;
         use base64_simd::AsOut;
-        let mut buf1 = vec![0; 1_000_000];
-        let mut buf2 = vec![0; 1_000_000];
-        for n in 0..100_000 {
+        let mut buf1 = vec![0; 100_000];
+        let mut buf2 = vec![0; 100_000];
+        for n in 0..50_000 {
             let src = rand_bytes(n);
             let ans1 = par_base64_encode(&src, &mut buf1);
             let ans2 = base64_simd::STANDARD.encode(&src, buf2.as_out());
-            assert!(ans1 == ans2);
+            assert!(ans1 == ans2, "n = {n}");
         }
     }
 }
