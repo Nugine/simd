@@ -17,45 +17,7 @@ doc pkg="vsimd":
 bench dispatch *ARGS:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
-    mkdir -p target/simd-benches
-    COMMIT_HASH=`git rev-parse --short HEAD`
-
-    case "{{dispatch}}" in
-        static)
-            export RUSTFLAGS="-C target-cpu=native"
-            FEATURES=""
-            ;;
-        static-unstable)
-            export RUSTFLAGS="-C target-cpu=native"
-            FEATURES="unstable"
-            ;;
-        static-experimental)
-            export RUSTFLAGS="-C target-cpu=native"
-            FEATURES="unstable,parallel"
-            ;;
-        dynamic)
-            export RUSTFLAGS=""
-            FEATURES="detect"
-            ;;
-        fallback)
-            export RUSTFLAGS=""
-            FEATURES=""
-            ;;
-        *)
-            echo "Unknown dispatch: {{dispatch}}"
-            exit 1
-            ;;
-    esac
-
-    NAME=target/simd-benches/$COMMIT_HASH-{{dispatch}}
-
-    export CARGO_TERM_QUIET=true
-    if [ ! -f ./target/debug/simd-analyze ]; then
-        cargo build -p simd-analyze
-    fi
-    time cargo criterion -p simd-benches --history-id $COMMIT_HASH --message-format json --features "$FEATURES" {{ARGS}} > $NAME.jsonl
-    ./target/debug/simd-analyze ./target/simd-benches/$COMMIT_HASH-{{dispatch}}.jsonl > $NAME.md
-    bat --paging=never $NAME.md
+    DISPATCH={{dispatch}} ./scripts/bench.sh {{ARGS}}
 
 js-bench:
     #!/bin/bash -e

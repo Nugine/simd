@@ -16,6 +16,31 @@ jobs:
           python3 -V
       - run: |
           python3 ./scripts/testgen.py --target aarch64-unknown-linux-gnu | bash -ex
+  bench-aarch64:
+    parameters:
+      dispatch:
+        type: string
+    machine:
+      image: ubuntu-2004:current
+    resource_class: arm.large
+    steps:
+      - checkout
+      - run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain nightly -y
+      - run: |
+          rustc -V -v
+          python3 -V
+      - run: |
+          cargo install cargo-criterion
+      - run: |
+          DISPATCH=<< parameters.dispatch >> ./scripts/bench.sh --benches --plotting-backend disabled -- --warm-up-time 1 --measurement-time 1
+      - run: |
+          COMMIT_HASH=`git rev-parse --short HEAD`
+          NAME=target/simd-benches/$COMMIT_HASH-<< parameters.dispatch >>
+          mv $NAME.md result.md
+          cat result.md
+      - store_artifacts:
+          path: result.md
 
 workflows:
   test:
@@ -24,3 +49,15 @@ workflows:
           filters:
             branches:
               only: main
+  bench:
+    jobs:
+      - bench-aarch64:
+          filters:
+            branches:
+              only: benchmark
+          matrix:
+            parameters:
+              dispatch:
+                - static-unstable
+                - dynamic
+                - fallback

@@ -22,15 +22,16 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
       - uses: taiki-e/install-action@v1
         with:
-          tool: just,bat,cargo-criterion
-      - run: just bench ${{ matrix.dispatch }}
+          tool: cargo-criterion
+      - run: |
+          DISPATCH=${{ matrix.dispatch }} ./scripts/bench.sh --benches --plotting-backend disabled -- --warm-up-time 1 --measurement-time 1
       - name: Show results
         run: |
           COMMIT_HASH=`git rev-parse --short HEAD`
           NAME=target/simd-benches/$COMMIT_HASH-${{ matrix.dispatch }}
           echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
           echo "artifactPath=$NAME.md" >> $GITHUB_ENV
-          bat --paging=never $NAME.md
+          cat $NAME.md
       - uses: actions/upload-artifact@v3
         with:
           name: benchmark-${{ env.COMMIT_HASH }}
