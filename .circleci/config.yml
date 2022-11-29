@@ -32,6 +32,7 @@ jobs:
           python3 -V
       - run: |
           cargo install cargo-criterion
+          pip3 install tabulate
       - run: |
           DISPATCH=<< parameters.dispatch >> ./scripts/bench.sh --benches --plotting-backend disabled -- --warm-up-time 1 --measurement-time 1
       - run: |

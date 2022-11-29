@@ -38,9 +38,9 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - run: |
           if [ "${{ matrix.toolchain }}" = "stable" ]; then
-            cargo test  --release --workspace --exclude simd-benches --exclude simd-analyze
+            cargo test  --release --workspace --exclude simd-benches
           else
-            cargo build --release --workspace --exclude simd-benches --exclude simd-analyze
+            cargo build --release --workspace --exclude simd-benches
           fi
 
   test:
@@ -73,4 +73,4 @@ jobs:
         with: 
           components: miri
       - run: |
-          cargo miri test --workspace --exclude simd-benches --exclude simd-analyze
+          cargo miri test --workspace --exclude simd-benches

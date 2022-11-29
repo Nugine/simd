@@ -24,6 +24,8 @@ jobs:
         with:
           tool: cargo-criterion
       - run: |
+          pip3 install tabulate
+      - run: |
           DISPATCH=${{ matrix.dispatch }} ./scripts/bench.sh --benches --plotting-backend disabled -- --warm-up-time 1 --measurement-time 1
       - name: Show results
         run: |

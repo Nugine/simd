@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/*", "benches", "analyze"]
+members = ["crates/*", "benches"]
 resolver = "2"
 
 [profile.test]
