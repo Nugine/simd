@@ -1,53 +1,26 @@
 #!/usr/bin/python3
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
-from pprint import pprint
+from typing import Any, Dict, List
 import sys
 import json
 
 from tabulate import tabulate
 
-BENCHES = {
-    "base64-check": {
-        "metric": "throughput",
-    },
-    "base64-decode": {
-        "metric": "throughput",
-    },
-    "base64-encode": {
-        "metric": "throughput",
-    },
-    "base64-forgiving-decode": {
-        "metric": "throughput",
-    },
-    "hex-check": {
-        "metric": "throughput",
-    },
-    "hex-decode": {
-        "metric": "throughput",
-    },
-    "hex-encode": {
-        "metric": "throughput",
-    },
-    "base32-check": {
-        "metric": "throughput",
-    },
-    "base32-decode": {
-        "metric": "throughput",
-    },
-    "base32-encode": {
-        "metric": "throughput",
-    },
-    "uuid-format": {
-        "metric": "latency",
-    },
-    "uuid-parse": {
-        "metric": "latency",
-    },
-    "ascii-check": {
-        "metric": "throughput",
-    },
-}
+BENCHES = [
+    {"name": "base64-check", "metric": "throughput"},
+    {"name": "base64-decode", "metric": "throughput"},
+    {"name": "base64-encode", "metric": "throughput"},
+    {"name": "base64-forgiving-decode", "metric": "throughput"},
+    {"name": "hex-check", "metric": "throughput"},
+    {"name": "hex-decode", "metric": "throughput"},
+    {"name": "hex-encode", "metric": "throughput"},
+    {"name": "base32-check", "metric": "throughput"},
+    {"name": "base32-decode", "metric": "throughput"},
+    {"name": "base32-encode", "metric": "throughput"},
+    {"name": "uuid-format", "metric": "latency"},
+    {"name": "uuid-parse", "metric": "latency"},
+    {"name": "ascii-check", "metric": "throughput"},
+]
 
 
 @dataclass
@@ -96,12 +69,19 @@ def append_if_not_exists(l, x):
         l.append(x)
 
 
+def find(l, f):
+    for x in l:
+        if f(x):
+            return x
+    raise Exception()
+
+
 def gather_results(items: List[Any]) -> List[BenchResult]:
     results: Dict[str, BenchResult] = {}
 
     for item in items:
         name = item["bench"]
-        metric = BENCHES[name]["metric"]
+        metric = find(BENCHES, lambda x: x["name"] == name)["metric"]
         r = results.setdefault(name, BenchResult(name, metric, [], [], {}))
 
         function = f'{item["crate"]}/{item["variant"]}'
@@ -127,7 +107,16 @@ def gather_results(items: List[Any]) -> List[BenchResult]:
     return list(results.values())
 
 
+def position(l, f):
+    for i, x in enumerate(l):
+        if f(x):
+            return i
+    raise Exception()
+
+
 def render_markdown(results: List[BenchResult]):
+    results.sort(key=lambda x: position(BENCHES, lambda y: y["name"] == x.name))
+
     for result in results:
         metric2unit = {"throughput": "GiB/s", "latency": "ns"}
         unit = metric2unit[result.metric]

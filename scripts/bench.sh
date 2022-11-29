@@ -36,7 +36,7 @@ export CARGO_TERM_QUIET=true
 
 time cargo criterion -p simd-benches --history-id "$COMMIT_HASH" --message-format json --features "$FEATURES" "$@" > "$NAME.jsonl"
 
-./scripts/analyze.py "./target/simd-benches/$COMMIT_HASH-$DISPATCH.jsonl" > "$NAME.md"
+python3 ./scripts/analyze.py "./target/simd-benches/$COMMIT_HASH-$DISPATCH.jsonl" > "$NAME.md"
 
 if which bat; then
     bat --paging=never "$NAME.md"

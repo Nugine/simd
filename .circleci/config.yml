@@ -59,6 +59,6 @@ workflows:
           matrix:
             parameters:
               dispatch:
-                - static-unstable
+                - static
                 - dynamic
                 - fallback
