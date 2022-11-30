@@ -14,8 +14,8 @@ SYMBOLS = {
         "find_non_ascii_whitespace": ["avx2", "sse2", "neon", "simd128"],
     },
     "unicode-simd": {
-        "is_ascii_ct": ["avx2", "sse2", "neon", "simd128"],
-        "is_utf32le_ct": ["avx2", "sse4.1", "neon", "simd128"],
+        "is_ascii": ["avx2", "sse2", "neon", "simd128"],
+        "is_utf32le": ["avx2", "sse4.1", "neon", "simd128"],
         "utf32_swap_endianness": ["avx2", "ssse3", "neon", "simd128"],
         "utf16_swap_endianness": ["avx2", "ssse3", "neon", "simd128"],
     },

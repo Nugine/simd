@@ -33,26 +33,20 @@ pub use outref::{AsOut, Out};
 
 use vsimd::tools::{slice_mut, slice_parts};
 
-/// Checks if `data` is a valid ASCII string, in constant-time.
-///
-/// This function always scans the entire input
-/// without data-dependent branches or lookup tables.
-///
-/// This function is faster than the short-circuiting version
-/// if the inputs are mostly valid ASCII strings.
+/// Checks if `data` is a valid ASCII string.
 #[inline]
 #[must_use]
-pub fn is_ascii_ct(data: &[u8]) -> bool {
+pub fn is_ascii(data: &[u8]) -> bool {
     let (src, len) = slice_parts(data);
-    unsafe { crate::multiversion::is_ascii_ct::auto(src, len) }
+    unsafe { crate::multiversion::is_ascii::auto(src, len) }
 }
 
 /// TODO: test, bench
 #[inline]
 #[must_use]
-pub fn is_utf32le_ct(data: &[u32]) -> bool {
+pub fn is_utf32le(data: &[u32]) -> bool {
     let (src, len) = slice_parts(data);
-    unsafe { crate::multiversion::is_utf32le_ct::auto(src, len) }
+    unsafe { crate::multiversion::is_utf32le::auto(src, len) }
 }
 
 /// TODO: test, bench

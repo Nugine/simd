@@ -25,7 +25,7 @@ fn bench_base64(n: usize, src: &str) -> u128 {
 fn bench_ascii(n: usize, data: &[u8]) -> u128 {
     time(|| {
         for _ in 0..n {
-            assert!(unicode_simd::is_ascii_ct(data));
+            assert!(unicode_simd::is_ascii(data));
         }
     })
 }
@@ -34,7 +34,7 @@ fn bench_ascii(n: usize, data: &[u8]) -> u128 {
 fn bench_utf32(n: usize, data: &[u32]) -> u128 {
     time(|| {
         for _ in 0..n {
-            assert!(unicode_simd::is_utf32le_ct(data));
+            assert!(unicode_simd::is_utf32le(data));
         }
     })
 }
@@ -73,7 +73,7 @@ fn main() {
     }
 
     {
-        println!("unicode-simd is_ascii_ct");
+        println!("unicode-simd is_ascii");
         let data = "helloworld".repeat(100_000);
         let n = 10000;
         let time = bench_ascii(n, data.as_bytes());
@@ -87,7 +87,7 @@ fn main() {
     }
 
     {
-        println!("unicode-simd is_utf32le_ct");
+        println!("unicode-simd is_utf32le");
         let data: Vec<u32> = "helloworld".repeat(100_000).chars().map(|ch| ch as u32).collect();
         let n = 1000;
         let time = bench_utf32(n, &data);

@@ -1,19 +1,19 @@
 #![allow(missing_docs)]
 
 vsimd::dispatch! (
-    name        = {is_ascii_ct},
+    name        = {is_ascii},
     signature   = {pub unsafe fn(src: *const u8, len: usize) -> bool},
-    fallback    = {crate::ascii::is_ascii_ct_fallback},
-    simd        = {crate::ascii::is_ascii_ct_simd},
+    fallback    = {crate::ascii::is_ascii_fallback},
+    simd        = {crate::ascii::is_ascii_simd},
     targets     = {"avx2", "sse2", "neon", "simd128"},
     fastest     = {"avx2", "neon", "simd128"},
 );
 
 vsimd::dispatch!(
-    name        = {is_utf32le_ct},
+    name        = {is_utf32le},
     signature   = {pub unsafe fn(src: *const u32, len: usize) -> bool},
-    fallback    = {crate::utf32::is_utf32le_ct_fallback},
-    simd        = {crate::utf32::is_utf32le_ct_simd},
+    fallback    = {crate::utf32::is_utf32le_fallback},
+    simd        = {crate::utf32::is_utf32le_simd},
     targets     = {"avx2", "sse4.1", "neon", "simd128"},
     fastest     = {"avx2", "neon", "simd128"},
 );
