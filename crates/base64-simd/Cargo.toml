@@ -28,7 +28,7 @@ vsimd = { path = "../vsimd", version = "0.8.0-dev" }
 [dev-dependencies]
 base64 = "0.13.1"
 rand = "0.8.5"
-const-str = "0.5.2"
+const-str = "0.5.3"
 
 [target.'cfg(target_arch="wasm32")'.dev-dependencies]
 getrandom = { version = "0.2.8", features = ["js"] }

@@ -21,7 +21,7 @@ detect = ["std"]
 unstable = []
 
 [dev-dependencies]
-const-str = "0.5.2"
+const-str = "0.5.3"
 rand = "0.8.5"
 
 [target.'cfg(target_arch="wasm32")'.dev-dependencies]
