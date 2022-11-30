@@ -1,5 +1,3 @@
-#![cfg_attr(feature = "unstable", feature(portable_simd), feature(array_chunks))]
-
 use rand::RngCore;
 
 pub fn rand_bytes(len: usize) -> Vec<u8> {
@@ -35,25 +33,24 @@ pub mod faster_hex {
     }
 }
 
-#[inline]
-#[must_use]
-pub fn is_ascii(src: &[u8]) -> bool {
-    #[cfg(all(feature = "unstable", target_arch = "x86_64", target_feature = "sse2"))]
-    {
-        is_ascii_sse2(src)
-    }
-    #[cfg(not(all(feature = "unstable", target_arch = "x86_64", target_feature = "sse2")))]
-    {
-        src.is_ascii()
-    }
-}
+// #[inline]
+// #[must_use]
+// pub fn is_ascii(src: &[u8]) -> bool {
+//     #[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
+//     {
+//         is_ascii_sse2(src)
+//     }
+//     #[cfg(not(all(target_arch = "x86_64", target_feature = "sse2")))]
+//     {
+//         src.is_ascii()
+//     }
+// }
 
-#[cfg(all(feature = "unstable", target_arch = "x86_64", target_feature = "sse2"))]
+#[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
 #[inline]
 #[must_use]
-fn is_ascii_sse2(src: &[u8]) -> bool {
-    use core::ops::Not;
-    use core::simd::*;
+pub fn is_ascii_sse2(src: &[u8]) -> bool {
+    use core::arch::x86_64::*;
 
     macro_rules! ensure {
         ($cond:expr) => {
@@ -79,8 +76,13 @@ fn is_ascii_sse2(src: &[u8]) -> bool {
     }
 
     #[inline(always)]
-    fn check16(x: u8x16) -> bool {
-        x.cast::<i8>().simd_lt(i8x16::splat(0)).any().not()
+    unsafe fn check16(x: __m128i) -> bool {
+        _mm_movemask_epi8(x) as u32 as u16 == 0
+    }
+
+    #[inline(always)]
+    unsafe fn or(a: __m128i, b: __m128i) -> __m128i {
+        _mm_or_si128(a, b)
     }
 
     /// len in 0..=8
@@ -118,14 +120,14 @@ fn is_ascii_sse2(src: &[u8]) -> bool {
     /// len in 17..64
     #[inline(always)]
     unsafe fn check_medium(src: *const u8, len: usize) -> bool {
-        let mut x: u8x16 = loadu(src);
+        let mut x: __m128i = loadu(src);
         if len >= 32 {
-            x |= loadu::<u8x16>(src.add(16));
+            x = or(x, loadu(src.add(16)));
         }
         if len >= 48 {
-            x |= loadu::<u8x16>(src.add(32));
+            x = or(x, loadu(src.add(32)));
         }
-        x |= loadu::<u8x16>(src.add(len - 16));
+        x = or(x, loadu(src.add(len - 16)));
         check16(x)
     }
 
@@ -134,8 +136,8 @@ fn is_ascii_sse2(src: &[u8]) -> bool {
     unsafe fn check_long(mut src: *const u8, mut len: usize) -> bool {
         let end = src.add(len / 64 * 64);
         while src < end {
-            let x: [u8x16; 4] = loadu(src);
-            ensure!(check16(x[0] | x[1] | x[2] | x[3]));
+            let x: [__m128i; 4] = loadu(src);
+            ensure!(check16(or(or(x[0], x[1]), or(x[2], x[3]))));
             src = src.add(64);
         }
         len %= 64;

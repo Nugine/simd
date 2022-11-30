@@ -100,23 +100,4 @@ fn main() {
 
         println!();
     }
-
-    #[cfg(feature = "unstable")]
-    {
-        println!("is_ascii");
-        let data = "helloworld".repeat(100_000);
-        let n = 10000;
-        let time = time(|| {
-            for _ in 0..n {
-                assert!(simd_benches::is_ascii(data.as_bytes()));
-            }
-        });
-        let time_per_op = time / n as u128;
-        let throughput = throughput(n as u128 * data.len() as u128, time);
-        println!(
-            "long  | n = {n:<8} time = {:>8} ns, throughout = {:.6} GiB/s",
-            time_per_op, throughput
-        );
-        println!();
-    }
 }
