@@ -46,6 +46,7 @@ detect = [
     "hex-simd/detect",
     "unicode-simd/detect",
     "uuid-simd/detect",
+    "radix64/simd",
 ]
 unstable = [
     "vsimd/unstable",
@@ -94,7 +95,7 @@ rand = "0.8.5"
 uuid = "1.2.2"
 const-str = "0.5.3"
 faster-hex = "0.6.1"
-radix64 = "0.6.2"
+radix64 = { version = "0.6.2", default-features = false }
 base64 = "0.13.1"
 hex = "0.4.3"
 base16 = "0.2.1"
