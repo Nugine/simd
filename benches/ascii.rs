@@ -21,10 +21,6 @@ pub fn bench_check(c: &mut Criterion) {
         ("unicode-simd/auto", |src: &[u8]| {
             assert!(unicode_simd::is_ascii(src));
         }),
-        #[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
-        ("simd-benches/sse2", |src: &[u8]| {
-            assert!(simd_benches::is_ascii_sse2(src)); //
-        }),
         ("encoding_rs/auto", |src: &[u8]| {
             assert!(encoding_rs::mem::is_ascii(src)); //
         }),

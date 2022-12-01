@@ -16,7 +16,12 @@
     clippy::missing_inline_in_public_items
 )]
 #![warn(clippy::todo)]
-#![allow(clippy::inline_always)]
+#![allow(
+    clippy::inline_always,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation,
+    clippy::wildcard_imports
+)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
