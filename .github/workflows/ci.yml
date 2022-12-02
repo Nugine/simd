@@ -61,7 +61,10 @@ jobs:
       - uses: taiki-e/install-action@v1
         with:
           tool: cross
-      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | bash
+      - run: |
+          if [ "${{ matrix.target }}" == "wasm32-unknown-unknown" ]; then
+            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | bash
+          fi
       - run: |
           python3 ./scripts/testgen.py --target "${{ matrix.target }}" | bash -ex
 
