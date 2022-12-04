@@ -17,6 +17,12 @@ The crates automatically select SIMD functions when available and provide fast f
 
 Benchmark results are available in [Benchmark Dashboard](https://github.com/Nugine/simd/issues/25).
 
+## Goals
+
++ Performance: To be the fastest
++ Productivity: Efficient SIMD abstractions
++ Ergonomics: Easy to use
+
 ## Safety
 
 This project relies heavily on unsafe code. We encourage everyone to review the code and report any issues.
