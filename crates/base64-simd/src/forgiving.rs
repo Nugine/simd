@@ -140,11 +140,7 @@ mod tests {
             let mut buf = src.to_owned().into_bytes();
 
             let ans = forgiving_decode_inplace(&mut buf).unwrap();
-            assert_eq!(
-                ans, expected,
-                "src = {:?}, expected = {:02X?}, ans = {:02X?}",
-                src, expected, ans
-            );
+            assert_eq!(ans, expected);
 
             let ans = crate::forgiving_decode(src.as_bytes(), buf.as_out()).unwrap();
             assert_eq!(ans, expected);

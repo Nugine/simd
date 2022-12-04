@@ -79,10 +79,7 @@ fn main() {
         let time = bench_ascii(n, data.as_bytes());
         let time_per_op = time / n as u128;
         let throughput = throughput(n as u128 * data.len() as u128, time);
-        println!(
-            "long  | n = {n:<8} time = {:>8} ns, throughout = {:.6} GiB/s",
-            time_per_op, throughput
-        );
+        println!("long  | n = {n:<8} time = {time_per_op:>8} ns, throughout = {throughput:.6} GiB/s",);
         println!();
     }
 
@@ -93,11 +90,7 @@ fn main() {
         let time = bench_utf32(n, &data);
         let time_per_op = time / n as u128;
         let throughput = throughput(n as u128 * data.len() as u128 * 4, time);
-        println!(
-            "long  | n = {n:<8} time = {:>8} ns, throughput = {:.6} GiB/s",
-            time_per_op, throughput
-        );
-
+        println!("long  | n = {n:<8} time = {time_per_op:>8} ns, throughput = {throughput:.6} GiB/s",);
         println!();
     }
 }
