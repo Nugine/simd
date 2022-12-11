@@ -1225,37 +1225,3 @@ pub unsafe trait SIMD128: SIMD64 {
         }
     }
 }
-
-#[cfg(all(test, not(miri)))]
-mod tests {
-    use super::*;
-
-    use crate::isa::detect;
-
-    use const_str::hex;
-
-    #[cfg_attr(not(target_arch = "wasm32"), test)]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn u8x16_any_zero() {
-        fn test(a: [u8; 16], expected: bool) {
-            let a = V128::from_bytes(a);
-            #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-            if let Some(s) = detect::<SSE2>() {
-                assert_eq!(s.u8x16_any_zero(a), expected);
-            }
-            #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
-            if let Some(s) = detect::<NEON>() {
-                assert_eq!(s.u8x16_any_zero(a), expected);
-            }
-            #[cfg(target_arch = "wasm32")]
-            if let Some(s) = detect::<WASM128>() {
-                assert_eq!(s.u8x16_any_zero(a), expected);
-            }
-        }
-
-        test([0x00; 16], true);
-        test([0xff; 16], false);
-        test(hex!("00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F"), true);
-        test(hex!("10 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F"), false);
-    }
-}

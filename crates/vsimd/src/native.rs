@@ -123,29 +123,3 @@ mod arm {
 mod wasm {
     generic_dispatch!(simd128, "simd128");
 }
-
-#[cfg(all(test, not(miri)))]
-mod tests {
-    use super::Native;
-
-    #[cfg_attr(not(target_arch = "wasm32"), test)]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-    fn sum() {
-        let x: u32 = rand::random::<u32>() / 2;
-        let y: u32 = rand::random::<u32>() / 2;
-
-        const N: usize = 100;
-        let a = [x; N];
-        let b = [y; N];
-        let mut c = [0; N];
-
-        Native::detect().exec(|| {
-            assert!(a.len() == N && b.len() == N && c.len() == N);
-            for i in 0..N {
-                c[i] = a[i] + b[i];
-            }
-        });
-
-        assert!(c.iter().copied().all(|z| z == x + y));
-    }
-}

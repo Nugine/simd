@@ -1,8 +1,8 @@
-use crate::{AsOut, Base32, Error, Out, BASE32, BASE32HEX, BASE32HEX_NO_PAD, BASE32_NO_PAD};
-
-use rand::RngCore;
+use base32_simd::{AsOut, Base32};
+use base32_simd::{BASE32, BASE32HEX, BASE32HEX_NO_PAD, BASE32_NO_PAD};
 
 fn rand_bytes(n: usize) -> Vec<u8> {
+    use rand::RngCore;
     let mut bytes = vec![0u8; n];
     rand::thread_rng().fill_bytes(&mut bytes);
     bytes
@@ -13,9 +13,9 @@ use std::io::Write as _;
 
 macro_rules! dbgmsg {
     ($($fmt:tt)*) => {
-        println!($($fmt)*);
-        #[cfg(miri)]
-        std::io::stdout().flush().unwrap();
+        // println!($($fmt)*);
+        // #[cfg(miri)]
+        // std::io::stdout().flush().unwrap();
     };
 }
 
@@ -110,14 +110,10 @@ fn allocation() {
     assert_eq!(decode_buf, b"123helloworld");
 }
 
-#[allow(clippy::type_complexity)]
-fn safety_unit_test(
-    check: for<'s> fn(&'_ Base32, &'s [u8]) -> Result<(), Error>,
-    encode: for<'s, 'd> fn(&'_ Base32, &'s [u8], Out<'d, [u8]>) -> &'d mut [u8],
-    decode: for<'s, 'd> fn(&'_ Base32, &'s [u8], Out<'d, [u8]>) -> Result<&'d mut [u8], Error>,
-    decode_inplace: for<'b> fn(&'_ Base32, &'b mut [u8]) -> Result<&'b mut [u8], Error>,
-) {
-    println!();
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+fn random() {
+    dbgmsg!();
     for n in 0..128 {
         dbgmsg!("n = {}", n);
         let bytes = rand_bytes(n);
@@ -133,22 +129,16 @@ fn safety_unit_test(
             dbgmsg!("base32 = {:?}", base32);
 
             let mut buf = vec![0u8; base32.encoded_length(n)];
-            let encoded = encode(&base32, &bytes, buf.as_out());
-            assert!(check(&base32, encoded).is_ok());
+            let encoded = base32.encode(&bytes, buf.as_out());
+            assert!(base32.check(encoded).is_ok());
 
             let mut buf = encoded.to_owned();
-            let ans = decode_inplace(&base32, &mut buf).unwrap();
+            let ans = base32.decode_inplace(&mut buf).unwrap();
             assert_eq!(ans, bytes);
 
             let mut buf = vec![0u8; base32.decoded_length(encoded).unwrap()];
-            let ans = decode(&base32, encoded, buf.as_out()).unwrap();
+            let ans = base32.decode(encoded, buf.as_out()).unwrap();
             assert_eq!(ans, bytes);
         }
     }
-}
-
-#[cfg_attr(not(target_arch = "wasm32"), test)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-fn test_safety() {
-    safety_unit_test(Base32::check, Base32::encode, Base32::decode, Base32::decode_inplace);
 }

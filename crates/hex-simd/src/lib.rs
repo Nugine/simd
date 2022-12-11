@@ -58,9 +58,6 @@ mod multiversion;
 #[cfg(feature = "alloc")]
 mod heap;
 
-#[cfg(test)]
-mod tests;
-
 pub use outref::{AsOut, Out};
 pub use vsimd::ascii::AsciiCase;
 

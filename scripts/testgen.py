@@ -69,7 +69,7 @@ def gen(mode: str, target: str, rustflag: str, host: str):
         if mode == "x86" or mode == "arm":
             use_cross = target != host
             prog = "cross" if use_cross else "cargo"
-            lib = "--lib" if mode == "x86" else ""
+            lib = "--lib --tests" if mode == "x86" else ""
             print(f'RUSTFLAGS="{rustflag}" {prog} test --target {target} {lib} --no-default-features {feat} $@')
         elif mode == "wasm":
             print(f'RUSTFLAGS="{rustflag}" wasm-pack test --node -- --no-default-features {feat} $@')

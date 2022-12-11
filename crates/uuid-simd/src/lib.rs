@@ -52,9 +52,6 @@ mod parse;
 
 mod multiversion;
 
-#[cfg(test)]
-mod tests;
-
 #[cfg(feature = "uuid")]
 vsimd::item_group! {
     mod ext;

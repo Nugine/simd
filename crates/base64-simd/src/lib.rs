@@ -66,9 +66,6 @@ mod heap;
 mod forgiving;
 pub use self::forgiving::*;
 
-#[cfg(test)]
-mod tests;
-
 pub use outref::{AsOut, Out};
 
 // -----------------------------------------------------------------------------

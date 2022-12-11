@@ -1,4 +1,4 @@
-use crate::{AsOut, AsciiCase, Error, Out};
+use uuid_simd::{AsOut, AsciiCase};
 
 fn ok_cases() -> &'static [(&'static str, &'static str)] {
     const A1: &str = "67e5504410b1426f9247bb680e5fe0c8";
@@ -74,25 +74,22 @@ fn format_cases() -> &'static [(&'static str, &'static str)] {
     ]
 }
 
-#[allow(clippy::type_complexity)]
-fn safety_unit_test(
-    parse: for<'s, 'd> fn(&'s [u8], Out<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error>,
-    format_simple: for<'s, 'd> fn(&'s [u8; 16], Out<'d, [u8; 32]>, AsciiCase) -> &'d mut [u8; 32],
-    format_hyphenated: for<'s, 'd> fn(&'s [u8; 16], Out<'d, [u8; 36]>, AsciiCase) -> &'d mut [u8; 36],
-) {
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+fn basic() {
     for &(expected, input) in ok_cases() {
         let mut expected_buf = [0u8; 16];
         let expected_bytes = hex_simd::decode(expected.as_bytes(), expected_buf.as_mut_slice().as_out()).unwrap();
 
         let mut output_buf = [0; 16];
-        let output_bytes = parse(input.as_bytes(), output_buf.as_out()).unwrap();
+        let output_bytes = uuid_simd::parse(input.as_bytes(), output_buf.as_out()).unwrap();
 
         assert_eq!(output_bytes, expected_bytes);
     }
 
     for &input in err_cases() {
         let mut output_buf = [0; 16];
-        parse(input.as_bytes(), output_buf.as_out()).unwrap_err();
+        uuid_simd::parse(input.as_bytes(), output_buf.as_out()).unwrap_err();
     }
 
     for &(input, expected) in format_cases() {
@@ -100,21 +97,15 @@ fn safety_unit_test(
         hex_simd::decode(input.as_bytes(), src.as_mut_slice().as_out()).unwrap();
 
         let mut output_buf = [0; 32];
-        let output = format_simple(&src, output_buf.as_out(), AsciiCase::Upper);
+        let output = uuid_simd::format_simple(&src, output_buf.as_out(), AsciiCase::Upper);
         assert_eq!(output.as_slice(), input.to_ascii_uppercase().as_bytes());
-        let output = format_simple(&src, output_buf.as_out(), AsciiCase::Lower);
+        let output = uuid_simd::format_simple(&src, output_buf.as_out(), AsciiCase::Lower);
         assert_eq!(output.as_slice(), input.to_ascii_lowercase().as_bytes());
 
         let mut output_buf = [0; 36];
-        let output = format_hyphenated(&src, output_buf.as_out(), AsciiCase::Upper);
+        let output = uuid_simd::format_hyphenated(&src, output_buf.as_out(), AsciiCase::Upper);
         assert_eq!(output.as_slice(), expected.to_ascii_uppercase().as_bytes());
-        let output = format_hyphenated(&src, output_buf.as_out(), AsciiCase::Lower);
+        let output = uuid_simd::format_hyphenated(&src, output_buf.as_out(), AsciiCase::Lower);
         assert_eq!(output.as_slice(), expected.to_ascii_lowercase().as_bytes());
     }
-}
-
-#[cfg_attr(not(target_arch = "wasm32"), test)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
-fn test_safety() {
-    safety_unit_test(crate::parse, crate::format_simple, crate::format_hyphenated);
 }

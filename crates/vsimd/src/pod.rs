@@ -62,18 +62,3 @@ macro_rules! is_pod_type {
         IsPodType::<$self>::VALUE
     }};
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn pod() {
-        const fn is_8bits<T: POD>() -> bool {
-            is_pod_type!(T, u8 | i8)
-        }
-
-        assert!(is_8bits::<u8>());
-        assert!(is_8bits::<i8>());
-    }
-}
