@@ -63,21 +63,12 @@ macro_rules! is_isa_type {
 
 #[macro_export]
 macro_rules! matches_isa {
-    ($self:ident, $super:ident) => {{
+    ($self:ident, $super:ident $(| $other:ident)*) => {{
         // TODO: inline const
         use $crate::isa::InstructionSet;
         struct MatchesISA<S>(S);
         impl<S: InstructionSet> MatchesISA<S> {
-            const VALUE: bool = { $crate::isa::matches_isa_impl::<S, $super>() };
-        }
-        MatchesISA::<$self>::VALUE
-    }};
-    ($self:ident, $super:ident | $($other:ident)|+) => {{
-        // TODO: inline const
-        use $crate::isa::InstructionSet;
-        struct MatchesISA<S>(S);
-        impl<S: InstructionSet> MatchesISA<S> {
-            const VALUE: bool = { $crate::isa::matches_isa_impl::<S, $super>() $(||$crate::isa::matches_isa_impl::<S, $other>())+ };
+            const VALUE: bool = { $crate::isa::matches_isa_impl::<S, $super>() $(||$crate::isa::matches_isa_impl::<S, $other>())* };
         }
         MatchesISA::<$self>::VALUE
     }};
