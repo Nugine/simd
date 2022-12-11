@@ -35,6 +35,7 @@ RUSTFLAGS = {
         "-C target-feature=+simd128",
         "",
     ],
+    "mips": [""],
 }
 
 TARGETS = {
@@ -46,7 +47,8 @@ TARGETS = {
         "aarch64-unknown-linux-gnu",
         "armv7-unknown-linux-gnueabihf",
     ],
-    "wasm": [None],
+    "wasm": ["wasm32-unknown-unknown"],
+    "mips": ["mips-unknown-linux-gnu"],
 }
 
 TARGET_REMAP = {
@@ -55,9 +57,10 @@ TARGET_REMAP = {
     "aarch64-unknown-linux-gnu": "arm",
     "armv7-unknown-linux-gnueabihf": "arm",
     "wasm32-unknown-unknown": "wasm",
+    "mips-unknown-linux-gnu": "mips",
 }
 
-TEST_MODES = ["x86", "arm", "wasm"]
+TEST_MODES = ["x86", "arm", "wasm", "mips"]
 
 
 def gen(mode: str, target: str, rustflag: str, host: str):
@@ -66,13 +69,13 @@ def gen(mode: str, target: str, rustflag: str, host: str):
         if len(feat) > 0:
             feat = "--features " + feat
 
-        if mode == "x86" or mode == "arm":
-            use_cross = target != host
-            prog = "cross" if use_cross else "cargo"
-            lib = "--lib --tests" if mode == "x86" else ""
-            print(f'RUSTFLAGS="{rustflag}" {prog} test --target {target} {lib} --no-default-features {feat} $@')
-        elif mode == "wasm":
+        if mode == "wasm":
             print(f'RUSTFLAGS="{rustflag}" wasm-pack test --node -- --no-default-features {feat} $@')
+            continue
+
+        prog = "cross" if target != host else "cargo"
+        skip_others = "--lib --tests" if mode == "x86" else ""
+        print(f'RUSTFLAGS="{rustflag}" {prog} test --target {target} {skip_others} --no-default-features {feat} $@')
 
 
 def get_rustc_host():

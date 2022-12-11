@@ -100,6 +100,11 @@ miri-test crate:
     cd {{justfile_directory()}}
     cargo miri test -p {{crate}}
 
+mips-test crate:
+    #!/bin/bash -ex
+    cd {{justfile_directory()}}
+    ./scripts/testgen.py --crate {{crate}} --mode mips | bash -ex
+
 test-all:
     #!/bin/bash -ex
     cd {{justfile_directory()}}
