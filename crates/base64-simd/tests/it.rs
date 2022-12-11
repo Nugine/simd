@@ -81,17 +81,25 @@ fn random() {
             STANDARD_NO_PAD, //
             URL_SAFE_NO_PAD, //
         ];
-        let base_config = [
-            base64::STANDARD,
-            base64::URL_SAFE,
-            base64::STANDARD_NO_PAD,
-            base64::URL_SAFE_NO_PAD,
-        ];
+
+        let base_config = {
+            use base64::alphabet::*;
+            use base64::engine::fast_portable::{FastPortable, NO_PAD, PAD};
+
+            let f = FastPortable::from;
+
+            [
+                f(&STANDARD, PAD),
+                f(&URL_SAFE, PAD),
+                f(&STANDARD, NO_PAD),
+                f(&URL_SAFE, NO_PAD),
+            ]
+        };
 
         for (base64, config) in test_config.into_iter().zip(base_config.into_iter()) {
             dbgmsg!("base64 = {:?}", base64);
 
-            let encoded = base64::encode_config(&bytes, config);
+            let encoded = base64::encode_engine(&bytes, &config);
             let encoded = encoded.as_bytes();
             assert!(base64.check(encoded).is_ok());
 

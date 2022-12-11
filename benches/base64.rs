@@ -29,8 +29,8 @@ pub fn bench_encode(c: &mut Criterion) {
             radix64::STD.encode_slice(src, dst);
         }),
         ("base64/fallback", |src, dst| {
-            let config = base64::STANDARD;
-            base64::encode_config_slice(src, config, dst);
+            let config = base64::engine::DEFAULT_ENGINE;
+            base64::encode_engine_slice(src, dst, &config);
         }),
         ("base64ct/fallback", |src, dst| {
             use base64ct::Encoding;
@@ -71,8 +71,8 @@ pub fn bench_decode(c: &mut Criterion) {
             radix64::STD.decode_slice(src, dst).unwrap();
         }),
         ("base64/fallback", |src, dst| {
-            let config = base64::STANDARD;
-            base64::decode_config_slice(src, config, dst).unwrap();
+            let config = base64::engine::DEFAULT_ENGINE;
+            base64::decode_engine_slice(src, dst, &config).unwrap();
         }),
         ("base64ct/fallback", |src, dst| {
             use base64ct::Encoding;

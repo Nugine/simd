@@ -96,16 +96,16 @@ uuid = "1.2.2"
 const-str = "0.5.3"
 faster-hex = "0.6.1"
 radix64 = { version = "0.6.2", default-features = false }
-base64 = "0.13.1"
+base64 = "0.20.0"
 hex = "0.4.3"
 base16 = "0.2.1"
 getrandom = { version = "0.2", features = ["js"] }
 base64ct = "1.5.3"
 base16ct = "0.1.1"
 base32ct = "0.1.0"
-data-encoding = "2.3.2"
+data-encoding = "2.3.3"
 encoding_rs = "0.8.31"
-rayon = { version = "1.6.0", optional = true }
+rayon = { version = "1.6.1", optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false, features = ["rayon"] }
