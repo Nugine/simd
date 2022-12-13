@@ -9,11 +9,11 @@
 //!
 //! let bytes = b"Hello world!";
 //!
-//! let encoded = hex_simd::encode_type::<String>(bytes, AsciiCase::Lower);
-//! assert_eq!(&*encoded, "48656c6c6f20776f726c6421");
+//! let encoded = hex_simd::encode_to_string(bytes, AsciiCase::Lower);
+//! assert_eq!(encoded, "48656c6c6f20776f726c6421");
 //!
-//! let decoded = hex_simd::decode_type::<Vec<u8>>(encoded.as_bytes()).unwrap();
-//! assert_eq!(&*decoded, bytes);
+//! let decoded = hex_simd::decode_to_vec(encoded).unwrap();
+//! assert_eq!(decoded, bytes);
 //! # }
 //! ```
 //!
@@ -64,6 +64,9 @@ pub use vsimd::ascii::AsciiCase;
 // -------------------------------------------------------------------------------------------------
 
 use vsimd::tools::{slice_mut, slice_parts};
+
+#[cfg(feature = "alloc")]
+use alloc::{string::String, vec::Vec};
 
 /// Calculates the encoded length.
 ///
@@ -182,8 +185,8 @@ pub trait FromHexEncode: Sized {
 /// Encodes bytes to a hex string and returns a specified type.
 #[inline]
 #[must_use]
-pub fn encode_type<T: FromHexEncode>(data: &[u8], case: AsciiCase) -> T {
-    T::from_hex_encode(data, case)
+pub fn encode_type<T: FromHexEncode>(data: impl AsRef<[u8]>, case: AsciiCase) -> T {
+    T::from_hex_encode(data.as_ref(), case)
 }
 
 /// Decodes a hex string to bytes case-insensitively and returns a specified type.
@@ -191,8 +194,8 @@ pub fn encode_type<T: FromHexEncode>(data: &[u8], case: AsciiCase) -> T {
 /// # Errors
 /// This function returns `Err` if the content of `data` is invalid.
 #[inline]
-pub fn decode_type<T: FromHexDecode>(data: &[u8]) -> Result<T, Error> {
-    T::from_hex_decode(data)
+pub fn decode_type<T: FromHexDecode>(data: impl AsRef<[u8]>) -> Result<T, Error> {
+    T::from_hex_decode(data.as_ref())
 }
 
 /// Types that can append a hex string.
@@ -212,8 +215,8 @@ pub trait AppendHexDecode: FromHexDecode {
 
 /// Encodes bytes to a hex string and appends to a specified type.
 #[inline]
-pub fn encode_append<T: AppendHexEncode>(src: &[u8], dst: &mut T, case: AsciiCase) {
-    T::append_hex_encode(src, dst, case);
+pub fn encode_append<T: AppendHexEncode>(src: impl AsRef<[u8]>, dst: &mut T, case: AsciiCase) {
+    T::append_hex_encode(src.as_ref(), dst, case);
 }
 
 /// Decodes a hex string to bytes case-insensitively and appends to a specified type.
@@ -221,6 +224,26 @@ pub fn encode_append<T: AppendHexEncode>(src: &[u8], dst: &mut T, case: AsciiCas
 /// # Errors
 /// This function returns `Err` if the content of `src` is invalid.
 #[inline]
-pub fn decode_append<T: AppendHexDecode>(src: &[u8], dst: &mut T) -> Result<(), Error> {
-    T::append_hex_decode(src, dst)
+pub fn decode_append<T: AppendHexDecode>(src: impl AsRef<[u8]>, dst: &mut T) -> Result<(), Error> {
+    T::append_hex_decode(src.as_ref(), dst)
+}
+
+/// Encodes bytes to a hex string.
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
+#[cfg(feature = "alloc")]
+#[inline]
+#[must_use]
+pub fn encode_to_string(data: impl AsRef<[u8]>, case: AsciiCase) -> String {
+    encode_type(data, case)
+}
+
+/// Decodes a hex string to bytes case-insensitively.
+///
+/// # Errors
+/// This function returns `Err` if the content of `data` is invalid.
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
+#[cfg(feature = "alloc")]
+#[inline]
+pub fn decode_to_vec(data: impl AsRef<[u8]>) -> Result<Vec<u8>, Error> {
+    decode_type(data)
 }

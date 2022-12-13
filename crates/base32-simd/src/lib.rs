@@ -8,11 +8,11 @@
 //! let bytes = b"hello world";
 //! let base32 = base32_simd::BASE32;
 //!
-//! let encoded = base32.encode_type::<String>(bytes);
-//! assert_eq!(&*encoded, "NBSWY3DPEB3W64TMMQ======");
+//! let encoded = base32.encode_to_string(bytes);
+//! assert_eq!(encoded, "NBSWY3DPEB3W64TMMQ======");
 //!
-//! let decoded = base32.decode_type::<Vec<u8>>(encoded.as_bytes()).unwrap();
-//! assert_eq!(&*decoded, bytes);
+//! let decoded = base32.decode_to_vec(encoded).unwrap();
+//! assert_eq!(decoded, bytes);
 //! # }
 //! ```
 //!
@@ -69,6 +69,9 @@ use crate::decode::decoded_length;
 use crate::encode::encoded_length_unchecked;
 
 use vsimd::tools::{slice_mut, slice_parts};
+
+#[cfg(feature = "alloc")]
+use alloc::{string::String, vec::Vec};
 
 const BASE32_CHARSET: &[u8; 32] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const BASE32HEX_CHARSET: &[u8; 32] = b"0123456789ABCDEFGHIJKLMNOPQRSTUV";
@@ -244,8 +247,8 @@ impl Base32 {
     /// Encodes bytes to a base32 string and returns a specified type.
     #[inline]
     #[must_use]
-    pub fn encode_type<T: FromBase32Encode>(&self, data: &[u8]) -> T {
-        T::from_base32_encode(self, data)
+    pub fn encode_type<T: FromBase32Encode>(&self, data: impl AsRef<[u8]>) -> T {
+        T::from_base32_encode(self, data.as_ref())
     }
 
     /// Decodes a base32 string to bytes and returns a specified type.
@@ -253,14 +256,14 @@ impl Base32 {
     /// # Errors
     /// This function returns `Err` if the content of `data` is invalid.
     #[inline]
-    pub fn decode_type<T: FromBase32Decode>(&self, data: &[u8]) -> Result<T, Error> {
-        T::from_base32_decode(self, data)
+    pub fn decode_type<T: FromBase32Decode>(&self, data: impl AsRef<[u8]>) -> Result<T, Error> {
+        T::from_base32_decode(self, data.as_ref())
     }
 
     /// Encodes bytes to a base32 string and appends to a specified type.
     #[inline]
-    pub fn encode_append<T: AppendBase32Encode>(&self, src: &[u8], dst: &mut T) {
-        T::append_base32_encode(self, src, dst);
+    pub fn encode_append<T: AppendBase32Encode>(&self, src: impl AsRef<[u8]>, dst: &mut T) {
+        T::append_base32_encode(self, src.as_ref(), dst);
     }
 
     /// Decodes a base32 string to bytes and appends to a specified type.
@@ -268,8 +271,28 @@ impl Base32 {
     /// # Errors
     /// This function returns `Err` if the content of `src` is invalid.
     #[inline]
-    pub fn decode_append<T: AppendBase32Decode>(&self, src: &[u8], dst: &mut T) -> Result<(), Error> {
-        T::append_base32_decode(self, src, dst)
+    pub fn decode_append<T: AppendBase32Decode>(&self, src: impl AsRef<[u8]>, dst: &mut T) -> Result<(), Error> {
+        T::append_base32_decode(self, src.as_ref(), dst)
+    }
+
+    /// Encodes bytes to a base32 string.
+    #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
+    #[cfg(feature = "alloc")]
+    #[inline]
+    #[must_use]
+    pub fn encode_to_string(&self, data: impl AsRef<[u8]>) -> String {
+        self.encode_type(data.as_ref())
+    }
+
+    /// Decodes a base32 string to bytes.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is invalid.
+    #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
+    #[cfg(feature = "alloc")]
+    #[inline]
+    pub fn decode_to_vec(&self, data: impl AsRef<[u8]>) -> Result<Vec<u8>, Error> {
+        self.decode_type(data.as_ref())
     }
 }
 

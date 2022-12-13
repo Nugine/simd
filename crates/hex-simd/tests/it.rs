@@ -34,13 +34,13 @@ fn as_str() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn allocation() {
     {
-        let src = "hello".as_bytes();
+        let src = "hello";
 
         let ans: String = hex_simd::encode_type(src, AsciiCase::Lower);
         assert_eq!(&*ans, "68656c6c6f");
 
-        let ans: Vec<u8> = hex_simd::decode_type(ans.as_bytes()).unwrap();
-        assert_eq!(&*ans, src);
+        let ans: Vec<u8> = hex_simd::decode_type(ans).unwrap();
+        assert_eq!(&*ans, src.as_bytes());
     }
 
     {
@@ -48,12 +48,12 @@ fn allocation() {
         let prefix = "0x";
 
         let mut encode_buf = prefix.to_owned();
-        hex_simd::encode_append(&src, &mut encode_buf, AsciiCase::Lower);
+        hex_simd::encode_append(src, &mut encode_buf, AsciiCase::Lower);
 
         assert_eq!(encode_buf, format!("{prefix}010203"));
 
         let mut decode_buf = b"123".to_vec();
-        let src = encode_buf[prefix.len()..].as_bytes();
+        let src = &encode_buf[prefix.len()..];
         hex_simd::decode_append(src, &mut decode_buf).unwrap();
 
         assert_eq!(decode_buf, b"123\x01\x02\x03");

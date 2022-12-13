@@ -60,7 +60,7 @@ pub fn bench_decode(c: &mut Criterion) {
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let cases = [16, 32, 64, 256, 1024, 4096, 65536];
-    let inputs: Vec<Vec<u8>> = map_collect(cases, |n| base64_simd::STANDARD.encode_type(&rand_bytes(n)));
+    let inputs: Vec<Vec<u8>> = map_collect(cases, |n| base64_simd::STANDARD.encode_type(rand_bytes(n)));
 
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
@@ -102,7 +102,7 @@ pub fn bench_check(c: &mut Criterion) {
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let cases = [16, 32, 64, 256, 1024, 4096, 65536];
-    let inputs: Vec<Vec<u8>> = map_collect(cases, |n| base64_simd::STANDARD.encode_type(&rand_bytes(n)));
+    let inputs: Vec<Vec<u8>> = map_collect(cases, |n| base64_simd::STANDARD.encode_type(rand_bytes(n)));
 
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8])> = &[
@@ -126,7 +126,7 @@ pub fn bench_forgiving_decode(c: &mut Criterion) {
     group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
     let cases = [16, 32, 64, 256, 1024, 4096, 65536];
-    let inputs: Vec<Vec<u8>> = map_collect(cases, |n| base64_simd::STANDARD.encode_type(&rand_bytes(n)));
+    let inputs: Vec<Vec<u8>> = map_collect(cases, |n| base64_simd::STANDARD.encode_type(rand_bytes(n)));
 
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[

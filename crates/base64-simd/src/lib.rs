@@ -8,11 +8,11 @@
 //! let bytes = b"hello world";
 //! let base64 = base64_simd::STANDARD;
 //!
-//! let encoded = base64.encode_type::<String>(bytes);
-//! assert_eq!(&*encoded, "aGVsbG8gd29ybGQ=");
+//! let encoded = base64.encode_to_string(bytes);
+//! assert_eq!(encoded, "aGVsbG8gd29ybGQ=");
 //!
-//! let decoded = base64.decode_type::<Vec<u8>>(encoded.as_bytes()).unwrap();
-//! assert_eq!(&*decoded, bytes);
+//! let decoded = base64.decode_to_vec(encoded).unwrap();
+//! assert_eq!(decoded, bytes);
 //! # }
 //! ```
 //!
@@ -74,6 +74,9 @@ use crate::decode::decoded_length;
 use crate::encode::encoded_length_unchecked;
 
 use vsimd::tools::{slice_mut, slice_parts};
+
+#[cfg(feature = "alloc")]
+use alloc::{string::String, vec::Vec};
 
 const STANDARD_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const URL_SAFE_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -311,8 +314,8 @@ impl Base64 {
     /// Encodes bytes to a base64 string and returns a specified type.
     #[inline]
     #[must_use]
-    pub fn encode_type<T: FromBase64Encode>(&self, data: &[u8]) -> T {
-        T::from_base64_encode(self, data)
+    pub fn encode_type<T: FromBase64Encode>(&self, data: impl AsRef<[u8]>) -> T {
+        T::from_base64_encode(self, data.as_ref())
     }
 
     /// Decodes a base64 string to bytes and returns a specified type.
@@ -320,14 +323,14 @@ impl Base64 {
     /// # Errors
     /// This function returns `Err` if the content of `data` is invalid.
     #[inline]
-    pub fn decode_type<T: FromBase64Decode>(&self, data: &[u8]) -> Result<T, Error> {
-        T::from_base64_decode(self, data)
+    pub fn decode_type<T: FromBase64Decode>(&self, data: impl AsRef<[u8]>) -> Result<T, Error> {
+        T::from_base64_decode(self, data.as_ref())
     }
 
     /// Encodes bytes to a base64 string and appends to a specified type.
     #[inline]
-    pub fn encode_append<T: AppendBase64Encode>(&self, src: &[u8], dst: &mut T) {
-        T::append_base64_encode(self, src, dst);
+    pub fn encode_append<T: AppendBase64Encode>(&self, src: impl AsRef<[u8]>, dst: &mut T) {
+        T::append_base64_encode(self, src.as_ref(), dst);
     }
 
     /// Decodes a base64 string to bytes and appends to a specified type.
@@ -335,8 +338,28 @@ impl Base64 {
     /// # Errors
     /// This function returns `Err` if the content of `src` is invalid.
     #[inline]
-    pub fn decode_append<T: AppendBase64Decode>(&self, src: &[u8], dst: &mut T) -> Result<(), Error> {
-        T::append_base64_decode(self, src, dst)
+    pub fn decode_append<T: AppendBase64Decode>(&self, src: impl AsRef<[u8]>, dst: &mut T) -> Result<(), Error> {
+        T::append_base64_decode(self, src.as_ref(), dst)
+    }
+
+    /// Encodes bytes to a base64 string.
+    #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
+    #[cfg(feature = "alloc")]
+    #[inline]
+    #[must_use]
+    pub fn encode_to_string(&self, data: impl AsRef<[u8]>) -> String {
+        self.encode_type(data)
+    }
+
+    /// Decodes a base64 string to bytes.
+    ///
+    /// # Errors
+    /// This function returns `Err` if the content of `data` is invalid.
+    #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
+    #[cfg(feature = "alloc")]
+    #[inline]
+    pub fn decode_to_vec(&self, data: impl AsRef<[u8]>) -> Result<Vec<u8>, Error> {
+        self.decode_type(data)
     }
 }
 
