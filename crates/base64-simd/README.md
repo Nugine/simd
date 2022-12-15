@@ -9,10 +9,6 @@
 
 SIMD-accelerated base64 encoding and decoding.
 
-References:
-
-+ <http://0x80.pl/articles/index.html#base64-algorithm-new>
-
 Documentation: <https://docs.rs/base64-simd>
 
 Repository: <https://github.com/Nugine/simd>
