@@ -161,27 +161,9 @@ pub const URL_SAFE_NO_PAD: Base64 = Base64 {
     },
 };
 
-/// Standard charset with forgiving behavior.
-///
-/// This configuration
-/// + adds padding characters when encoding.
-/// + allows non-zero trailing bits when decoding.
-pub const STANDARD_FORGIVING: Base64 = Base64 {
+const STANDARD_FORGIVING: Base64 = Base64 {
     config: Config {
         kind: Kind::Standard,
-        extra: Extra::Forgiving,
-    },
-};
-
-/// URL-Safe charset with forgiving behavior.
-///
-/// This configuration
-/// + adds padding characters when encoding.
-/// + allows non-zero trailing bits when decoding.
-///
-pub const URL_SAFE_FORGIVING: Base64 = Base64 {
-    config: Config {
-        kind: Kind::UrlSafe,
         extra: Extra::Forgiving,
     },
 };
