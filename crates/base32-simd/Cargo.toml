@@ -1,6 +1,6 @@
 [package]
 name = "base32-simd"
-version = "0.8.0-dev"
+version = "0.9.0-dev"
 edition = "2021"
 description = "SIMD-accelerated base32 encoding and decoding"
 license = "MIT"
@@ -23,7 +23,7 @@ unstable = ["vsimd/unstable"]
 
 [dependencies]
 outref = "0.5.0"
-vsimd = { path = "../vsimd", version = "0.8.0-dev" }
+vsimd = { path = "../vsimd", version = "0.8.0" }
 
 [dev-dependencies]
 rand = "0.8.5"

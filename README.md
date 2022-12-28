@@ -1,11 +1,9 @@
 # simd
 
-[![MIT licensed][mit-badge]][mit-url]
+[![MIT licensed][mit-badge]][mit-url] [English](./README.md) | [中文](./README.zh-CN.md)
 
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [mit-url]: ./LICENSE
-
-> [English](./README.md) | [中文](./README.zh-CN.md)
 
 SIMD-accelerated operations
 
