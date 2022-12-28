@@ -52,7 +52,7 @@ unsafe fn parse_uuid(
     f: for<'s, 'd> fn(&'s [u8], Out<'d, [u8; 16]>) -> Result<&'d mut [u8; 16], Error>,
 ) -> Result<Uuid, Error> {
     let mut uuid = MaybeUninit::<Uuid>::uninit();
-    let out = Out::from_raw(uuid.as_mut_ptr().cast());
+    let out = Out::new(uuid.as_mut_ptr().cast());
     f(src, out)?;
     Ok(uuid.assume_init())
 }
