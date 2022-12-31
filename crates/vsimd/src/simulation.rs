@@ -31,6 +31,7 @@ pub fn u8x16_min(a: V128, b: V128) -> V128 {
 
 #[allow(clippy::needless_range_loop)]
 #[inline(always)]
+#[must_use]
 pub fn u8x16_bitmask(a: V128) -> u16 {
     // FIXME: is it defined behavior?
     // https://github.com/rust-lang/miri/issues/2617
@@ -46,6 +47,7 @@ pub fn u8x16_bitmask(a: V128) -> u16 {
 
 #[allow(clippy::needless_range_loop)]
 #[inline(always)]
+#[must_use]
 pub fn u16x8_shr(a: V128, imm8: u8) -> V128 {
     let mut a: [u16; 8] = unsafe { t(a) };
     for i in 0..8 {
@@ -56,6 +58,7 @@ pub fn u16x8_shr(a: V128, imm8: u8) -> V128 {
 
 #[allow(clippy::needless_range_loop)]
 #[inline(always)]
+#[must_use]
 pub fn u16x8_shl(a: V128, imm8: u8) -> V128 {
     let mut a: [u16; 8] = unsafe { t(a) };
     for i in 0..8 {
@@ -65,6 +68,7 @@ pub fn u16x8_shl(a: V128, imm8: u8) -> V128 {
 }
 
 #[inline(always)]
+#[must_use]
 pub fn i16x8_packus(a: V128, b: V128) -> V128 {
     let a: [i16; 8] = unsafe { t(a) };
     let b: [i16; 8] = unsafe { t(b) };

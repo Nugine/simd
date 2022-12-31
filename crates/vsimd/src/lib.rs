@@ -53,7 +53,7 @@ pub mod vector;
 pub mod pod;
 pub use self::pod::POD;
 
-mod simulation;
+pub mod simulation;
 mod unified;
 
 mod simd64;

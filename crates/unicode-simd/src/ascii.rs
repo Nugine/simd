@@ -45,6 +45,7 @@ pub unsafe fn is_ascii_simd_v256<S: SIMD256>(s: S, mut src: *const u8, mut len: 
     ans
 }
 
+#[allow(clippy::too_many_lines)]
 #[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
 #[inline]
 #[must_use]
@@ -76,7 +77,12 @@ pub unsafe fn is_ascii_sse2(src: *const u8, len: usize) -> bool {
 
     #[inline(always)]
     unsafe fn check16(x: __m128i) -> bool {
-        _mm_movemask_epi8(x) as u32 as u16 == 0
+        if cfg!(miri) {
+            let x = core::mem::transmute(x);
+            vsimd::simulation::u8x16_bitmask(x) == 0
+        } else {
+            _mm_movemask_epi8(x) as u32 as u16 == 0
+        }
     }
 
     #[inline(always)]
@@ -140,10 +146,16 @@ pub unsafe fn is_ascii_sse2(src: *const u8, len: usize) -> bool {
             src = src.add(64);
         }
         len %= 64;
-        if len != 0 {
-            ensure!(check_medium(src, len));
+        if len == 0 {
+            return true;
         }
-        true
+        if len <= 8 {
+            check_tiny(src, len)
+        } else if len <= 16 {
+            check_short(src, len)
+        } else {
+            check_medium(src, len)
+        }
     }
 
     {
