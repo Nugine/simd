@@ -46,5 +46,4 @@ hex:
 
 unicode:
 
-+ Daniel Lemire, Wojciech Muła,  [Transcoding Billions of Unicode Characters per Second with SIMD Instructions](https://arxiv.org/abs/2109.10433), Software: Practice and Experience (to appear)
 + <https://github.com/simdutf/simdutf>
