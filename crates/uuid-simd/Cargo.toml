@@ -22,7 +22,7 @@ detect = ["vsimd/detect"]
 unstable = ["vsimd/unstable", "hex-simd/unstable"]
 
 [dependencies]
-outref = "0.5.0"
+outref = "0.5.1"
 vsimd = { path = "../vsimd", version = "0.9.0-dev" }
 uuid = { version = "1.2.2", optional = true }
 
