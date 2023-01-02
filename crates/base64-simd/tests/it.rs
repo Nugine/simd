@@ -157,3 +157,20 @@ fn canonicity() {
         }
     }
 }
+
+// RUSTFLAGS=-Zsanitizer=address cargo test -p base64-simd --features=parallel -- --include-ignored parallel_encode
+#[cfg(all(not(miri), feature = "parallel"))]
+#[test]
+#[ignore]
+fn parallel_encode() {
+    let mut buf1 = vec![0; 100_000];
+    let mut buf2 = vec![0; 100_000];
+    for n in 0..50_000 {
+        let src = rand_bytes(n);
+        for base64 in [base64_simd::STANDARD, base64_simd::STANDARD_NO_PAD] {
+            let ans1 = base64.par_encode(&src, buf1.as_out());
+            let ans2 = base64.encode(&src, buf2.as_out());
+            assert!(ans1 == ans2, "n = {n}");
+        }
+    }
+}

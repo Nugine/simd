@@ -63,6 +63,9 @@ mod multiversion;
 #[cfg(feature = "alloc")]
 mod heap;
 
+#[cfg(feature = "parallel")]
+mod parallel;
+
 mod forgiving;
 pub use self::forgiving::*;
 

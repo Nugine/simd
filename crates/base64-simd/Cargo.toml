@@ -20,10 +20,12 @@ alloc = ["vsimd/alloc"]
 std = ["alloc", "vsimd/std"]
 detect = ["vsimd/detect"]
 unstable = ["vsimd/unstable"]
+parallel = ["unstable", "dep:rayon"]
 
 [dependencies]
 outref = "0.5.1"
 vsimd = { path = "../vsimd", version = "0.9.0-dev" }
+rayon = { version = "1.6.1", optional = true }
 
 [dev-dependencies]
 base64 = "0.20.0"

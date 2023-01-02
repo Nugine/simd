@@ -59,7 +59,7 @@ unstable = [
     "criterion/real_blackbox",
     "encoding_rs/simd-accel",
 ]
-parallel = ["rayon"]
+parallel = ["base64-simd/parallel"]
 
 
 [dependencies.vsimd]
@@ -105,7 +105,6 @@ base16ct = "0.1.1"
 base32ct = "0.1.0"
 data-encoding = "2.3.3"
 encoding_rs = "0.8.31"
-rayon = { version = "1.6.1", optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false, features = ["rayon"] }

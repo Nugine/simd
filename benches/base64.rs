@@ -23,7 +23,7 @@ pub fn bench_encode(c: &mut Criterion) {
         }),
         #[cfg(feature = "parallel")]
         ("base64-simd/parallel", |src, dst| {
-            let _ = simd_benches::par_base64_encode(src, dst);
+            let _ = base64_simd::STANDARD.par_encode(src, dst.as_out());
         }),
         ("radix64/auto", |src, dst| {
             radix64::STD.encode_slice(src, dst);
