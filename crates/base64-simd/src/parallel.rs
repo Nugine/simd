@@ -1,5 +1,5 @@
 use crate::encode::encoded_length_unchecked;
-use crate::{Base64, Config, Extra, Out};
+use crate::{Base64, Config, Error, Extra, Out};
 
 use rayon::prelude::{IndexedParallelIterator, ParallelIterator};
 use rayon::slice::{ParallelSlice, ParallelSliceMut};
@@ -9,12 +9,11 @@ impl Base64 {
     /// **EXPERIMENTAL**:
     /// Encodes bytes to a base64 string in parallel.
     ///
-    /// # Panics
-    /// This function will panic if the length of `dst` is not enough.
+    /// # Errors
+    /// This function returns `Err` if the length of `dst` is not enough.
     #[cfg_attr(docsrs, doc(cfg(feature = "parallel")))]
     #[inline]
-    #[must_use]
-    pub fn par_encode<'d>(&self, src: &[u8], dst: Out<'d, [u8]>) -> &'d mut [u8] {
+    pub fn par_encode<'d>(&self, src: &[u8], dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
         let p = rayon::current_num_threads();
         let b = src.len() / 3;
         if src.len() < p * 4096 || p < 2 || b < p {
@@ -57,7 +56,7 @@ impl Base64 {
         unsafe {
             let len = dst.len();
             let ptr = dst.as_mut_ptr().cast::<u8>();
-            slice_mut(ptr, len)
+            Ok(slice_mut(ptr, len))
         }
     }
 }

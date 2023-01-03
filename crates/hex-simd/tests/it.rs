@@ -25,7 +25,7 @@ macro_rules! dbgmsg {
 fn as_str() {
     let src = "hello";
     let mut buf = [MaybeUninit::<u8>::uninit(); 10];
-    let ans = hex_simd::encode_as_str(src.as_bytes(), buf.as_mut_slice().as_out(), AsciiCase::Lower);
+    let ans = hex_simd::encode_as_str(src.as_bytes(), buf.as_mut_slice().as_out(), AsciiCase::Lower).unwrap();
     assert_eq!(ans, "68656c6c6f");
 }
 
@@ -91,7 +91,7 @@ fn random() {
             let mut decode_buf = vec![0; $src.len() / 2];
             let mut encode_buf = vec![0; $src.len()];
             let decode_buf = hex_simd::decode($src, decode_buf.as_out()).unwrap();
-            let encode_buf = hex_simd::encode(decode_buf, encode_buf.as_out(), $case);
+            let encode_buf = hex_simd::encode(decode_buf, encode_buf.as_out(), $case).unwrap();
             assert_eq!(encode_buf, $src);
         }};
     }
@@ -101,7 +101,7 @@ fn random() {
             let mut decode_buf = $src.to_owned();
             let mut encode_buf = vec![0; $src.len()];
             let decode_buf = hex_simd::decode_inplace(&mut decode_buf).unwrap();
-            let encode_buf = hex_simd::encode(decode_buf, encode_buf.as_out(), $case);
+            let encode_buf = hex_simd::encode(decode_buf, encode_buf.as_out(), $case).unwrap();
             assert_eq!(encode_buf, $src);
         }};
     }
@@ -110,7 +110,7 @@ fn random() {
         ($src: expr, $case: expr) => {{
             let mut encode_buf = vec![0; $src.len() * 2];
             let mut decode_buf = vec![0; $src.len()];
-            let encode_buf = hex_simd::encode($src, encode_buf.as_out(), $case);
+            let encode_buf = hex_simd::encode($src, encode_buf.as_out(), $case).unwrap();
             let decode_buf = hex_simd::decode(encode_buf, decode_buf.as_out()).unwrap();
             assert_eq!(decode_buf, $src);
         }};
@@ -119,7 +119,7 @@ fn random() {
     macro_rules! test_encode_decode_inplace {
         ($src: expr, $case: expr) => {{
             let mut encode_buf = vec![0; $src.len() * 2];
-            let encode_buf = hex_simd::encode($src, encode_buf.as_out(), $case);
+            let encode_buf = hex_simd::encode($src, encode_buf.as_out(), $case).unwrap();
             let decode_buf = hex_simd::decode_inplace(encode_buf).unwrap();
             assert_eq!(decode_buf, $src);
         }};

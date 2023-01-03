@@ -185,7 +185,7 @@ impl Base64 {
     /// Calculates the encoded length.
     ///
     /// # Panics
-    /// This function will panic if `n > isize::MAX`.
+    /// This function asserts that `n <= usize::MAX / 2`.
     #[inline]
     #[must_use]
     pub const fn encoded_length(&self, n: usize) -> usize {
@@ -230,46 +230,43 @@ impl Base64 {
 
     /// Encodes bytes to a base64 string.
     ///
-    /// # Panics
-    /// This function will panic if the length of `dst` is not enough.
+    /// # Errors
+    /// This function returns `Err` if the length of `dst` is not enough.
     #[inline]
-    #[must_use]
-    pub fn encode<'d>(&self, src: &[u8], mut dst: Out<'d, [u8]>) -> &'d mut [u8] {
+    pub fn encode<'d>(&self, src: &[u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
         unsafe {
             let m = encoded_length_unchecked(src.len(), self.config);
-            assert!(dst.len() >= m);
+            ensure!(dst.len() >= m);
 
             let (src, len) = slice_parts(src);
             let dst = dst.as_mut_ptr();
             self::multiversion::encode::auto(src, len, dst, self.config);
 
-            slice_mut(dst, m)
+            Ok(slice_mut(dst, m))
         }
     }
 
     /// Encodes bytes to a base64 string and returns [`&mut str`](str).
     ///
-    /// # Panics
-    /// This function will panic if the length of `dst` is not enough.
+    /// # Errors
+    /// This function returns `Err` if the length of `dst` is not enough.
     #[inline]
-    #[must_use]
-    pub fn encode_as_str<'d>(&self, src: &[u8], dst: Out<'d, [u8]>) -> &'d mut str {
-        let ans = self.encode(src, dst);
-        unsafe { core::str::from_utf8_unchecked_mut(ans) }
+    pub fn encode_as_str<'d>(&self, src: &[u8], dst: Out<'d, [u8]>) -> Result<&'d mut str, Error> {
+        let ans = self.encode(src, dst)?;
+        Ok(unsafe { core::str::from_utf8_unchecked_mut(ans) })
     }
 
     /// Decodes a base64 string to bytes.
     ///
     /// # Errors
-    /// This function returns `Err` if the content of `src` is invalid.
-    ///
-    /// # Panics
-    /// This function will panic if the length of `dst` is not enough.
+    /// This function returns `Err` if
+    /// + the length of `dst` is not enough.
+    /// + the content of `src` is invalid.
     #[inline]
     pub fn decode<'d>(&self, src: &[u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
         unsafe {
             let (n, m) = decoded_length(src, self.config)?;
-            assert!(dst.len() >= m);
+            ensure!(dst.len() >= m);
 
             let src = src.as_ptr();
             let dst = dst.as_mut_ptr();

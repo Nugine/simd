@@ -37,7 +37,7 @@ fn basic() {
         buf.clear();
         buf.resize(base64.encoded_length(input.len()), 0);
 
-        let ans = base64.encode_as_str(input.as_bytes(), buf.as_out());
+        let ans = base64.encode_as_str(input.as_bytes(), buf.as_out()).unwrap();
         assert_eq!(ans, output);
 
         buf.clear();
@@ -105,7 +105,7 @@ fn random() {
 
             {
                 let mut buf = vec![0u8; base64.encoded_length(n)];
-                let ans = base64.encode(&bytes, buf.as_out());
+                let ans = base64.encode(&bytes, buf.as_out()).unwrap();
                 assert_eq!(ans, encoded);
                 assert!(base64.check(ans).is_ok());
                 dbgmsg!("encoding ... ok");
@@ -168,8 +168,8 @@ fn parallel_encode() {
     for n in 0..50_000 {
         let src = rand_bytes(n);
         for base64 in [base64_simd::STANDARD, base64_simd::STANDARD_NO_PAD] {
-            let ans1 = base64.par_encode(&src, buf1.as_out());
-            let ans2 = base64.encode(&src, buf2.as_out());
+            let ans1 = base64.par_encode(&src, buf1.as_out()).unwrap();
+            let ans2 = base64.encode(&src, buf2.as_out()).unwrap();
             assert!(ans1 == ans2, "n = {n}");
         }
     }

@@ -30,13 +30,13 @@ pub fn forgiving_decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
 /// See <https://infra.spec.whatwg.org/#forgiving-base64>
 ///
 /// # Errors
-/// This function returns `Err` if the content of `src` is invalid.
+/// This function returns `Err` if
+/// + `src.len() > dst.len()`
+/// + the content of `src` is invalid
 ///
-/// # Panics
-/// This function asserts that `src.len() <= dst.len()`
 #[inline]
 pub fn forgiving_decode<'d>(src: &[u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
-    assert!(src.len() <= dst.len());
+    ensure!(src.len() <= dst.len());
 
     let pos = find_non_ascii_whitespace(src);
     debug_assert!(pos <= src.len());

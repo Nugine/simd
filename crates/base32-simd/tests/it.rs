@@ -46,7 +46,7 @@ fn basic() {
         buf.clear();
         buf.resize(base32.encoded_length(input.len()), 0);
 
-        let ans = base32.encode_as_str(input.as_bytes(), buf.as_out());
+        let ans = base32.encode_as_str(input.as_bytes(), buf.as_out()).unwrap();
         assert_eq!(ans, output);
 
         buf.clear();
@@ -83,7 +83,7 @@ fn special() {
         let mut buf: Vec<u8> = Vec::new();
         buf.resize(base32.encoded_length(input.len()), 0);
 
-        let ans = base32.encode(input, buf.as_out());
+        let ans = base32.encode(input, buf.as_out()).unwrap();
         assert!(base32.check(ans).is_ok());
 
         let ans = base32.decode_inplace(&mut buf).unwrap();
@@ -129,7 +129,7 @@ fn random() {
             dbgmsg!("base32 = {:?}", base32);
 
             let mut buf = vec![0u8; base32.encoded_length(n)];
-            let encoded = base32.encode(&bytes, buf.as_out());
+            let encoded = base32.encode(&bytes, buf.as_out()).unwrap();
             assert!(base32.check(encoded).is_ok());
 
             let mut buf = encoded.to_owned();

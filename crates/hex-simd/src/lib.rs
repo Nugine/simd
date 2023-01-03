@@ -71,7 +71,7 @@ use alloc::{string::String, vec::Vec};
 /// Calculates the encoded length.
 ///
 /// # Panics
-/// This function will panic if `n > isize::MAX`.
+/// This function asserts that `n <= usize::MAX / 2`.
 #[inline]
 #[must_use]
 pub const fn encoded_length(n: usize) -> usize {
@@ -103,31 +103,28 @@ pub fn check(data: &[u8]) -> Result<(), Error> {
 ///
 /// `case` specifies the ascii case of output.
 ///
-/// # Panics
-/// This function will panic if the length of `dst` is not enough.
+/// # Errors
+/// This function returns `Err` if the length of `dst` is not enough.
 #[inline]
-#[must_use]
-pub fn encode<'d>(src: &[u8], mut dst: Out<'d, [u8]>, case: AsciiCase) -> &'d mut [u8] {
-    assert!(dst.len() / 2 >= src.len());
+pub fn encode<'d>(src: &[u8], mut dst: Out<'d, [u8]>, case: AsciiCase) -> Result<&'d mut [u8], Error> {
+    ensure!(dst.len() / 2 >= src.len());
     unsafe {
         let (src, len) = slice_parts(src);
         let dst = dst.as_mut_ptr();
         crate::multiversion::encode::auto(src, len, dst, case);
-        slice_mut(dst, len * 2)
+        Ok(slice_mut(dst, len * 2))
     }
 }
 
 /// Decodes a hex string to bytes case-insensitively.
 ///
 /// # Errors
-/// This function returns `Err` if the content of `src` is invalid.
-///
-/// # Panics
-/// This function will panic if the length of `dst` is not enough.
+/// This function returns `Err` if
+/// + the length of `dst` is not enough.
+/// + the content of `src` is invalid.
 #[inline]
 pub fn decode<'d>(src: &[u8], mut dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
-    ensure!(src.len() % 2 == 0);
-    assert!(dst.len() >= src.len() / 2);
+    ensure!(src.len() % 2 == 0 && dst.len() >= src.len() / 2);
 
     let len = src.len();
     let dst = dst.as_mut_ptr();
@@ -158,13 +155,12 @@ pub fn decode_inplace(data: &mut [u8]) -> Result<&mut [u8], Error> {
 ///
 /// `case` specifies the ascii case of output.
 ///
-/// # Panics
-/// This function will panic if the length of `dst` is not enough.
+/// # Errors
+/// This function returns `Err` if the length of `dst` is not enough.
 #[inline]
-#[must_use]
-pub fn encode_as_str<'d>(src: &[u8], dst: Out<'d, [u8]>, case: AsciiCase) -> &'d mut str {
-    let ans = encode(src, dst, case);
-    unsafe { core::str::from_utf8_unchecked_mut(ans) }
+pub fn encode_as_str<'d>(src: &[u8], dst: Out<'d, [u8]>, case: AsciiCase) -> Result<&'d mut str, Error> {
+    let ans = encode(src, dst, case)?;
+    Ok(unsafe { core::str::from_utf8_unchecked_mut(ans) })
 }
 
 /// Types that can be decoded from a hex string.
