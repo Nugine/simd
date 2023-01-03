@@ -89,10 +89,58 @@ pub fn decoded_length(n: usize) -> Result<usize, Error> {
     Ok(n / 2)
 }
 
-/// Checks whether `data` is a hex string.
+/// Checks whether `data` is a hex string with raw pointers.
 ///
 /// # Errors
-/// This function returns `Err` if the content of `data` is invalid.
+/// This function returns `Err` if any byte in `data` is not a hex character.
+///
+/// # Safety
+/// Behavior is undefined if any of the following conditions are violated:
+/// + `src` must be valid for reading `len` bytes.
+#[inline]
+pub unsafe fn check_raw(src: *const u8, len: usize) -> Result<(), Error> {
+    crate::multiversion::check::auto(src, len)
+}
+
+/// Encodes bytes to a hex string with raw pointers.
+///
+/// `case` specifies the ascii case of output.
+///
+/// # Safety
+/// Behavior is undefined if any of the following conditions are violated:
+/// + `src` must be valid for reading `len` bytes.
+/// + `dst` must be valid for writing encoded data.
+/// + The memory regions of `src` and `dst` must not overlap.
+#[inline]
+pub unsafe fn encode_raw(src: *const u8, len: usize, dst: *mut u8, case: AsciiCase) -> usize {
+    crate::multiversion::encode::auto(src, len, dst, case);
+    len * 2
+}
+
+/// Decodes a hex string to bytes case-insensitively with raw pointers.
+///
+/// # Errors
+/// This function returns `Err` if the content of `src` is invalid.
+///
+/// # Safety
+/// Behavior is undefined if any of the following conditions are violated:
+/// + `src` must be valid for reading `len` bytes.
+/// + `dst` must be valid for writing decoded data.
+/// + The memory regions of `src` and `dst` do not overlap or are exactly the same.
+///   In other words, the function supports either "copy mode" or "inplace mode".
+#[inline]
+pub unsafe fn decode_raw(src: *const u8, len: usize, dst: *mut u8) -> Result<usize, Error> {
+    ensure!(len % 2 == 0);
+    crate::multiversion::decode::auto(src, len, dst)?;
+    Ok(len / 2)
+}
+
+/// Checks whether `data` is a hex string.
+///
+/// Note that a hex string with an odd length cannot be decoded to bytes.
+///
+/// # Errors
+/// This function returns `Err` if any byte in `data` is not a hex character.
 #[inline]
 pub fn check(data: &[u8]) -> Result<(), Error> {
     let (src, len) = slice_parts(data);
