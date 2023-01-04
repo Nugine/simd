@@ -46,6 +46,13 @@ pub fn is_ascii(data: &[u8]) -> bool {
     unsafe { crate::multiversion::is_ascii::auto(src, len) }
 }
 
+/// Converts ascii bytes to a string slice.
+#[inline]
+#[must_use]
+pub fn from_ascii(data: &[u8]) -> Option<&str> {
+    is_ascii(data).then(|| unsafe { core::str::from_utf8_unchecked(data) })
+}
+
 /// TODO: test, bench
 #[inline]
 #[must_use]
