@@ -70,6 +70,8 @@ fn allocation() {
 #[cfg_attr(not(target_arch = "wasm32"), test)]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn random() {
+    use base64::Engine as _;
+
     dbgmsg!();
     for n in 0..128 {
         dbgmsg!("n = {}", n);
@@ -83,23 +85,20 @@ fn random() {
         ];
 
         let base_config = {
-            use base64::alphabet::*;
-            use base64::engine::fast_portable::{FastPortable, NO_PAD, PAD};
-
-            let f = FastPortable::from;
+            use base64::engine::general_purpose as gp;
 
             [
-                f(&STANDARD, PAD),
-                f(&URL_SAFE, PAD),
-                f(&STANDARD, NO_PAD),
-                f(&URL_SAFE, NO_PAD),
+                gp::STANDARD,        //
+                gp::URL_SAFE,        //
+                gp::STANDARD_NO_PAD, //
+                gp::URL_SAFE_NO_PAD, //
             ]
         };
 
         for (base64, config) in test_config.into_iter().zip(base_config.into_iter()) {
             dbgmsg!("base64 = {:?}", base64);
 
-            let encoded = base64::encode_engine(&bytes, &config);
+            let encoded = config.encode(&bytes);
             let encoded = encoded.as_bytes();
             assert!(base64.check(encoded).is_ok());
 

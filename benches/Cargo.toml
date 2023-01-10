@@ -96,7 +96,7 @@ uuid = "1.2.2"
 const-str = "0.5.3"
 faster-hex = "0.6.1"
 radix64 = { version = "0.6.2", default-features = false }
-base64 = "0.20.0"
+base64 = "0.21.0"
 hex = "0.4.3"
 base16 = "0.2.1"
 getrandom = { version = "0.2", features = ["js"] }
