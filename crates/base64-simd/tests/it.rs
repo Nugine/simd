@@ -174,6 +174,7 @@ fn parallel_encode() {
     }
 }
 
+#[cfg(feature = "alloc")]
 #[test]
 fn precise_decoded_length() {
     // true positive
@@ -227,5 +228,22 @@ fn precise_decoded_length() {
     for (base64, data) in fn_cases {
         assert!(base64.decoded_length(data.as_ref()).is_err());
         assert!(base64.decode_to_vec(data).is_err());
+    }
+
+    {
+        // See <https://github.com/marshallpierce/rust-base64/issues/212>
+        use rand::Rng;
+
+        let base64 = base64_simd::STANDARD_NO_PAD;
+        let data = rand::thread_rng().gen::<[u8; 32]>();
+        let encoded = base64.encode_to_string(data);
+
+        let buf: &mut [u8] = &mut [0; 32];
+        assert!(base64.decode(encoded.as_ref(), buf.as_out()).is_ok());
+        assert_eq!(data, buf[..]);
+
+        let buf: &mut [u8] = &mut [0; 64];
+        assert!(base64.decode(encoded.as_ref(), buf.as_out()).is_ok());
+        assert_eq!(data, buf[..32]);
     }
 }
