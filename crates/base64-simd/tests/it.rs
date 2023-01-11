@@ -8,8 +8,8 @@ fn rand_bytes(n: usize) -> Vec<u8> {
     bytes
 }
 
-#[cfg(miri)]
-use std::io::Write as _;
+// #[cfg(miri)]
+// use std::io::Write as _;
 
 macro_rules! dbgmsg {
     ($($fmt:tt)*) => {
@@ -171,5 +171,61 @@ fn parallel_encode() {
             let ans2 = base64.encode(&src, buf2.as_out()).unwrap();
             assert!(ans1 == ans2, "n = {n}");
         }
+    }
+}
+
+#[test]
+fn precise_decoded_length() {
+    // true positive
+    let tp_cases: &[(&Base64, &str, usize)] = &[
+        (&STANDARD, "", 0),            //
+        (&STANDARD, "YQ==", 1),        //
+        (&STANDARD, "YWI=", 2),        //
+        (&STANDARD, "YWJj", 3),        //
+        (&STANDARD_NO_PAD, "", 0),     //
+        (&STANDARD_NO_PAD, "YQ", 1),   //
+        (&STANDARD_NO_PAD, "YWI", 2),  //
+        (&STANDARD_NO_PAD, "YWJj", 3), //
+    ];
+
+    // true negative
+    let tn_cases: &[(&Base64, &str, usize)] = &[
+        (&STANDARD, "====", 1),
+        (&STANDARD, "==a=", 2),
+        (&STANDARD, "===a", 3),
+        (&STANDARD_NO_PAD, "==", 1),
+        (&STANDARD_NO_PAD, "===", 2),
+        (&STANDARD_NO_PAD, "====", 3),
+    ];
+
+    // false negative
+    let fn_cases: &[(&Base64, &str)] = &[
+        (&STANDARD, "Y"),            //
+        (&STANDARD, "YQ"),           //
+        (&STANDARD, "YWI"),          //
+        (&STANDARD, "YW="),          //
+        (&STANDARD, "Y="),           //
+        (&STANDARD, "="),            //
+        (&STANDARD, "=="),           //
+        (&STANDARD, "==="),          //
+        (&STANDARD_NO_PAD, "="),     //
+        (&STANDARD_NO_PAD, "ABCDE"), //
+    ];
+
+    for &(base64, data, expected) in tp_cases {
+        assert_eq!(base64.decoded_length(data.as_ref()).unwrap(), expected);
+        assert_eq!(base64.decode_to_vec(data).unwrap().len(), expected);
+    }
+
+    for &(base64, data, expected) in tn_cases {
+        assert_eq!(base64.decoded_length(data.as_ref()).unwrap(), expected);
+        assert!(base64.decode_to_vec(data).is_err());
+    }
+
+    // There is no false positive!
+
+    for (base64, data) in fn_cases {
+        assert!(base64.decoded_length(data.as_ref()).is_err());
+        assert!(base64.decode_to_vec(data).is_err());
     }
 }
