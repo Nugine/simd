@@ -189,8 +189,8 @@ fn precise_decoded_length() {
         (&STANDARD_NO_PAD, "YWJj", 3), //
     ];
 
-    // true negative
-    let tn_cases: &[(&Base64, &str, usize)] = &[
+    // false negative
+    let fn_cases: &[(&Base64, &str, usize)] = &[
         (&STANDARD, "====", 1),
         (&STANDARD, "==a=", 2),
         (&STANDARD, "===a", 3),
@@ -199,8 +199,8 @@ fn precise_decoded_length() {
         (&STANDARD_NO_PAD, "====", 3),
     ];
 
-    // false negative
-    let fn_cases: &[(&Base64, &str)] = &[
+    // true negative
+    let tn_cases: &[(&Base64, &str)] = &[
         (&STANDARD, "Y"),            //
         (&STANDARD, "YQ"),           //
         (&STANDARD, "YWI"),          //
@@ -218,14 +218,14 @@ fn precise_decoded_length() {
         assert_eq!(base64.decode_to_vec(data).unwrap().len(), expected);
     }
 
-    for &(base64, data, expected) in tn_cases {
+    for &(base64, data, expected) in fn_cases {
         assert_eq!(base64.decoded_length(data.as_ref()).unwrap(), expected);
         assert!(base64.decode_to_vec(data).is_err());
     }
 
     // There is no false positive!
 
-    for (base64, data) in fn_cases {
+    for (base64, data) in tn_cases {
         assert!(base64.decoded_length(data.as_ref()).is_err());
         assert!(base64.decode_to_vec(data).is_err());
     }
@@ -246,4 +246,29 @@ fn precise_decoded_length() {
         assert!(base64.decode(encoded.as_ref(), buf.as_out()).is_ok());
         assert_eq!(data, buf[..32]);
     }
+}
+
+#[test]
+fn estimated_decoded_length() {
+    let cases = [
+        (0, 0), //
+        (1, 3), //
+        (2, 3), //
+        (3, 3), //
+        (4, 3), //
+        (5, 6), //
+        (6, 6), //
+        (7, 6), //
+        (8, 6), //
+    ];
+
+    for (input, expected) in cases {
+        assert_eq!(base64_simd::STANDARD.estimated_decoded_length(input), expected);
+        assert_eq!(base64::decoded_len_estimate(input), expected);
+    }
+
+    // no panic
+    let _ = base64_simd::STANDARD.estimated_decoded_length(usize::MAX);
+
+    // let _ = base64::decoded_len_estimate(usize::MAX); // it panics
 }
