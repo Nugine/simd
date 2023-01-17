@@ -199,11 +199,7 @@ impl Base64 {
     #[inline]
     #[must_use]
     pub const fn estimated_decoded_length(&self, n: usize) -> usize {
-        if n % 4 == 0 {
-            n / 4 * 3
-        } else {
-            (n / 4 + 1) * 3
-        }
+        (n / 4 + (n % 4 != 0) as usize) * 3
     }
 
     /// Calculates the decoded length.
