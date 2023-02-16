@@ -19,11 +19,11 @@ pub fn bench_encode(c: &mut Criterion) {
     #[allow(clippy::type_complexity)]
     let functions: &FnGroup<fn(&[u8], &mut [u8])> = &[
         ("base64-simd/auto", |src, dst| {
-            let _ = base64_simd::STANDARD.encode(src, dst.as_out());
+            base64_simd::STANDARD.encode(src, dst.as_out()).unwrap();
         }),
         #[cfg(feature = "parallel")]
         ("base64-simd/parallel", |src, dst| {
-            let _ = base64_simd::STANDARD.par_encode(src, dst.as_out());
+            base64_simd::STANDARD.par_encode(src, dst.as_out()).unwrap();
         }),
         ("radix64/auto", |src, dst| {
             radix64::STD.encode_slice(src, dst);
@@ -38,6 +38,9 @@ pub fn bench_encode(c: &mut Criterion) {
         }),
         ("data-encoding/fallback", |src, dst| {
             data_encoding::BASE64.encode_mut(src, dst);
+        }),
+        ("based64/fallback", |src, dst| {
+            based64::STANDARD_CODEC.encode_to(src, dst).unwrap();
         }),
     ];
 
@@ -80,6 +83,9 @@ pub fn bench_decode(c: &mut Criterion) {
         }),
         ("data-encoding/fallback", |src, dst| {
             data_encoding::BASE64.decode_mut(src, dst).unwrap();
+        }),
+        ("based64/fallback", |src, dst| {
+            based64::STANDARD_CODEC.decode_to(src, dst).unwrap();
         }),
     ];
 

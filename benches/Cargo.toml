@@ -39,72 +39,32 @@ harness = false
 
 [features]
 default = []
-detect = [
-    "vsimd/detect",
-    "base32-simd/detect",
-    "base64-simd/detect",
-    "hex-simd/detect",
-    "unicode-simd/detect",
-    "uuid-simd/detect",
-    "radix64/simd",
-]
-unstable = [
-    "vsimd/unstable",
-    "base32-simd/unstable",
-    "base64-simd/unstable",
-    "hex-simd/unstable",
-    "unicode-simd/unstable",
-    "uuid-simd/unstable",
-    #
-    "criterion/real_blackbox",
-    "encoding_rs/simd-accel",
-]
+detect = ["vsimd/detect", "base32-simd/detect", "base64-simd/detect", "hex-simd/detect", "unicode-simd/detect", "uuid-simd/detect", "radix64/simd"]
+unstable = ["vsimd/unstable", "base32-simd/unstable", "base64-simd/unstable", "hex-simd/unstable", "unicode-simd/unstable", "uuid-simd/unstable", "criterion/real_blackbox", "encoding_rs/simd-accel"]
 parallel = ["base64-simd/parallel"]
 
-
-[dependencies.vsimd]
-path = "../crates/vsimd"
-
-[dependencies.base32-simd]
-path = "../crates/base32-simd"
-default-features = false
-features = ["std"]
-
-[dependencies.base64-simd]
-path = "../crates/base64-simd"
-default-features = false
-features = ["std"]
-
-[dependencies.hex-simd]
-path = "../crates/hex-simd"
-default-features = false
-features = ["std"]
-
-[dependencies.unicode-simd]
-path = "../crates/unicode-simd"
-default-features = false
-features = ["std"]
-
-[dependencies.uuid-simd]
-path = "../crates/uuid-simd"
-default-features = false
-features = ["std", "uuid"]
-
 [dependencies]
-rand = "0.8.5"
-uuid = "1.2.2"
-const-str = "0.5.3"
-faster-hex = "0.6.1"
-radix64 = { version = "0.6.2", default-features = false }
-base64 = "0.21.0"
-hex = "0.4.3"
 base16 = "0.2.1"
-getrandom = { version = "0.2", features = ["js"] }
-base64ct = "1.5.3"
 base16ct = "0.1.1"
+base32-simd = { path = "../crates/base32-simd", default-features = false, features = ["std"] }
 base32ct = "0.1.0"
+base64 = "0.21.0"
+base64-simd = { path = "../crates/base64-simd", default-features = false, features = ["std"] }
+base64ct = "1.5.3"
+based64 = "0.4.2"
+const-str = "0.5.3"
 data-encoding = "2.3.3"
 encoding_rs = "0.8.31"
+faster-hex = "0.6.1"
+getrandom = { version = "0.2", features = ["js"] }
+hex = "0.4.3"
+hex-simd = { path = "../crates/hex-simd", default-features = false, features = ["std"] }
+radix64 = { version = "0.6.2", default-features = false }
+rand = "0.8.5"
+unicode-simd = { path = "../crates/unicode-simd", default-features = false, features = ["std"] }
+uuid = "1.2.2"
+uuid-simd = { path = "../crates/uuid-simd", default-features = false, features = ["std", "uuid"] }
+vsimd = { path = "../crates/vsimd", default-features = false }
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false, features = ["rayon"] }
