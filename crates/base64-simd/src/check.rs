@@ -1,6 +1,6 @@
 use crate::alsw::{STANDARD_ALSW_CHECK_X2, URL_SAFE_ALSW_CHECK_X2};
 use crate::decode::{decode_ascii4, decode_ascii8, decode_extra};
-use crate::decode::{STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
+use crate::decode::{BCRYPT_DECODE_TABLE, STANDARD_DECODE_TABLE, URL_SAFE_DECODE_TABLE};
 use crate::{Config, Error, Kind};
 
 use vsimd::alsw::AlswLut;
@@ -17,6 +17,7 @@ pub(crate) unsafe fn check_fallback(mut src: *const u8, mut n: usize, config: Co
     let table = match kind {
         Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
         Kind::UrlSafe => URL_SAFE_DECODE_TABLE.as_ptr(),
+        Kind::Bcrypt => BCRYPT_DECODE_TABLE.as_ptr(),
     };
 
     unsafe {
@@ -49,6 +50,7 @@ pub(crate) unsafe fn check_simd<S: SIMD256>(
     let check_lut = match kind {
         Kind::Standard => STANDARD_ALSW_CHECK_X2,
         Kind::UrlSafe => URL_SAFE_ALSW_CHECK_X2,
+        Kind::Bcrypt => unreachable!(),
     };
 
     unsafe {

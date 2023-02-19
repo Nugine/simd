@@ -83,6 +83,7 @@ use alloc::{string::String, vec::Vec};
 
 const STANDARD_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const URL_SAFE_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+const BCRYPT_CHARSET: &[u8; 64] = b"./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 /// Base64 variant
 #[derive(Debug)]
@@ -94,6 +95,7 @@ pub struct Base64 {
 enum Kind {
     Standard,
     UrlSafe,
+    Bcrypt,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -148,6 +150,14 @@ pub const URL_SAFE: Base64 = Base64 {
     },
 };
 
+/// BCRYPT charset with padding.
+pub const BCRYPT: Base64 = Base64 {
+    config: Config {
+        kind: Kind::Bcrypt,
+        extra: Extra::Pad,
+    },
+};
+
 /// Standard charset without padding.
 pub const STANDARD_NO_PAD: Base64 = Base64 {
     config: Config {
@@ -160,6 +170,14 @@ pub const STANDARD_NO_PAD: Base64 = Base64 {
 pub const URL_SAFE_NO_PAD: Base64 = Base64 {
     config: Config {
         kind: Kind::UrlSafe,
+        extra: Extra::NoPad,
+    },
+};
+
+/// BCRYPT charset without padding.
+pub const BCRYPT_NO_PAD: Base64 = Base64 {
+    config: Config {
+        kind: Kind::Bcrypt,
         extra: Extra::NoPad,
     },
 };
@@ -179,6 +197,7 @@ impl Base64 {
         match self.config.kind {
             Kind::Standard => STANDARD_CHARSET,
             Kind::UrlSafe => URL_SAFE_CHARSET,
+            Kind::Bcrypt => BCRYPT_CHARSET,
         }
     }
 

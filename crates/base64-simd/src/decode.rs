@@ -1,6 +1,6 @@
-use crate::alsw::{STANDARD_ALSW_CHECK_X2, URL_SAFE_ALSW_CHECK_X2};
+use crate::alsw::{BCRYPT_ALSW_CHECK_X2, BCRYPT_ALSW_DECODE_X2, STANDARD_ALSW_CHECK_X2, URL_SAFE_ALSW_CHECK_X2};
 use crate::alsw::{STANDARD_ALSW_DECODE_X2, URL_SAFE_ALSW_DECODE_X2};
-use crate::{Config, Error, Extra, Kind};
+use crate::{Config, Error, Extra, Kind, BCRYPT_CHARSET};
 use crate::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 
 use vsimd::alsw::AlswLut;
@@ -25,6 +25,7 @@ const fn decode_table(charset: &'static [u8; 64]) -> [u8; 256] {
 
 pub const STANDARD_DECODE_TABLE: &[u8; 256] = &decode_table(STANDARD_CHARSET);
 pub const URL_SAFE_DECODE_TABLE: &[u8; 256] = &decode_table(URL_SAFE_CHARSET);
+pub const BCRYPT_DECODE_TABLE: &[u8; 256] = &decode_table(BCRYPT_CHARSET);
 
 #[inline(always)]
 pub(crate) fn decoded_length(src: &[u8], config: Config) -> Result<(usize, usize), Error> {
@@ -184,6 +185,7 @@ pub(crate) unsafe fn decode_fallback(
     let table = match kind {
         Kind::Standard => STANDARD_DECODE_TABLE.as_ptr(),
         Kind::UrlSafe => URL_SAFE_DECODE_TABLE.as_ptr(),
+        Kind::Bcrypt => BCRYPT_DECODE_TABLE.as_ptr(),
     };
 
     // n*3/4 >= 6+2
@@ -218,6 +220,7 @@ pub(crate) unsafe fn decode_simd<S: SIMD256>(
     let (check_lut, decode_lut) = match kind {
         Kind::Standard => (STANDARD_ALSW_CHECK_X2, STANDARD_ALSW_DECODE_X2),
         Kind::UrlSafe => (URL_SAFE_ALSW_CHECK_X2, URL_SAFE_ALSW_DECODE_X2),
+        Kind::Bcrypt => (BCRYPT_ALSW_CHECK_X2, BCRYPT_ALSW_DECODE_X2),
     };
 
     // n*3/4 >= 24+4

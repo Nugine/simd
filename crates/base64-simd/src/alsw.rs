@@ -82,11 +82,54 @@ impl UrlSafeAlsw {
 
 vsimd::impl_alsw!(UrlSafeAlsw);
 
+struct BcryptAlsw;
+
+impl BcryptAlsw {
+    #[inline]
+    const fn decode(c: u8) -> u8 {
+        match c {
+            b'.' => 0,
+            b'/' => 1,
+            b'A'..=b'Z' => c - b'A' + 2,
+            b'a'..=b'z' => c - b'a' + 28,
+            b'0'..=b'9' => c - b'0' + 54,
+            _ => 0xff,
+        }
+    }
+
+    #[inline]
+    const fn check_hash(i: u8) -> u8 {
+        match i {
+            0 => 5,
+            1..=9 => 2,
+            0xA => 4,
+            0xB => 6,
+            0xC..=0xE => 8,
+            0xF => 6,
+            _ => unreachable!(),
+        }
+    }
+
+    #[inline]
+    const fn decode_hash(i: u8) -> u8 {
+        match i {
+            0xB => 0x07,
+            0xF => 0x08,
+            _ => 0x01,
+        }
+    }
+}
+
+vsimd::impl_alsw!(BcryptAlsw);
+
 pub const STANDARD_ALSW_CHECK_X2: AlswLut<V256> = StandardAlsw::check_lut().x2();
 pub const STANDARD_ALSW_DECODE_X2: AlswLut<V256> = StandardAlsw::decode_lut().x2();
 
 pub const URL_SAFE_ALSW_CHECK_X2: AlswLut<V256> = UrlSafeAlsw::check_lut().x2();
 pub const URL_SAFE_ALSW_DECODE_X2: AlswLut<V256> = UrlSafeAlsw::decode_lut().x2();
+
+pub const BCRYPT_ALSW_CHECK_X2: AlswLut<V256> = BcryptAlsw::check_lut().x2();
+pub const BCRYPT_ALSW_DECODE_X2: AlswLut<V256> = BcryptAlsw::decode_lut().x2();
 
 #[cfg(test)]
 mod algorithm {

@@ -1,4 +1,4 @@
-use crate::{Config, Kind};
+use crate::{Config, Kind, BCRYPT_CHARSET};
 use crate::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 
 use vsimd::isa::{NEON, SSE2, WASM128};
@@ -83,6 +83,7 @@ pub(crate) unsafe fn encode_fallback(mut src: *const u8, mut len: usize, mut dst
     let charset = match kind {
         Kind::Standard => STANDARD_CHARSET.as_ptr(),
         Kind::UrlSafe => URL_SAFE_CHARSET.as_ptr(),
+        Kind::Bcrypt => BCRYPT_CHARSET.as_ptr(),
     };
 
     const L: usize = 4;
@@ -129,6 +130,7 @@ pub(crate) unsafe fn encode_simd<S: SIMD256>(
         let (charset, shift_lut) = match kind {
             Kind::Standard => (STANDARD_CHARSET.as_ptr(), STANDARD_ENCODING_SHIFT_X2),
             Kind::UrlSafe => (URL_SAFE_CHARSET.as_ptr(), URL_SAFE_ENCODING_SHIFT_X2),
+            Kind::Bcrypt => (BCRYPT_CHARSET.as_ptr(), BCRYPT_ENCODING_SHIFT_X2),
         };
 
         for _ in 0..2 {
@@ -152,6 +154,7 @@ pub(crate) unsafe fn encode_simd<S: SIMD256>(
         let shift_lut = match kind {
             Kind::Standard => STANDARD_ENCODING_SHIFT,
             Kind::UrlSafe => URL_SAFE_ENCODING_SHIFT,
+            Kind::Bcrypt => BCRYPT_ENCODING_SHIFT,
         };
 
         let x = s.v128_load_unaligned(src);
@@ -290,9 +293,11 @@ const fn encoding_shift(charset: &'static [u8; 64]) -> V128 {
 
 const STANDARD_ENCODING_SHIFT: V128 = encoding_shift(STANDARD_CHARSET);
 const URL_SAFE_ENCODING_SHIFT: V128 = encoding_shift(URL_SAFE_CHARSET);
+const BCRYPT_ENCODING_SHIFT: V128 = encoding_shift(BCRYPT_CHARSET);
 
 const STANDARD_ENCODING_SHIFT_X2: V256 = STANDARD_ENCODING_SHIFT.x2();
 const URL_SAFE_ENCODING_SHIFT_X2: V256 = URL_SAFE_ENCODING_SHIFT.x2();
+const BCRYPT_ENCODING_SHIFT_X2: V256 = BCRYPT_ENCODING_SHIFT.x2();
 
 #[inline(always)]
 fn encode_values<S: Scalable<V>, V: POD>(s: S, x: V, shift_lut: V) -> V {
