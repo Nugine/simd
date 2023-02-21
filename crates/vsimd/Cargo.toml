@@ -26,4 +26,4 @@ rand = "0.8.5"
 
 [target.'cfg(target_arch="wasm32")'.dev-dependencies]
 getrandom = { version = "0.2.8", features = ["js"] }
-wasm-bindgen-test = "0.3.33"
+wasm-bindgen-test = "0.3.34"
