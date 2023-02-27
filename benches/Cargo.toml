@@ -45,7 +45,7 @@ parallel = ["base64-simd/parallel"]
 
 [dependencies]
 base16 = "0.2.1"
-base16ct = "0.1.1"
+base16ct = "0.2.0"
 base32-simd = { path = "../crates/base32-simd", default-features = false, features = ["std"] }
 base32ct = "0.1.0"
 base64 = "0.21.0"
