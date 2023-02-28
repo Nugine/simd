@@ -35,7 +35,8 @@
     clippy::wildcard_imports,
     clippy::items_after_statements,
     clippy::match_same_arms,
-    clippy::many_single_char_names
+    clippy::many_single_char_names,
+    clippy::let_underscore_untyped
 )]
 
 #[cfg(feature = "alloc")]
