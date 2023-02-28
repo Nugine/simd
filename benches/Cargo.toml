@@ -45,13 +45,13 @@ parallel = ["base64-simd/parallel"]
 
 [dependencies]
 base16 = "0.2.1"
-base16ct = "0.1.1"
+base16ct = "0.2.0"
 base32-simd = { path = "../crates/base32-simd", default-features = false, features = ["std"] }
-base32ct = "0.1.0"
+base32ct = "0.2.0"
 base64 = "0.21.0"
 base64-simd = { path = "../crates/base64-simd", default-features = false, features = ["std"] }
-base64ct = "1.5.3"
-based64 = "0.4.4"
+base64ct = "1.6.0"
+based64 = "0.4.5"
 const-str = "0.5.3"
 data-encoding = "2.3.3"
 encoding_rs = "0.8.32"
