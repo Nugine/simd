@@ -47,3 +47,9 @@ hex:
 unicode:
 
 + <https://github.com/simdutf/simdutf>
+
+## 赞助
+
+如果我的开源工作对您有帮助，请[赞助我](https://github.com/Nugine#sponsor)。
+
+每一点点都有帮助。非常感谢！
