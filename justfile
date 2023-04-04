@@ -14,11 +14,6 @@ doc pkg="vsimd":
     cargo doc --no-deps --all-features
     cargo doc --open -p {{pkg}}
 
-bench dispatch *ARGS:
-    #!/bin/bash -ex
-    cd {{justfile_directory()}}
-    DISPATCH={{dispatch}} ./scripts/bench.sh {{ARGS}}
-
 js-bench:
     #!/bin/bash -e
     cd {{justfile_directory()}}
@@ -37,26 +32,6 @@ js-bench:
 
     echo "bun" `bun --version`
     bun ./scripts/base64.js
-    echo
-
-wasi-bench:
-    #!/bin/bash -e
-    cd {{justfile_directory()}}
-
-    export RUSTFLAGS="-C target-feature=+simd128"
-    cargo build -p simd-benches --bin simd-benches --features unstable --profile bench --target wasm32-wasi
-    F=./target/wasm32-wasi/release/simd-benches.wasm
-
-    wasmer -V
-    wasmer run --enable-all $F
-    echo
-
-    wasmtime -V
-    wasmtime --wasm-features simd $F
-    echo
-
-    echo "node" `node -v`
-    node --experimental-wasi-unstable-preview1 ./scripts/node-wasi.js $F
     echo
 
 sync-version:
@@ -132,6 +107,3 @@ dump-llvm-ir:
     tokei -f -s files -t LLVM -c 150 > $F
     tokei -f -s lines -t LLVM -c 150
     echo target/symbols/$F
-
-bench-quick:
-    RUSTFLAGS='-Ctarget-cpu=native' cargo run -p simd-benches --bin simd-benches --profile bench --features unstable

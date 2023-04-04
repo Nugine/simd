@@ -13,7 +13,7 @@ SIMD-accelerated operations
 |    [hex-simd](./crates/hex-simd/)    |    [![Crates.io](https://img.shields.io/crates/v/hex-simd.svg)](https://crates.io/crates/hex-simd)    |    [![Docs](https://docs.rs/hex-simd/badge.svg)](https://docs.rs/hex-simd/)    |
 |   [uuid-simd](./crates/uuid-simd/)   |   [![Crates.io](https://img.shields.io/crates/v/uuid-simd.svg)](https://crates.io/crates/uuid-simd)   |   [![Docs](https://docs.rs/uuid-simd/badge.svg)](https://docs.rs/uuid-simd/)   |
 
-The crates automatically select SIMD functions when available and provide fast fallback implementations. Benchmark results are available in [Benchmark Dashboard](https://github.com/Nugine/simd/issues/25).
+The crates automatically select SIMD functions when available and provide fast fallback implementations. Benchmark results are available in [simd-benches](https://github.com/Nugine/simd-benches).
 
 ## Goals
 

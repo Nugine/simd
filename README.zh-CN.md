@@ -13,7 +13,7 @@ SIMD 加速操作
 |    [hex-simd](./crates/hex-simd/)    |    [![Crates.io](https://img.shields.io/crates/v/hex-simd.svg)](https://crates.io/crates/hex-simd)    |    [![Docs](https://docs.rs/hex-simd/badge.svg)](https://docs.rs/hex-simd/)    |
 |   [uuid-simd](./crates/uuid-simd/)   |   [![Crates.io](https://img.shields.io/crates/v/uuid-simd.svg)](https://crates.io/crates/uuid-simd)   |   [![Docs](https://docs.rs/uuid-simd/badge.svg)](https://docs.rs/uuid-simd/)   |
 
-这些 crate 自动选择可用的 SIMD 函数并提供快速的回退实现。基准测试结果可在 [Benchmark Dashboard](https://github.com/Nugine/simd/issues/25) 查看。
+这些 crate 自动选择可用的 SIMD 函数并提供快速的回退实现。基准测试结果可在 [simd-benches](https://github.com/Nugine/simd-benches) 查看。
 
 ## 目标
 
