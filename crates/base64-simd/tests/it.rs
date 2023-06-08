@@ -147,7 +147,7 @@ fn canonicity() {
         let base64 = STANDARD;
 
         let is_valid = base64.check(encoded.as_bytes()).is_ok();
-        let result: _ = base64.decode(encoded.as_bytes(), buf.as_mut_slice().as_out());
+        let result = base64.decode(encoded.as_bytes(), buf.as_mut_slice().as_out());
 
         assert_eq!(is_valid, result.is_ok());
         match expected {
