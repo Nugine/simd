@@ -2,13 +2,28 @@
 // Inspired by <https://gist.github.com/aqrit/a2ccea48d7cac7e9d4d99f19d4759666>
 //
 
-use crate::algorithm::{avgr, lookup};
 use crate::pod::POD;
 use crate::table::u8x16xn_lookup;
 use crate::vector::{V128, V256};
 use crate::Scalable;
 
 use core::ops::Not;
+
+#[inline]
+#[must_use]
+pub const fn lookup(lut: &[u8; 16], x: u8) -> u8 {
+    if x < 0x80 {
+        lut[(x & 0x0f) as usize]
+    } else {
+        0
+    }
+}
+
+#[inline]
+#[must_use]
+pub const fn avgr(a: u8, b: u8) -> u8 {
+    ((a as u16 + b as u16 + 1) >> 1) as u8
+}
 
 #[inline]
 #[must_use]

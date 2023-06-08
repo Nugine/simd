@@ -92,17 +92,47 @@ pub const URL_SAFE_ALSW_DECODE_X2: AlswLut<V256> = UrlSafeAlsw::decode_lut().x2(
 mod algorithm {
     use super::*;
 
+    #[cfg_attr(
+        any(miri, not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))),
+        ignore
+    )]
     #[test]
-    #[ignore]
     fn standard_alsw() {
         StandardAlsw::test_check();
         StandardAlsw::test_decode();
     }
 
+    #[cfg_attr(
+        any(miri, not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))),
+        ignore
+    )]
     #[test]
-    #[ignore]
     fn url_safe_alsw() {
         UrlSafeAlsw::test_check();
         UrlSafeAlsw::test_decode();
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    #[ignore]
+    fn debug_standard_alsw_check() {
+        let hash = &StandardAlsw::CHECK_HASH;
+        let offset = &StandardAlsw::CHECK_OFFSET;
+        let is_primary = |c: u8| StandardAlsw::decode(c) != 0xff;
+
+        vsimd::tools::print_fn_table(is_primary, |c: u8| vsimd::alsw::hash(hash, c));
+        vsimd::tools::print_fn_table(is_primary, |c: u8| vsimd::alsw::check(hash, offset, c));
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    #[ignore]
+    fn debug_standard_alsw_decode() {
+        let hash = &StandardAlsw::DECODE_HASH;
+        let offset = &StandardAlsw::DECODE_OFFSET;
+        let is_primary = |c: u8| StandardAlsw::decode(c) != 0xff;
+
+        vsimd::tools::print_fn_table(is_primary, |c: u8| vsimd::alsw::hash(hash, c));
+        vsimd::tools::print_fn_table(is_primary, |c: u8| vsimd::alsw::decode(hash, offset, c));
     }
 }

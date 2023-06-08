@@ -31,8 +31,16 @@ pub fn to_ascii_uppercase<S: Scalable<V>, V: POD>(s: S, x: V) -> V {
 
 #[cfg(test)]
 mod algorithm {
-    use crate::algorithm::*;
+    #[cfg(feature = "std")]
+    fn i8_lt(a: i8, b: i8) -> u8 {
+        if a < b {
+            0xff
+        } else {
+            0x00
+        }
+    }
 
+    #[cfg(feature = "std")]
     #[test]
     #[ignore]
     fn convert_case() {
@@ -45,8 +53,8 @@ mod algorithm {
         let to_upper = |c: u8| convert(c, b'a');
         let to_lower = |c: u8| convert(c, b'A');
 
-        print_fn_table(|c| c.is_ascii_lowercase(), to_upper);
-        print_fn_table(|c| c.is_ascii_uppercase(), to_lower);
+        crate::tools::print_fn_table(|c| c.is_ascii_lowercase(), to_upper);
+        crate::tools::print_fn_table(|c| c.is_ascii_uppercase(), to_lower);
 
         for c in 0..=255u8 {
             assert_eq!(to_upper(c), c.to_ascii_uppercase());

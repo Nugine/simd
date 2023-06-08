@@ -74,15 +74,21 @@ pub const BASE32HEX_ALSW_DECODE_X2: AlswLut<V256> = Base32HexAlsw::decode_lut().
 mod algorithm {
     use super::*;
 
+    #[cfg_attr(
+        any(miri, not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))),
+        ignore
+    )]
     #[test]
-    #[ignore]
     fn base32_alsw() {
         Base32Alsw::test_check();
         Base32Alsw::test_decode();
     }
 
+    #[cfg_attr(
+        any(miri, not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))),
+        ignore
+    )]
     #[test]
-    #[ignore]
     fn base32hex_alsw() {
         Base32HexAlsw::test_check();
         Base32HexAlsw::test_decode();

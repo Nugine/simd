@@ -280,7 +280,10 @@ mod algorithm {
     use super::*;
 
     #[test]
-    #[ignore]
+    #[cfg_attr(
+        any(miri, not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))),
+        ignore
+    )]
     fn check() {
         fn is_hex_v1(c: u8) -> bool {
             matches!(c, b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F')
@@ -306,7 +309,10 @@ mod algorithm {
     }
 
     #[test]
-    #[ignore]
+    #[cfg_attr(
+        any(miri, not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))),
+        ignore
+    )]
     fn hex_alsw() {
         HexAlsw::test_check();
         HexAlsw::test_decode();

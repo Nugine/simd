@@ -70,8 +70,6 @@ pub use self::simd256::SIMD256;
 mod scalable;
 pub use self::scalable::Scalable;
 
-mod algorithm;
-
 pub mod tools;
 
 #[macro_use]

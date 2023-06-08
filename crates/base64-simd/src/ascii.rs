@@ -188,8 +188,11 @@ mod tests {
 
 #[cfg(test)]
 mod algorithm {
+    #[cfg_attr(
+        any(miri, not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))),
+        ignore
+    )]
     #[test]
-    #[ignore]
     fn is_ascii_whitespace() {
         for x in 0..=255u8 {
             let m1 = (x.wrapping_sub(0x89) as i8) < (-128 + 5);
