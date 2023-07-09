@@ -66,7 +66,7 @@ pub unsafe fn decode_bits<const N: usize>(src: *const u8, table: *const u8) -> (
 
 #[inline(always)]
 unsafe fn write_be_bytes<const N: usize>(dst: *mut u8, x: u64) {
-    debug_assert!(matches!(N, 1 | 2 | 3 | 4 | 5));
+    debug_assert!(matches!(N, 1..=5));
 
     #[cfg(not(target_arch = "wasm32"))]
     {

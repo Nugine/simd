@@ -36,7 +36,7 @@ pub unsafe fn encode_bits<const N: usize>(dst: *mut u8, charset: *const u8, x: u
 
 #[inline(always)]
 pub unsafe fn read_be_bytes<const N: usize>(src: *const u8) -> u64 {
-    debug_assert!(matches!(N, 1 | 2 | 3 | 4 | 5));
+    debug_assert!(matches!(N, 1..=5));
 
     #[cfg(not(target_arch = "wasm32"))]
     {
