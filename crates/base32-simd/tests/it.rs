@@ -80,8 +80,7 @@ fn special() {
     let base32 = BASE32;
 
     for &input in inputs {
-        let mut buf: Vec<u8> = Vec::new();
-        buf.resize(base32.encoded_length(input.len()), 0);
+        let mut buf: Vec<u8> = vec![0; base32.encoded_length(input.len())];
 
         let ans = base32.encode(input, buf.as_out()).unwrap();
         assert!(base32.check(ans).is_ok());

@@ -41,7 +41,7 @@ macro_rules! try_ {
     ($result:expr) => {
         match $result {
             Ok(value) => value,
-            Err(_) => return Err(Error::new()),
+            Err(()) => return Err(Error::new()),
         }
     };
 }
