@@ -125,7 +125,8 @@ fn random() {
         }};
     }
 
-    for (_, src) in ok_cases.iter().enumerate() {
+    for src in &ok_cases {
+        // for (_, src) in ok_cases.iter().enumerate() {
         // dbgmsg!("ok case {}", i + 1);
         assert!(hex_simd::check(src).is_ok());
         if src.len() % 2 == 0 {
@@ -137,7 +138,8 @@ fn random() {
         }
     }
 
-    for (_, src) in err_cases.iter().enumerate() {
+    for src in &err_cases {
+        // for (_, src) in err_cases.iter().enumerate() {
         // dbgmsg!("err case {}", i + 1);
         assert!(hex_simd::check(src).is_err());
         let mut buf = vec![0; src.len() / 2];

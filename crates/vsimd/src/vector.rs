@@ -1,3 +1,5 @@
+#![allow(dead_code)] // FIXME: temp workaround
+
 use core::mem::transmute;
 
 // vectors should have `repr(simd)` if possible.

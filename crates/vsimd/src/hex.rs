@@ -286,7 +286,8 @@ mod algorithm {
     )]
     fn check() {
         fn is_hex_v1(c: u8) -> bool {
-            matches!(c, b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F')
+            // matches!(c, b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F')
+            c.is_ascii_hexdigit()
         }
 
         fn is_hex_v2(c: u8) -> bool {
