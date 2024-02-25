@@ -6,8 +6,11 @@ use crate::{FromBase64Decode, FromBase64Encode};
 
 use vsimd::tools::{alloc_uninit_bytes, assume_init, boxed_str, slice_parts};
 
+#[cfg(not(any(test, feature = "std")))]
 use alloc::boxed::Box;
+#[cfg(not(any(test, feature = "std")))]
 use alloc::string::String;
+#[cfg(not(any(test, feature = "std")))]
 use alloc::vec::Vec;
 
 #[inline]

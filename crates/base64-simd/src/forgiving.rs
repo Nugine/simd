@@ -6,7 +6,7 @@ use vsimd::tools::slice_mut;
 
 use core::ptr::copy_nonoverlapping;
 
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "alloc", not(any(test, feature = "std"))))]
 use alloc::vec::Vec;
 
 /// Forgiving decodes a base64 string to bytes and writes inplace.
