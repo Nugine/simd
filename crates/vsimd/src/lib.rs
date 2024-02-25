@@ -2,7 +2,6 @@
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 #![cfg_attr(
     feature = "unstable",
-    feature(stdsimd),
     feature(arm_target_feature),
     feature(portable_simd),
     feature(inline_const),
