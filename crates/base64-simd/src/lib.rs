@@ -78,7 +78,7 @@ use crate::encode::encoded_length_unchecked;
 
 use vsimd::tools::{slice_mut, slice_parts};
 
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "alloc", not(any(test, feature = "std"))))]
 use alloc::{string::String, vec::Vec};
 
 const STANDARD_CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

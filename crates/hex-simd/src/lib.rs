@@ -65,7 +65,7 @@ pub use vsimd::ascii::AsciiCase;
 
 use vsimd::tools::{slice_mut, slice_parts};
 
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "alloc", not(any(test, feature = "std"))))]
 use alloc::{string::String, vec::Vec};
 
 /// Calculates the encoded length.
