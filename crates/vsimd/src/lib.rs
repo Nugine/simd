@@ -2,10 +2,15 @@
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 #![cfg_attr(
     feature = "unstable",
-    feature(arm_target_feature),
     feature(portable_simd),
     feature(inline_const),
     feature(array_chunks)
+)]
+#![cfg_attr(
+    all(feature = "unstable", target_arch = "arm"),
+    feature(arm_target_feature),
+    feature(stdarch_arm_feature_detection),
+    feature(stdarch_arm_neon_intrinsics)
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(test, deny(warnings))]
