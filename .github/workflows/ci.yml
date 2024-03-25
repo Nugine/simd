@@ -15,7 +15,7 @@ jobs:
   develop:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt, clippy
@@ -32,7 +32,7 @@ jobs:
           - stable
           - 1.63.0 # MSRV
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -56,7 +56,7 @@ jobs:
           - wasm32-unknown-unknown
           # - mips-unknown-linux-gnu # missing toolchain
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.target }}
@@ -73,7 +73,7 @@ jobs:
   miri:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
         with: 
           components: miri
