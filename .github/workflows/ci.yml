@@ -60,7 +60,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.target }}
-      - uses: taiki-e/install-action@v1
+      - uses: taiki-e/install-action@v2
         with:
           tool: cross
       - run: |
