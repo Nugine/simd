@@ -1,3 +1,5 @@
+#![allow(clippy::missing_transmute_annotations)]
+
 use crate::isa::InstructionSet;
 use crate::vector::V64;
 
