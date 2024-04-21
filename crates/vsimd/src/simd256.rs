@@ -1,3 +1,5 @@
+#![allow(clippy::missing_transmute_annotations)]
+
 use crate::isa::{AVX2, NEON, SSE2, WASM128};
 use crate::vector::{V128, V256};
 use crate::{unified, SIMD128};

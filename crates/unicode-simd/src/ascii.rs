@@ -52,6 +52,8 @@ pub unsafe fn is_ascii_simd_v256<S: SIMD256>(s: S, mut src: *const u8, mut len: 
 pub unsafe fn is_ascii_sse2(src: *const u8, len: usize) -> bool {
     use core::arch::x86_64::*;
 
+    use vsimd::vector::V128;
+
     macro_rules! ensure {
         ($cond:expr) => {
             if !$cond {
@@ -78,7 +80,7 @@ pub unsafe fn is_ascii_sse2(src: *const u8, len: usize) -> bool {
     #[inline(always)]
     unsafe fn check16(x: __m128i) -> bool {
         if cfg!(miri) {
-            let x = core::mem::transmute(x);
+            let x = core::mem::transmute::<__m128i, V128>(x);
             vsimd::simulation::u8x16_bitmask(x) == 0
         } else {
             _mm_movemask_epi8(x) as u32 as u16 == 0

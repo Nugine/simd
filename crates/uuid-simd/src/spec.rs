@@ -1,3 +1,5 @@
+#![allow(clippy::missing_transmute_annotations)]
+
 use vsimd::vector::{V128, V256};
 use vsimd::{SIMD128, SIMD256};
 
