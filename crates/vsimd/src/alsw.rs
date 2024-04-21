@@ -77,8 +77,8 @@ pub fn check_ascii_xn<S: Scalable<V>, V: POD>(s: S, x: V, check: AlswLut<V>) -> 
 pub fn decode_ascii_xn<S: Scalable<V>, V: POD>(s: S, x: V, check: AlswLut<V>, decode: AlswLut<V>) -> (V, V) {
     let shr3 = s.u32xn_shr::<3>(x);
 
-    let h1 = s.u8xn_avgr(shr3, u8x16xn_lookup(s, check.hash, x));
-    let h2 = s.u8xn_avgr(shr3, u8x16xn_lookup(s, decode.hash, x));
+    let h1 = u8xn_avgr(s, shr3, u8x16xn_lookup(s, check.hash, x));
+    let h2 = u8xn_avgr(s, shr3, u8x16xn_lookup(s, decode.hash, x));
 
     let o1 = u8x16xn_lookup(s, check.offset, h1);
     let o2 = u8x16xn_lookup(s, decode.offset, h2);
@@ -87,6 +87,42 @@ pub fn decode_ascii_xn<S: Scalable<V>, V: POD>(s: S, x: V, check: AlswLut<V>, de
     let c2 = s.u8xn_add(x, o2);
 
     (c1, c2)
+}
+
+// FIXME: https://github.com/rust-lang/rust/issues/124216
+// TODO: workaround for SSE2
+#[inline(always)]
+fn u8xn_avgr<S: Scalable<V>, V: POD>(s: S, a: V, b: V) -> V {
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    {
+        use crate::isa::AVX2;
+        use crate::tools::transmute_copy as tc;
+
+        use core::arch::asm;
+
+        #[cfg(target_arch = "x86")]
+        use core::arch::x86::*;
+
+        #[cfg(target_arch = "x86_64")]
+        use core::arch::x86_64::*;
+
+        if matches_isa!(S, AVX2) && is_pod_type!(V, V256) {
+            return unsafe { tc(&vpavgb(tc(&a), tc(&b))) };
+        }
+
+        #[target_feature(enable = "avx")]
+        unsafe fn vpavgb(a: __m256i, mut b: __m256i) -> __m256i {
+            asm!(
+                "vpavgb {b}, {a}, {b}",
+                options(pure, nomem, nostack),
+                a = in(ymm_reg) a,
+                b = inout(ymm_reg) b,
+            );
+            b
+        }
+    }
+
+    s.u8xn_avgr(a, b)
 }
 
 #[macro_export]
