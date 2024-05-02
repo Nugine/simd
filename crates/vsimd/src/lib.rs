@@ -1,11 +1,6 @@
 //! ⚠️ This crate contains shared implementation details. Do not directly depend on it.
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
-#![cfg_attr(
-    feature = "unstable",
-    feature(portable_simd),
-    feature(inline_const),
-    feature(array_chunks)
-)]
+#![cfg_attr(feature = "unstable", feature(portable_simd), feature(array_chunks))]
 #![cfg_attr(
     all(feature = "unstable", target_arch = "arm"),
     feature(arm_target_feature),
