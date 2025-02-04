@@ -27,10 +27,6 @@ This project relies heavily on unsafe code. We encourage everyone to review the 
 
 Memory safety bugs and unsoundness issues are classified as critical bugs. They will be fixed as soon as possible.
 
-## Spoken Language
-
-This project accepts English or Chinese. All code, docs, PRs and issues should be written in English or Chinese.
-
 ## References
 
 This project contains multiple algorithms and implementations. Some of them are not original. We list the references here.
