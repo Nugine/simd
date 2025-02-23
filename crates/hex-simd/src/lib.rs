@@ -223,6 +223,7 @@ pub trait FromHexDecode: Sized {
 /// Types that can represent a hex string.
 pub trait FromHexEncode: Sized {
     /// Encodes bytes to a hex string and returns the self type.
+    #[must_use]
     fn from_hex_encode(data: &[u8], case: AsciiCase) -> Self;
 }
 

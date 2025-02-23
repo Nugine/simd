@@ -115,7 +115,6 @@ impl FromHexDecode for Vec<u8> {
 #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexEncode for Box<[u8]> {
     #[inline]
-    #[must_use]
     fn from_hex_encode(data: &[u8], case: AsciiCase) -> Self {
         let ans = encode_to_boxed_str(data, case);
         ans.into_boxed_bytes()
@@ -125,7 +124,6 @@ impl FromHexEncode for Box<[u8]> {
 #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexEncode for Box<str> {
     #[inline]
-    #[must_use]
     fn from_hex_encode(data: &[u8], case: AsciiCase) -> Self {
         encode_to_boxed_str(data, case)
     }
@@ -134,7 +132,6 @@ impl FromHexEncode for Box<str> {
 #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexEncode for Vec<u8> {
     #[inline]
-    #[must_use]
     fn from_hex_encode(data: &[u8], case: AsciiCase) -> Self {
         let ans = encode_to_boxed_str(data, case);
         Vec::from(ans.into_boxed_bytes())
@@ -144,7 +141,6 @@ impl FromHexEncode for Vec<u8> {
 #[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 impl FromHexEncode for String {
     #[inline]
-    #[must_use]
     fn from_hex_encode(data: &[u8], case: AsciiCase) -> Self {
         let ans = encode_to_boxed_str(data, case);
         String::from(ans)
