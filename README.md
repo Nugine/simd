@@ -1,7 +1,10 @@
 # simd
 
-[![MIT licensed][mit-badge]][mit-url] [English](./README.md) | [中文](./README.zh-CN.md)
+[![MIT licensed][mit-badge]][mit-url] [![CI][CI-badge][CI-url]
+[English](./README.md) | [中文](./README.zh-CN.md)
 
+[CI-badge]: https://github.com/Nugine/simd/actions/workflows/ci.yml/badge.svg
+[CI-url]: https://github.com/Nugine/simd/actions/workflows/ci.yml
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [mit-url]: ./LICENSE
 
