@@ -42,13 +42,13 @@ pub unsafe fn read_be_bytes<const N: usize>(src: *const u8) -> u64 {
     {
         if N == 3 {
             let x1: u8 = read(src, 0);
-            let x2: u16 = src.add(1).cast::<u16>().read_unaligned().to_be();
-            return ((x1 as u64) << 16) | (x2 as u64);
+            let x2 = src.add(1).cast::<u16>().read_unaligned().to_be() as u64;
+            return ((x1 as u64) << 16) | x2;
         }
         if N == 5 {
             let x1: u8 = read(src, 0);
-            let x2: u32 = src.add(1).cast::<u32>().read_unaligned().to_be();
-            return ((x1 as u64) << 32) | (x2 as u64);
+            let x2 = src.add(1).cast::<u32>().read_unaligned().to_be() as u64;
+            return ((x1 as u64) << 32) | x2;
         }
     }
 
