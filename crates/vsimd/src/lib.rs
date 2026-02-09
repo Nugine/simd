@@ -1,9 +1,6 @@
 //! ⚠️ This crate contains shared implementation details. Do not directly depend on it.
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
-#![cfg_attr(
-    all(feature = "unstable", not(target_arch = "powerpc64")),
-    feature(portable_simd)
-)]
+#![cfg_attr(all(feature = "unstable", not(target_arch = "powerpc64")), feature(portable_simd))]
 #![cfg_attr(
     all(feature = "unstable", target_arch = "arm"),
     feature(arm_target_feature),

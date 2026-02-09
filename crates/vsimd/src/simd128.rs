@@ -1,6 +1,6 @@
 #![allow(clippy::missing_transmute_annotations)]
 
-use crate::isa::{NEON, SSE2, SSE41, WASM128, VSX};
+use crate::isa::{NEON, SSE2, SSE41, VSX, WASM128};
 use crate::unified;
 use crate::vector::V128;
 use crate::SIMD64;
@@ -79,7 +79,7 @@ pub unsafe trait SIMD128: SIMD64 {
         }
         #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
         if matches_isa!(Self, VSX) {
-            return t(vec_xl(0, addr as *const u8));
+            return t(vec_xl(0, addr));
         }
         {
             let _ = addr;
@@ -134,7 +134,7 @@ pub unsafe trait SIMD128: SIMD64 {
         }
         #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
         if matches_isa!(Self, VSX) {
-            return vec_xst(t::<_, vector_unsigned_char>(a), 0, addr as *mut u8);
+            return vec_xst(t::<_, vector_unsigned_char>(a), 0, addr);
         }
         {
             let _ = (addr, a);
@@ -1231,10 +1231,7 @@ pub unsafe trait SIMD128: SIMD64 {
                 let b: vector_unsigned_char = t(b);
                 // Select even bytes: 0,2,4,6,8,10,12,14 from a, then 0,2,4,6,8,10,12,14 from b
                 // On LE ppc64, vec_perm indices: bytes from a are 0-15, bytes from b are 16-31
-                let perm: vector_unsigned_char = t([
-                    0u8, 2, 4, 6, 8, 10, 12, 14,
-                    16, 18, 20, 22, 24, 26, 28, 30,
-                ]);
+                let perm: vector_unsigned_char = t([0u8, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]);
                 t(vec_perm(a, b, perm))
             };
         }
@@ -1271,10 +1268,7 @@ pub unsafe trait SIMD128: SIMD64 {
                 let a: vector_unsigned_char = t(a);
                 let b: vector_unsigned_char = t(b);
                 // Select odd bytes: 1,3,5,7,9,11,13,15 from a, then 1,3,5,7,9,11,13,15 from b
-                let perm: vector_unsigned_char = t([
-                    1u8, 3, 5, 7, 9, 11, 13, 15,
-                    17, 19, 21, 23, 25, 27, 29, 31,
-                ]);
+                let perm: vector_unsigned_char = t([1u8, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31]);
                 t(vec_perm(a, b, perm))
             };
         }
