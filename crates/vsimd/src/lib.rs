@@ -1,11 +1,20 @@
 //! ⚠️ This crate contains shared implementation details. Do not directly depend on it.
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
-#![cfg_attr(feature = "unstable", feature(portable_simd))]
+#![cfg_attr(
+    all(feature = "unstable", not(target_arch = "powerpc64")),
+    feature(portable_simd)
+)]
 #![cfg_attr(
     all(feature = "unstable", target_arch = "arm"),
     feature(arm_target_feature),
     feature(stdarch_arm_feature_detection),
     feature(stdarch_arm_neon_intrinsics)
+)]
+#![cfg_attr(
+    all(feature = "unstable", target_arch = "powerpc64"),
+    feature(stdarch_powerpc),
+    feature(stdarch_powerpc_feature_detection),
+    feature(powerpc_target_feature)
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(test, deny(warnings))]
@@ -81,5 +90,5 @@ pub mod mask;
 pub mod native;
 pub mod table;
 
-#[cfg(feature = "unstable")]
+#[cfg(all(feature = "unstable", not(target_arch = "powerpc64")))]
 pub mod unstable;

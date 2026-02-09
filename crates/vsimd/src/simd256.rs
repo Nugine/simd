@@ -1,6 +1,6 @@
 #![allow(clippy::missing_transmute_annotations)]
 
-use crate::isa::{AVX2, NEON, SSE2, WASM128};
+use crate::isa::{AVX2, NEON, SSE2, WASM128, VSX};
 use crate::vector::{V128, V256};
 use crate::{unified, SIMD128};
 
@@ -503,7 +503,7 @@ pub unsafe trait SIMD256: SIMD128 {
 
     #[inline(always)]
     fn u8x32_swizzle(self, a: V256, b: V256) -> V256 {
-        if matches_isa!(Self, SSE2 | WASM128) {
+        if matches_isa!(Self, SSE2 | WASM128 | VSX) {
             let _ = (a, b);
             unimplemented!()
         }
@@ -569,7 +569,7 @@ pub unsafe trait SIMD256: SIMD128 {
     /// ans = ((b ^ c) & a) ^ c
     #[inline(always)]
     fn v256_bsl(self, a: V256, b: V256, c: V256) -> V256 {
-        if matches_isa!(Self, NEON) {
+        if matches_isa!(Self, NEON | VSX) {
             return simd256_vop!(self, Self::v128_bsl, a, b, c);
         }
         {
@@ -607,6 +607,13 @@ pub unsafe trait SIMD256: SIMD128 {
                 let high = t(u16x8_extend_high_u8x16(a));
                 V256::from_v128x2((low, high))
             };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            let zero = self.v128_create_zero();
+            let lo = self.u8x16_zip_lo(a, zero);
+            let hi = self.u8x16_zip_hi(a, zero);
+            return V256::from_v128x2((lo, hi));
         }
         {
             let _ = a;
@@ -708,7 +715,7 @@ pub unsafe trait SIMD256: SIMD128 {
         if matches_isa!(Self, AVX2) {
             return unsafe { t(_mm256_permute2x128_si256::<0b0010_0000>(t(a), t(b))) };
         }
-        if matches_isa!(Self, SSE2 | NEON | WASM128) {
+        if matches_isa!(Self, SSE2 | NEON | WASM128 | VSX) {
             let ((a, _), (c, _)) = (a.to_v128x2(), b.to_v128x2());
             return V256::from_v128x2((a, c));
         }
@@ -723,7 +730,7 @@ pub unsafe trait SIMD256: SIMD128 {
         if matches_isa!(Self, AVX2) {
             return unsafe { t(_mm256_permute2x128_si256::<0b0011_0001>(t(a), t(b))) };
         }
-        if matches_isa!(Self, SSE2 | NEON | WASM128) {
+        if matches_isa!(Self, SSE2 | NEON | WASM128 | VSX) {
             let ((_, b), (_, d)) = (a.to_v128x2(), b.to_v128x2());
             return V256::from_v128x2((b, d));
         }
@@ -738,7 +745,7 @@ pub unsafe trait SIMD256: SIMD128 {
         if matches_isa!(Self, AVX2) {
             return unsafe { t(_mm256_permute4x64_epi64::<IMM8>(t(a))) };
         }
-        if matches_isa!(Self, SSE2 | NEON | WASM128) {
+        if matches_isa!(Self, SSE2 | NEON | WASM128 | VSX) {
             let _ = a;
             unimplemented!()
         }
@@ -843,7 +850,7 @@ pub unsafe trait SIMD256: SIMD128 {
         if matches_isa!(Self, AVX2) {
             return unsafe { t(_mm256_blend_epi32::<IMM8>(t(a), t(b))) };
         }
-        if matches_isa!(Self, NEON | WASM128) {
+        if matches_isa!(Self, NEON | WASM128 | VSX) {
             unimplemented!()
         }
         {
@@ -859,7 +866,7 @@ pub unsafe trait SIMD256: SIMD128 {
         if matches_isa!(Self, AVX2) {
             return unsafe { t(_mm256_blendv_epi8(t(a), t(b), t(c))) };
         }
-        if matches_isa!(Self, NEON | WASM128) {
+        if matches_isa!(Self, NEON | WASM128 | VSX) {
             unimplemented!()
         }
         {

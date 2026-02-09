@@ -24,6 +24,7 @@ pub enum InstructionSetTypeId {
     AVX2,
     NEON,
     WASM128,
+    VSX,
 }
 
 #[doc(hidden)]
@@ -46,6 +47,7 @@ where
         AVX2 => matches!(super_ty, Fallback | SSE2 | SSSE3 | SSE41 | AVX2),
         NEON => matches!(super_ty, Fallback | NEON),
         WASM128 => matches!(super_ty, Fallback | WASM128),
+        VSX => matches!(super_ty, Fallback | VSX),
     };
 
     S::ARCH && U::ARCH && inherits
@@ -115,11 +117,16 @@ macro_rules! is_feature_detected {
                 {
                     std::arch::is_aarch64_feature_detected!($feature)
                 }
+                #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+                {
+                    std::arch::is_powerpc64_feature_detected!($feature)
+                }
                 #[cfg(not(any(
                     target_arch = "x86",
                     target_arch = "x86_64",
                     target_arch = "arm",
-                    target_arch = "aarch64"
+                    target_arch = "aarch64",
+                    all(feature = "unstable", target_arch = "powerpc64"),
                 )))]
                 {
                     false
@@ -303,3 +310,39 @@ unsafe impl InstructionSet for WASM128 {
 unsafe impl SIMD64 for WASM128 {}
 unsafe impl SIMD128 for WASM128 {}
 unsafe impl SIMD256 for WASM128 {}
+
+macro_rules! ppc64_is_enabled {
+    ($feature:tt) => {{
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        {
+            is_feature_detected!($feature)
+        }
+        #[cfg(not(all(feature = "unstable", target_arch = "powerpc64")))]
+        {
+            false
+        }
+    }};
+}
+
+#[allow(clippy::upper_case_acronyms)]
+#[derive(Debug, Clone, Copy)]
+pub struct VSX(());
+
+unsafe impl InstructionSet for VSX {
+    const ID: InstructionSetTypeId = InstructionSetTypeId::VSX;
+    const ARCH: bool = cfg!(all(feature = "unstable", target_arch = "powerpc64"));
+
+    #[inline(always)]
+    unsafe fn new() -> Self {
+        Self(())
+    }
+
+    #[inline(always)]
+    fn is_enabled() -> bool {
+        ppc64_is_enabled!("vsx")
+    }
+}
+
+unsafe impl SIMD64 for VSX {}
+unsafe impl SIMD128 for VSX {}
+unsafe impl SIMD256 for VSX {}

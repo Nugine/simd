@@ -4,7 +4,7 @@ use core::mem::transmute;
 
 // vectors should have `repr(simd)` if possible.
 
-#[cfg(feature = "unstable")]
+#[cfg(all(feature = "unstable", not(target_arch = "powerpc64")))]
 item_group! {
     use core::simd::{u8x16, u8x32, u8x64, u8x8};
 
@@ -91,6 +91,27 @@ item_group! {
     #[derive(Debug, Clone, Copy)]
     #[repr(C, align(64))]
     pub struct V512(v128, v128, v128, v128);
+}
+
+#[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+item_group! {
+    use core::arch::powerpc64::*;
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V64(u64);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(transparent)]
+    pub struct V128(vector_unsigned_char);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(C, align(32))]
+    pub struct V256(vector_unsigned_char, vector_unsigned_char);
+
+    #[derive(Debug, Clone, Copy)]
+    #[repr(C, align(64))]
+    pub struct V512(vector_unsigned_char, vector_unsigned_char, vector_unsigned_char, vector_unsigned_char);
 }
 
 #[cfg(all(

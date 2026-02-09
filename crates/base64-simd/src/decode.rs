@@ -4,7 +4,7 @@ use crate::{Config, Error, Extra, Kind};
 use crate::{STANDARD_CHARSET, URL_SAFE_CHARSET};
 
 use vsimd::alsw::AlswLut;
-use vsimd::isa::{NEON, SSSE3, WASM128};
+use vsimd::isa::{NEON, SSSE3, VSX, WASM128};
 use vsimd::mask::u8x32_highbit_any;
 use vsimd::matches_isa;
 use vsimd::tools::{read, write};
@@ -249,7 +249,7 @@ fn merge_bits_x2<S: SIMD256>(s: S, x: V256) -> V256 {
         let m2 = s.u32x8_splat(u32::from_le_bytes([0x00, 0x10, 0x01, 0x00]));
         s.i16x16_madd(x1, m2)
         // {ccdddddd|bbbbcccc|aaaaaabb|00000000} x8
-    } else if matches_isa!(S, NEON | WASM128) {
+    } else if matches_isa!(S, NEON | WASM128 | VSX) {
         let m1 = s.u32x8_splat(u32::from_le_bytes([0x3f, 0x00, 0x3f, 0x00]));
         let x1 = s.v256_and(x, m1);
         // x1: {00aaaaaa|00000000|00cccccc|00000000} x8

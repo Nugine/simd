@@ -18,6 +18,9 @@ enum Arch {
     #[cfg(target_arch = "wasm32")]
     Simd128,
 
+    #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+    Vsx,
+
     Fallback,
 }
 
@@ -51,6 +54,12 @@ impl Native {
                 return Self(Arch::Simd128);
             }
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        {
+            if is_feature_detected!("vsx") {
+                return Self(Arch::Vsx);
+            }
+        }
         Self(Arch::Fallback)
     }
 
@@ -82,10 +91,18 @@ impl Native {
                 Arch::Fallback => f(),
             }
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        {
+            match self.0 {
+                Arch::Vsx => unsafe { ppc64::vsx(f) },
+                Arch::Fallback => f(),
+            }
+        }
         #[cfg(not(any( //
             any(target_arch = "x86", target_arch = "x86_64"), //
             any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"), //
-            target_arch = "wasm32" //
+            target_arch = "wasm32", //
+            all(feature = "unstable", target_arch = "powerpc64"), //
         )))]
         {
             f()
@@ -122,4 +139,9 @@ mod arm {
 #[cfg(target_arch = "wasm32")]
 mod wasm {
     generic_dispatch!(simd128, "simd128");
+}
+
+#[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+mod ppc64 {
+    generic_dispatch!(vsx, "vsx");
 }
