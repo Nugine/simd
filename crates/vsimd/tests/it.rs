@@ -71,11 +71,7 @@ fn u8x16_swizzle_out_of_range_produces_zero() {
     fn swizzle_scalar(a: [u8; 16], b: [u8; 16]) -> [u8; 16] {
         let mut out = [0u8; 16];
         for i in 0..16 {
-            out[i] = if b[i] & 0x80 != 0 {
-                0
-            } else {
-                a[(b[i] & 0x0f) as usize]
-            };
+            out[i] = if b[i] & 0x80 != 0 { 0 } else { a[(b[i] & 0x0f) as usize] };
         }
         out
     }
