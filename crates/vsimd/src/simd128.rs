@@ -723,24 +723,21 @@ pub unsafe trait SIMD128: SIMD64 {
         }
         #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
         if matches_isa!(Self, VSX) {
-            // vec_perm selects from concatenation of a and b (32 bytes).
-            // To emulate SSSE3/NEON/WASM swizzle (zero for index >= 16),
-            // we pass a zero vector as the second argument and mask indices to 0x0f.
-            // Indices with high bit set should produce zero: we use vec_perm with
-            // the zero vector in the second slot, and rely on the index masking.
-            // But vec_perm uses all 5 low bits (0-31), so indices 16-31 select from
-            // the zero vector, which gives us the zeroing behavior for indices >= 16.
+            // vec_perm selects from the concatenation of its first two args (32 bytes)
+            // using only the low 5 bits of each index (& 0x1f). To emulate
+            // SSSE3/NEON/WASM swizzle semantics (produce zero for index >= 16),
+            // we place a zero vector in the second slot and remap any out-of-range
+            // index (>= 16, which includes sentinel values like 0x80) to 16 so that
+            // vec_perm reads from the zero vector instead of wrapping into `a`.
             return unsafe {
                 let a: vector_unsigned_char = t(a);
                 let b: vector_unsigned_char = t(b);
                 let zero = vec_splats(0u8);
-                // For out-of-range indices (high bit set), they will be >= 128,
-                // and vec_perm uses idx & 0x1f, so values 128+ map to 0-15 in the
-                // zero vector (second arg) or the data vector. We need to ensure
-                // high-bit-set indices produce zero. The simplest approach:
-                // mask indices to select from first vector, and use vec_and + vec_perm.
-                // Indices with bit 4 set (>= 16) will select from the zero vector.
-                let idx: vector_unsigned_char = b;
+                let threshold = vec_splats(16u8);
+                // For each lane: if index >= 16, replace with 16 (selects zero);
+                // otherwise keep the original index (selects from `a`).
+                let oob: vector_bool_char = vec_cmpge(b, threshold);
+                let idx: vector_unsigned_char = vec_sel(b, threshold, oob);
                 t(vec_perm(a, zero, idx))
             };
         }
