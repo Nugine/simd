@@ -35,6 +35,10 @@ RUSTFLAGS = {
         "-C target-feature=+simd128",
         "",
     ],
+    "powerpc": [
+        "-C target-feature=+vsx",
+        "",
+    ],
     "mips": [""],
 }
 
@@ -48,6 +52,7 @@ TARGETS = {
         "armv7-unknown-linux-gnueabihf",
     ],
     "wasm": ["wasm32-unknown-unknown"],
+    "powerpc": ["powerpc64le-unknown-linux-gnu"],
     "mips": ["mips-unknown-linux-gnu"],
 }
 
@@ -57,10 +62,11 @@ TARGET_REMAP = {
     "aarch64-unknown-linux-gnu": "arm",
     "armv7-unknown-linux-gnueabihf": "arm",
     "wasm32-unknown-unknown": "wasm",
+    "powerpc64le-unknown-linux-gnu": "powerpc",
     "mips-unknown-linux-gnu": "mips",
 }
 
-TEST_MODES = ["x86", "arm", "wasm", "mips"]
+TEST_MODES = ["x86", "arm", "wasm", "powerpc", "mips"]
 
 
 def gen(mode: str, target: str, rustflag: str, host: str):
