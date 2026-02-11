@@ -52,6 +52,7 @@ jobs:
           - x86_64-unknown-linux-gnu
           - i686-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
+          - powerpc64le-unknown-linux-gnu
           # - armv7-unknown-linux-gnueabihf # FIXME
           - wasm32-unknown-unknown
           # - mips-unknown-linux-gnu # missing toolchain
@@ -60,6 +61,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.target }}
+      - if: matrix.target == 'powerpc64le-unknown-linux-gnu'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ppc64le
       - uses: taiki-e/install-action@v2
         with:
           tool: cross
