@@ -736,7 +736,10 @@ pub unsafe trait SIMD128: SIMD64 {
                 let threshold = vec_splats(16u8);
                 // For each lane: if index >= 16, replace with 16 (selects zero);
                 // otherwise keep the original index (selects from `a`).
-                let oob: vector_bool_char = vec_cmpge(b, threshold);
+                // Note: vec_cmpgt(b, 15) is equivalent to b >= 16 for unsigned bytes.
+                // vec_cmpge only supports vector_float, not vector_unsigned_char.
+                let limit = vec_splats(15u8);
+                let oob: vector_bool_char = vec_cmpgt(b, limit);
                 let idx: vector_unsigned_char = vec_sel(b, threshold, oob);
                 t(vec_perm(a, zero, idx))
             };

@@ -10,8 +10,11 @@
 #![cfg_attr(
     all(feature = "unstable", target_arch = "powerpc64"),
     feature(stdarch_powerpc),
-    feature(stdarch_powerpc_feature_detection),
     feature(powerpc_target_feature)
+)]
+#![cfg_attr(
+    all(feature = "unstable", feature = "detect", target_arch = "powerpc64"),
+    feature(stdarch_powerpc_feature_detection)
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(test, deny(warnings))]
