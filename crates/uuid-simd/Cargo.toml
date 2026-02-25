@@ -8,7 +8,7 @@ repository = "https://github.com/Nugine/simd"
 keywords = ["uuid", "guid", "simd"]
 categories = ["no-std", "parser-implementations"]
 readme = "README.md"
-rust-version = "1.63"
+rust-version = "1.85.0"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -24,7 +24,7 @@ unstable = ["vsimd/unstable", "hex-simd/unstable"]
 [dependencies]
 outref = "0.5.1"
 vsimd = { path = "../vsimd", version = "0.9.0-dev" }
-uuid = { version = ">=1.3.0, <1.21.0", optional = true }
+uuid = { version = "1.3.0", optional = true }
 
 [dev-dependencies]
 hex-simd = { path = "../hex-simd", version = "0.9.0-dev" }
