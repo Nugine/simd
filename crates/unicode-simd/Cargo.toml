@@ -8,7 +8,7 @@ repository = "https://github.com/Nugine/simd"
 keywords = ["utf8", "unicode", "string", "validation", "simd"]
 categories = ["encoding", "algorithms", "no-std", "text-processing"]
 readme = "README.md"
-rust-version = "1.63"
+rust-version = "1.85.0"
 
 [package.metadata.docs.rs]
 all-features = true
