@@ -100,7 +100,7 @@ pub unsafe fn boxed_str(b: Box<[u8]>) -> Box<str> {
 #[cfg_attr(debug_assertions, track_caller)]
 pub unsafe fn transmute_copy<A: Copy, B: Copy>(a: &A) -> B {
     debug_assert!(core::mem::size_of::<A>() == core::mem::size_of::<B>());
-    *(a as *const A as *const B)
+    *(core::ptr::from_ref::<A>(a) as *const B)
 }
 
 #[cfg(feature = "std")]
