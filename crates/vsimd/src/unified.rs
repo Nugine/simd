@@ -14,6 +14,9 @@ use crate::isa::NEON;
 #[cfg(target_arch = "wasm32")]
 use crate::isa::WASM128;
 
+#[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+use crate::isa::VSX;
+
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 
@@ -28,6 +31,9 @@ use core::arch::aarch64::*;
 
 #[cfg(target_arch = "wasm32")]
 use core::arch::wasm32::*;
+
+#[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+use core::arch::powerpc64::*;
 
 #[inline(always)]
 pub fn splat<S: InstructionSet, T: POD, V: POD>(s: S, x: T) -> V {
@@ -87,6 +93,24 @@ pub fn splat<S: InstructionSet, T: POD, V: POD>(s: S, x: T) -> V {
             }
             if is_pod_type!(T, u64 | i64) {
                 return unsafe { tc(&u64x2_splat(tc(&x))) };
+            }
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            if is_pod_type!(T, u8 | i8) {
+                return unsafe { tc(&vec_splats(tc::<_, u8>(&x))) };
+            }
+            if is_pod_type!(T, u16 | i16) {
+                return unsafe { tc(&vec_splats(tc::<_, u16>(&x))) };
+            }
+            if is_pod_type!(T, u32 | i32) {
+                return unsafe { tc(&vec_splats(tc::<_, u32>(&x))) };
+            }
+            if is_pod_type!(T, u64 | i64) {
+                return unsafe {
+                    let val: u64 = tc(&x);
+                    tc(&core::mem::transmute::<[u64; 2], vector_unsigned_char>([val, val]))
+                };
             }
         }
     }
@@ -168,6 +192,40 @@ pub fn add<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
                 return unsafe { tc(&u64x2_add(tc(&a), tc(&b))) };
             }
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            if is_pod_type!(T, u8 | i8) {
+                return unsafe {
+                    tc(&vec_add(
+                        tc::<_, vector_unsigned_char>(&a),
+                        tc::<_, vector_unsigned_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u16 | i16) {
+                return unsafe {
+                    tc(&vec_add(
+                        tc::<_, vector_unsigned_short>(&a),
+                        tc::<_, vector_unsigned_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u32 | i32) {
+                return unsafe {
+                    tc(&vec_add(
+                        tc::<_, vector_unsigned_int>(&a),
+                        tc::<_, vector_unsigned_int>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u64 | i64) {
+                return unsafe {
+                    let a: [u64; 2] = tc(&a);
+                    let b: [u64; 2] = tc(&b);
+                    tc(&[a[0].wrapping_add(b[0]), a[1].wrapping_add(b[1])])
+                };
+            }
+        }
     }
     {
         let _ = (s, a, b);
@@ -247,6 +305,40 @@ pub fn sub<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
                 return unsafe { tc(&u64x2_sub(tc(&a), tc(&b))) };
             }
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            if is_pod_type!(T, u8 | i8) {
+                return unsafe {
+                    tc(&vec_sub(
+                        tc::<_, vector_unsigned_char>(&a),
+                        tc::<_, vector_unsigned_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u16 | i16) {
+                return unsafe {
+                    tc(&vec_sub(
+                        tc::<_, vector_unsigned_short>(&a),
+                        tc::<_, vector_unsigned_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u32 | i32) {
+                return unsafe {
+                    tc(&vec_sub(
+                        tc::<_, vector_unsigned_int>(&a),
+                        tc::<_, vector_unsigned_int>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u64 | i64) {
+                return unsafe {
+                    let a: [u64; 2] = tc(&a);
+                    let b: [u64; 2] = tc(&b);
+                    tc(&[a[0].wrapping_sub(b[0]), a[1].wrapping_sub(b[1])])
+                };
+            }
+        }
     }
     {
         let _ = (s, a, b);
@@ -322,6 +414,42 @@ pub fn eq<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
             if is_pod_type!(T, u64 | i64) {
                 return unsafe { tc(&u64x2_eq(tc(&a), tc(&b))) };
+            }
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            if is_pod_type!(T, u8 | i8) {
+                return unsafe {
+                    tc(&vec_cmpeq(
+                        tc::<_, vector_unsigned_char>(&a),
+                        tc::<_, vector_unsigned_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u16 | i16) {
+                return unsafe {
+                    tc(&vec_cmpeq(
+                        tc::<_, vector_unsigned_short>(&a),
+                        tc::<_, vector_unsigned_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u32 | i32) {
+                return unsafe {
+                    tc(&vec_cmpeq(
+                        tc::<_, vector_unsigned_int>(&a),
+                        tc::<_, vector_unsigned_int>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u64 | i64) {
+                return unsafe {
+                    let a: [u64; 2] = tc(&a);
+                    let b: [u64; 2] = tc(&b);
+                    let r0: u64 = if a[0] == b[0] { u64::MAX } else { 0 };
+                    let r1: u64 = if a[1] == b[1] { u64::MAX } else { 0 };
+                    tc(&[r0, r1])
+                };
             }
         }
     }
@@ -470,6 +598,57 @@ pub fn lt<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             //     return unsafe { tc(&u64x2_lt(tc(&a), tc(&b))) };
             // }
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            if is_pod_type!(T, i8) {
+                return unsafe {
+                    tc(&vec_cmplt(
+                        tc::<_, vector_signed_char>(&a),
+                        tc::<_, vector_signed_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, i16) {
+                return unsafe {
+                    tc(&vec_cmplt(
+                        tc::<_, vector_signed_short>(&a),
+                        tc::<_, vector_signed_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, i32) {
+                return unsafe {
+                    tc(&vec_cmplt(
+                        tc::<_, vector_signed_int>(&a),
+                        tc::<_, vector_signed_int>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u8) {
+                return unsafe {
+                    tc(&vec_cmplt(
+                        tc::<_, vector_unsigned_char>(&a),
+                        tc::<_, vector_unsigned_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u16) {
+                return unsafe {
+                    tc(&vec_cmplt(
+                        tc::<_, vector_unsigned_short>(&a),
+                        tc::<_, vector_unsigned_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u32) {
+                return unsafe {
+                    tc(&vec_cmplt(
+                        tc::<_, vector_unsigned_int>(&a),
+                        tc::<_, vector_unsigned_int>(&b),
+                    ))
+                };
+            }
+        }
     }
     {
         let _ = (s, a, b);
@@ -555,6 +734,41 @@ pub fn add_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
                 return unsafe { tc(&u16x8_add_sat(tc(&a), tc(&b))) };
             }
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            if is_pod_type!(T, i8) {
+                return unsafe {
+                    tc(&vec_adds(
+                        tc::<_, vector_signed_char>(&a),
+                        tc::<_, vector_signed_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, i16) {
+                return unsafe {
+                    tc(&vec_adds(
+                        tc::<_, vector_signed_short>(&a),
+                        tc::<_, vector_signed_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u8) {
+                return unsafe {
+                    tc(&vec_adds(
+                        tc::<_, vector_unsigned_char>(&a),
+                        tc::<_, vector_unsigned_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u16) {
+                return unsafe {
+                    tc(&vec_adds(
+                        tc::<_, vector_unsigned_short>(&a),
+                        tc::<_, vector_unsigned_short>(&b),
+                    ))
+                };
+            }
+        }
     }
     {
         let _ = (s, a, b);
@@ -638,6 +852,41 @@ pub fn sub_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
             if is_pod_type!(T, u16) {
                 return unsafe { tc(&u16x8_sub_sat(tc(&a), tc(&b))) };
+            }
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            if is_pod_type!(T, i8) {
+                return unsafe {
+                    tc(&vec_subs(
+                        tc::<_, vector_signed_char>(&a),
+                        tc::<_, vector_signed_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, i16) {
+                return unsafe {
+                    tc(&vec_subs(
+                        tc::<_, vector_signed_short>(&a),
+                        tc::<_, vector_signed_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u8) {
+                return unsafe {
+                    tc(&vec_subs(
+                        tc::<_, vector_unsigned_char>(&a),
+                        tc::<_, vector_unsigned_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u16) {
+                return unsafe {
+                    tc(&vec_subs(
+                        tc::<_, vector_unsigned_short>(&a),
+                        tc::<_, vector_unsigned_short>(&b),
+                    ))
+                };
             }
         }
     }
@@ -767,6 +1016,52 @@ pub fn max<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
             }
             if is_pod_type!(T, f32) {
                 return unsafe { tc(&f32x4_max(tc(&a), tc(&b))) };
+            }
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            if is_pod_type!(T, i8) {
+                return unsafe {
+                    tc(&vec_max(
+                        tc::<_, vector_signed_char>(&a),
+                        tc::<_, vector_signed_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, i16) {
+                return unsafe {
+                    tc(&vec_max(
+                        tc::<_, vector_signed_short>(&a),
+                        tc::<_, vector_signed_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, i32) {
+                return unsafe { tc(&vec_max(tc::<_, vector_signed_int>(&a), tc::<_, vector_signed_int>(&b))) };
+            }
+            if is_pod_type!(T, u8) {
+                return unsafe {
+                    tc(&vec_max(
+                        tc::<_, vector_unsigned_char>(&a),
+                        tc::<_, vector_unsigned_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u16) {
+                return unsafe {
+                    tc(&vec_max(
+                        tc::<_, vector_unsigned_short>(&a),
+                        tc::<_, vector_unsigned_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u32) {
+                return unsafe {
+                    tc(&vec_max(
+                        tc::<_, vector_unsigned_int>(&a),
+                        tc::<_, vector_unsigned_int>(&b),
+                    ))
+                };
             }
         }
     }
@@ -900,6 +1195,52 @@ pub fn min<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
                 return unsafe { tc(&f32x4_min(tc(&a), tc(&b))) };
             }
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            if is_pod_type!(T, i8) {
+                return unsafe {
+                    tc(&vec_min(
+                        tc::<_, vector_signed_char>(&a),
+                        tc::<_, vector_signed_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, i16) {
+                return unsafe {
+                    tc(&vec_min(
+                        tc::<_, vector_signed_short>(&a),
+                        tc::<_, vector_signed_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, i32) {
+                return unsafe { tc(&vec_min(tc::<_, vector_signed_int>(&a), tc::<_, vector_signed_int>(&b))) };
+            }
+            if is_pod_type!(T, u8) {
+                return unsafe {
+                    tc(&vec_min(
+                        tc::<_, vector_unsigned_char>(&a),
+                        tc::<_, vector_unsigned_char>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u16) {
+                return unsafe {
+                    tc(&vec_min(
+                        tc::<_, vector_unsigned_short>(&a),
+                        tc::<_, vector_unsigned_short>(&b),
+                    ))
+                };
+            }
+            if is_pod_type!(T, u32) {
+                return unsafe {
+                    tc(&vec_min(
+                        tc::<_, vector_unsigned_int>(&a),
+                        tc::<_, vector_unsigned_int>(&b),
+                    ))
+                };
+            }
+        }
     }
     {
         let _ = (s, a, b);
@@ -938,6 +1279,15 @@ where
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(S, WASM128) {
             return unsafe { tc(&v128_and(tc(&a), tc(&b))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            return unsafe {
+                tc(&vec_and(
+                    tc::<_, vector_unsigned_char>(&a),
+                    tc::<_, vector_unsigned_char>(&b),
+                ))
+            };
         }
     }
     {
@@ -978,6 +1328,15 @@ where
         if matches_isa!(S, WASM128) {
             return unsafe { tc(&v128_or(tc(&a), tc(&b))) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            return unsafe {
+                tc(&vec_or(
+                    tc::<_, vector_unsigned_char>(&a),
+                    tc::<_, vector_unsigned_char>(&b),
+                ))
+            };
+        }
     }
     {
         let _ = (s, a, b);
@@ -1016,6 +1375,15 @@ where
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(S, WASM128) {
             return unsafe { tc(&v128_xor(tc(&a), tc(&b))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            return unsafe {
+                tc(&vec_xor(
+                    tc::<_, vector_unsigned_char>(&a),
+                    tc::<_, vector_unsigned_char>(&b),
+                ))
+            };
         }
     }
     {
@@ -1057,6 +1425,16 @@ where
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(S, WASM128) {
             return unsafe { tc(&v128_andnot(tc(&a), tc(&b))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(S, VSX) {
+            // andnot(a, b) = a & !b = vec_andc(a, b)
+            return unsafe {
+                tc(&vec_andc(
+                    tc::<_, vector_unsigned_char>(&a),
+                    tc::<_, vector_unsigned_char>(&b),
+                ))
+            };
         }
     }
     {
