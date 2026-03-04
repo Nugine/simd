@@ -2,10 +2,11 @@ use hex_simd::{AsOut, AsciiCase};
 
 use core::mem::MaybeUninit;
 
+use rand::Rng;
+
 fn rand_bytes(n: usize) -> Vec<u8> {
-    use rand::RngCore;
     let mut bytes = vec![0u8; n];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     bytes
 }
 

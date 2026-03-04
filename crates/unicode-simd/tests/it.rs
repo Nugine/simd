@@ -1,11 +1,11 @@
 use std::ops::Not;
 
-use rand::Rng;
+#[allow(unused_imports)]
+use rand::{Rng, RngExt};
 
 fn rand_bytes(n: usize) -> Vec<u8> {
-    use rand::RngCore;
     let mut bytes = vec![0u8; n];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     bytes
 }
 
@@ -32,7 +32,7 @@ fn random() {
         assert!(unicode_simd::is_ascii(&src));
 
         if n > 0 {
-            let pos = rand::thread_rng().gen_range(0..n);
+            let pos = rand::rng().random_range(0..n);
             src[pos] = 0x80;
             assert!(unicode_simd::is_ascii(&src).not());
         }

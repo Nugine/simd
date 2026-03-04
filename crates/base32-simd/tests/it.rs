@@ -1,10 +1,11 @@
 use base32_simd::{AsOut, Base32};
 use base32_simd::{BASE32, BASE32HEX, BASE32HEX_NO_PAD, BASE32_NO_PAD};
 
+use rand::Rng;
+
 fn rand_bytes(n: usize) -> Vec<u8> {
-    use rand::RngCore;
     let mut bytes = vec![0u8; n];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     bytes
 }
 
