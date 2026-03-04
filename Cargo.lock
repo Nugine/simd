@@ -29,7 +29,7 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 name = "base32-simd"
 version = "0.9.0-dev"
 dependencies = [
- "getrandom 0.2.17",
+ "getrandom",
  "outref",
  "rand",
  "vsimd",
@@ -48,7 +48,7 @@ version = "0.9.0-dev"
 dependencies = [
  "base64",
  "const-str",
- "getrandom 0.2.17",
+ "getrandom",
  "outref",
  "rand",
  "rayon",
@@ -191,29 +191,18 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.2.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff2abc00be7fca6ebc474524697ae276ad847ad0a6b3faa4bcb027e9a4614ad0"
-dependencies = [
- "cfg-if",
- "js-sys",
- "libc",
- "wasi",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "getrandom"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de51e6874e94e7bf76d726fc5d13ba782deca734ff60d5bb2fb2607c7406555"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "r-efi",
  "rand_core",
  "wasip2",
  "wasip3",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -241,7 +230,7 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 name = "hex-simd"
 version = "0.9.0-dev"
 dependencies = [
- "getrandom 0.2.17",
+ "getrandom",
  "outref",
  "rand",
  "vsimd",
@@ -406,7 +395,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc266eb313df6c5c09c1c7b1fbe2510961e5bcd3add930c1e31f7ed9da0feff8"
 dependencies = [
  "chacha20",
- "getrandom 0.4.2",
+ "getrandom",
  "rand_core",
 ]
 
@@ -533,7 +522,7 @@ checksum = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
 name = "unicode-simd"
 version = "0.9.0-dev"
 dependencies = [
- "getrandom 0.2.17",
+ "getrandom",
  "outref",
  "rand",
  "vsimd",
@@ -572,7 +561,7 @@ name = "vsimd"
 version = "0.9.0-dev"
 dependencies = [
  "const-str",
- "getrandom 0.2.17",
+ "getrandom",
  "rand",
  "wasm-bindgen-test",
 ]
@@ -586,12 +575,6 @@ dependencies = [
  "same-file",
  "winapi-util",
 ]
-
-[[package]]
-name = "wasi"
-version = "0.11.1+wasi-snapshot-preview1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
 
 [[package]]
 name = "wasip2"
