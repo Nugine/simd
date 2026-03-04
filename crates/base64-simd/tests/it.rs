@@ -1,10 +1,11 @@
 use base64_simd::{AsOut, Base64};
 use base64_simd::{STANDARD, STANDARD_NO_PAD, URL_SAFE, URL_SAFE_NO_PAD};
 
+use rand::{Rng, RngExt};
+
 fn rand_bytes(n: usize) -> Vec<u8> {
-    use rand::RngCore;
     let mut bytes = vec![0u8; n];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     bytes
 }
 
@@ -232,10 +233,8 @@ fn precise_decoded_length() {
 
     {
         // See <https://github.com/marshallpierce/rust-base64/issues/212>
-        use rand::Rng;
-
         let base64 = base64_simd::STANDARD_NO_PAD;
-        let data = rand::thread_rng().gen::<[u8; 32]>();
+        let data = rand::rng().random::<[u8; 32]>();
         let encoded = base64.encode_to_string(data);
 
         let buf: &mut [u8] = &mut [0; 32];
