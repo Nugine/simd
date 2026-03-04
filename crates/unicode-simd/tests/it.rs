@@ -1,5 +1,6 @@
 use std::ops::Not;
 
+#[allow(unused_imports)]
 use rand::{Rng, RngExt};
 
 fn rand_bytes(n: usize) -> Vec<u8> {

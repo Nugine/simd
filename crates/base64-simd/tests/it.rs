@@ -1,6 +1,7 @@
 use base64_simd::{AsOut, Base64};
 use base64_simd::{STANDARD, STANDARD_NO_PAD, URL_SAFE, URL_SAFE_NO_PAD};
 
+#[allow(unused_imports)]
 use rand::{Rng, RngExt};
 
 fn rand_bytes(n: usize) -> Vec<u8> {
