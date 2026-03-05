@@ -1,7 +1,6 @@
 use std::ops::Not;
 
-#[allow(unused_imports)]
-use rand::{Rng, RngExt};
+use rand::Rng;
 
 fn rand_bytes(n: usize) -> Vec<u8> {
     let mut bytes = vec![0u8; n];
@@ -23,6 +22,8 @@ macro_rules! dbgmsg {
 #[cfg_attr(not(target_arch = "wasm32"), test)]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 fn random() {
+    use rand::RngExt;
+
     for n in 0..256 {
         dbgmsg!("n = {n}");
 

@@ -1,8 +1,7 @@
 use base64_simd::{AsOut, Base64};
 use base64_simd::{STANDARD, STANDARD_NO_PAD, URL_SAFE, URL_SAFE_NO_PAD};
 
-#[allow(unused_imports)]
-use rand::{Rng, RngExt};
+use rand::Rng;
 
 fn rand_bytes(n: usize) -> Vec<u8> {
     let mut bytes = vec![0u8; n];
@@ -179,6 +178,8 @@ fn parallel_encode() {
 #[cfg(feature = "alloc")]
 #[test]
 fn precise_decoded_length() {
+    use rand::RngExt;
+
     // true positive
     let tp_cases: &[(&Base64, &str, usize)] = &[
         (&STANDARD, "", 0),            //
