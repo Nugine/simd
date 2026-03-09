@@ -1,6 +1,6 @@
 #![allow(clippy::missing_transmute_annotations)]
 
-use crate::isa::{NEON, SSE2, SSE41, WASM128};
+use crate::isa::{NEON, SSE2, SSE41, VSX, WASM128};
 use crate::unified;
 use crate::vector::V128;
 use crate::SIMD64;
@@ -11,7 +11,8 @@ use crate::isa::SSSE3;
 #[cfg(any(
     any(target_arch = "x86", target_arch = "x86_64"),
     any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"),
-    target_arch = "wasm32"
+    target_arch = "wasm32",
+    all(feature = "unstable", target_arch = "powerpc64"),
 ))]
 use core::mem::transmute as t;
 
@@ -30,6 +31,9 @@ use core::arch::aarch64::*;
 #[cfg(target_arch = "wasm32")]
 use core::arch::wasm32::*;
 
+#[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+use core::arch::powerpc64::*;
+
 pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE2, NEON, WASM128
     #[inline(always)]
@@ -46,6 +50,10 @@ pub unsafe trait SIMD128: SIMD64 {
         }
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
+            return self.v128_load_unaligned(addr);
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
             return self.v128_load_unaligned(addr);
         }
         {
@@ -69,6 +77,10 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, WASM128) {
             return t(v128_load(addr.cast()));
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return t(vec_xl(0, addr));
+        }
         {
             let _ = addr;
             unreachable!()
@@ -90,6 +102,10 @@ pub unsafe trait SIMD128: SIMD64 {
         }
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
+            return self.v128_store_unaligned(addr, a);
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
             return self.v128_store_unaligned(addr, a);
         }
         {
@@ -116,6 +132,10 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, WASM128) {
             return v128_store(addr.cast(), t(a));
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return vec_xst(t::<_, vector_unsigned_char>(a), 0, addr);
+        }
         {
             let _ = (addr, a);
             unreachable!()
@@ -136,6 +156,10 @@ pub unsafe trait SIMD128: SIMD64 {
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
             return unsafe { t(u8x16_splat(0)) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe { t(vec_splats(0u8)) };
         }
         {
             unreachable!()
@@ -161,6 +185,13 @@ pub unsafe trait SIMD128: SIMD64 {
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
             return unsafe { t(v128_not(t(a))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_char = t(a);
+                t(vec_nor(a, a))
+            };
         }
         {
             let _ = a;
@@ -219,6 +250,10 @@ pub unsafe trait SIMD128: SIMD64 {
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
             return unsafe { !v128_any_true(t(a)) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe { vec_all_eq(t::<_, vector_unsigned_char>(a), vec_splats(0u8)) };
         }
         {
             let _ = a;
@@ -361,6 +396,15 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, WASM128) {
             return unsafe { t(i16x8_mul(t(a), t(b))) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_signed_short = t(a);
+                let b: vector_signed_short = t(b);
+                let zero = vec_splats(0i16);
+                t(vec_mladd(a, b, zero))
+            };
+        }
         {
             let _ = (a, b);
             unreachable!()
@@ -381,6 +425,14 @@ pub unsafe trait SIMD128: SIMD64 {
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
             return unsafe { t(i32x4_mul(t(a), t(b))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_signed_int = t(a);
+                let b: vector_signed_int = t(b);
+                t(vec_mul(a, b))
+            };
         }
         {
             let _ = (a, b);
@@ -406,6 +458,14 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, WASM128) {
             return unsafe { t(u16x8_shl(t(a), IMM8 as u32)) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_short = t(a);
+                let shift = vec_splats(IMM8 as u16);
+                t(vec_sl(a, shift))
+            };
+        }
         {
             let _ = a;
             unreachable!()
@@ -426,6 +486,14 @@ pub unsafe trait SIMD128: SIMD64 {
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
             return unsafe { t(u32x4_shl(t(a), IMM8 as u32)) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_int = t(a);
+                let shift = vec_splats(IMM8 as u32);
+                t(vec_sl(a, shift))
+            };
         }
         {
             let _ = a;
@@ -451,6 +519,14 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, WASM128) {
             return unsafe { t(u16x8_shr(t(a), IMM8 as u32)) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_short = t(a);
+                let shift = vec_splats(IMM8 as u16);
+                t(vec_sr(a, shift))
+            };
+        }
         {
             let _ = a;
             unreachable!()
@@ -471,6 +547,14 @@ pub unsafe trait SIMD128: SIMD64 {
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
             return unsafe { t(u32x4_shr(t(a), IMM8 as u32)) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_int = t(a);
+                let shift = vec_splats(IMM8 as u32);
+                t(vec_sr(a, shift))
+            };
         }
         {
             let _ = a;
@@ -637,6 +721,29 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, WASM128) {
             return unsafe { t(u8x16_swizzle(t(a), t(b))) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            // vec_perm selects from the concatenation of its first two args (32 bytes)
+            // using only the low 5 bits of each index (& 0x1f). To emulate
+            // SSSE3/NEON/WASM swizzle semantics (produce zero for index >= 16),
+            // we place a zero vector in the second slot and remap any out-of-range
+            // index (>= 16, which includes sentinel values like 0x80) to 16 so that
+            // vec_perm reads from the zero vector instead of wrapping into `a`.
+            return unsafe {
+                let a: vector_unsigned_char = t(a);
+                let b: vector_unsigned_char = t(b);
+                let zero = vec_splats(0u8);
+                let threshold = vec_splats(16u8);
+                // For each lane: if index >= 16, replace with 16 (selects zero);
+                // otherwise keep the original index (selects from `a`).
+                // Note: vec_cmpgt(b, 15) is equivalent to b >= 16 for unsigned bytes.
+                // vec_cmpge only supports vector_float, not vector_unsigned_char.
+                let limit = vec_splats(15u8);
+                let oob: vector_bool_char = vec_cmpgt(b, limit);
+                let idx: vector_unsigned_char = vec_sel(b, threshold, oob);
+                t(vec_perm(a, zero, idx))
+            };
+        }
         {
             let _ = (a, b);
             unreachable!()
@@ -646,7 +753,7 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE41, NEON, WASM128
     #[inline(always)]
     fn u16x8_bswap(self, a: V128) -> V128 {
-        if matches_isa!(Self, SSE41 | WASM128) {
+        if matches_isa!(Self, SSE41 | WASM128 | VSX) {
             return self.u8x16_swizzle(a, crate::bswap::SHUFFLE_U16X8);
         }
 
@@ -664,7 +771,7 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE41, NEON, WASM128
     #[inline(always)]
     fn u32x4_bswap(self, a: V128) -> V128 {
-        if matches_isa!(Self, SSE41 | WASM128) {
+        if matches_isa!(Self, SSE41 | WASM128 | VSX) {
             return self.u8x16_swizzle(a, crate::bswap::SHUFFLE_U32X4);
         }
 
@@ -682,7 +789,7 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: SSE41, NEON, WASM128
     #[inline(always)]
     fn u64x2_bswap(self, a: V128) -> V128 {
-        if matches_isa!(Self, SSE41 | WASM128) {
+        if matches_isa!(Self, SSE41 | WASM128 | VSX) {
             return self.u8x16_swizzle(a, crate::bswap::SHUFFLE_U64X2);
         }
 
@@ -724,6 +831,10 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, WASM128) {
             return unsafe { !u8x16_all_true(t(a)) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe { vec_any_eq(t::<_, vector_unsigned_char>(a), vec_splats(0u8)) };
+        }
         {
             let _ = a;
             unreachable!()
@@ -744,6 +855,10 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, NEON) {
             unimplemented!()
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            unimplemented!()
+        }
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
             return unsafe { u8x16_bitmask(t(a)) };
@@ -757,7 +872,7 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: NEON-A64
     #[inline(always)]
     fn u8x16_reduce_max(self, a: V128) -> u8 {
-        if matches_isa!(Self, SSE41 | WASM128) {
+        if matches_isa!(Self, SSE41 | WASM128 | VSX) {
             unimplemented!()
         }
         #[cfg(all(feature = "unstable", target_arch = "arm"))]
@@ -777,7 +892,7 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T1: NEON-A64
     #[inline(always)]
     fn u8x16_reduce_min(self, a: V128) -> u8 {
-        if matches_isa!(Self, SSE41 | WASM128) {
+        if matches_isa!(Self, SSE41 | WASM128 | VSX) {
             unimplemented!()
         }
         #[cfg(all(feature = "unstable", target_arch = "arm"))]
@@ -799,7 +914,7 @@ pub unsafe trait SIMD128: SIMD64 {
     /// T2: SSE2, WASM128
     #[inline(always)]
     fn v128_bsl(self, a: V128, b: V128, c: V128) -> V128 {
-        if matches_isa!(Self, SSE2 | WASM128) {
+        if matches_isa!(Self, SSE2 | WASM128 | VSX) {
             return self.v128_xor(self.v128_and(self.v128_xor(b, c), a), c);
         }
         #[cfg(any(all(feature = "unstable", target_arch = "arm"), target_arch = "aarch64"))]
@@ -833,6 +948,14 @@ pub unsafe trait SIMD128: SIMD64 {
             let ans = u8x16_shuffle::<0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23>(a, b);
             return unsafe { t(ans) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_char = t(a);
+                let b: vector_unsigned_char = t(b);
+                t(vec_mergeh(a, b))
+            };
+        }
         {
             let _ = (a, b);
             unreachable!()
@@ -859,6 +982,14 @@ pub unsafe trait SIMD128: SIMD64 {
             let (a, b) = unsafe { (t(a), t(b)) };
             let ans = u8x16_shuffle::<8, 24, 9, 25, 10, 26, 11, 27, 12, 28, 13, 29, 14, 30, 15, 31>(a, b);
             return unsafe { t(ans) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_char = t(a);
+                let b: vector_unsigned_char = t(b);
+                t(vec_mergel(a, b))
+            };
         }
         {
             let _ = (a, b);
@@ -887,6 +1018,14 @@ pub unsafe trait SIMD128: SIMD64 {
             let ans = u16x8_shuffle::<0, 8, 1, 9, 2, 10, 3, 11>(a, b);
             return unsafe { t(ans) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_short = t(a);
+                let b: vector_unsigned_short = t(b);
+                t(vec_mergeh(a, b))
+            };
+        }
         {
             let _ = (a, b);
             unreachable!()
@@ -913,6 +1052,14 @@ pub unsafe trait SIMD128: SIMD64 {
             let (a, b) = unsafe { (t(a), t(b)) };
             let ans = u16x8_shuffle::<4, 12, 5, 13, 6, 14, 7, 15>(a, b);
             return unsafe { t(ans) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_short = t(a);
+                let b: vector_unsigned_short = t(b);
+                t(vec_mergel(a, b))
+            };
         }
         {
             let _ = (a, b);
@@ -941,6 +1088,14 @@ pub unsafe trait SIMD128: SIMD64 {
             let ans = u32x4_shuffle::<0, 4, 1, 5>(a, b);
             return unsafe { t(ans) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_int = t(a);
+                let b: vector_unsigned_int = t(b);
+                t(vec_mergeh(a, b))
+            };
+        }
         {
             let _ = (a, b);
             unreachable!()
@@ -968,6 +1123,14 @@ pub unsafe trait SIMD128: SIMD64 {
             let ans = u32x4_shuffle::<2, 6, 3, 7>(a, b);
             return unsafe { t(ans) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_int = t(a);
+                let b: vector_unsigned_int = t(b);
+                t(vec_mergel(a, b))
+            };
+        }
         {
             let _ = (a, b);
             unreachable!()
@@ -994,6 +1157,13 @@ pub unsafe trait SIMD128: SIMD64 {
             let ans = u64x2_shuffle::<0, 2>(a, b);
             return unsafe { t(ans) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let (a, b): ([u64; 2], [u64; 2]) = (t(a), t(b));
+                t([a[0], b[0]])
+            };
+        }
         {
             let _ = (a, b);
             unreachable!()
@@ -1019,6 +1189,13 @@ pub unsafe trait SIMD128: SIMD64 {
             let (a, b) = unsafe { (t(a), t(b)) };
             let ans = u64x2_shuffle::<1, 3>(a, b);
             return unsafe { t(ans) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let (a, b): ([u64; 2], [u64; 2]) = (t(a), t(b));
+                t([a[1], b[1]])
+            };
         }
         {
             let _ = (a, b);
@@ -1047,6 +1224,17 @@ pub unsafe trait SIMD128: SIMD64 {
             let ans = u8x16_shuffle::<0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30>(a, b);
             return unsafe { t(ans) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_char = t(a);
+                let b: vector_unsigned_char = t(b);
+                // Select even bytes: 0,2,4,6,8,10,12,14 from a, then 0,2,4,6,8,10,12,14 from b
+                // On LE ppc64, vec_perm indices: bytes from a are 0-15, bytes from b are 16-31
+                let perm: vector_unsigned_char = t([0u8, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]);
+                t(vec_perm(a, b, perm))
+            };
+        }
         {
             let _ = (a, b);
             unreachable!()
@@ -1074,6 +1262,16 @@ pub unsafe trait SIMD128: SIMD64 {
             let ans = u8x16_shuffle::<1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31>(a, b);
             return unsafe { t(ans) };
         }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_char = t(a);
+                let b: vector_unsigned_char = t(b);
+                // Select odd bytes: 1,3,5,7,9,11,13,15 from a, then 1,3,5,7,9,11,13,15 from b
+                let perm: vector_unsigned_char = t([1u8, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31]);
+                t(vec_perm(a, b, perm))
+            };
+        }
         {
             let _ = (a, b);
             unreachable!()
@@ -1087,7 +1285,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, SSE2) {
             return unsafe { t(_mm_mulhi_epu16(t(a), t(b))) };
         }
-        if matches_isa!(Self, NEON | WASM128) {
+        if matches_isa!(Self, NEON | WASM128 | VSX) {
             unimplemented!()
         }
         {
@@ -1103,7 +1301,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, SSE2) {
             return unsafe { t(_mm_mulhi_epi16(t(a), t(b))) };
         }
-        if matches_isa!(Self, NEON | WASM128) {
+        if matches_isa!(Self, NEON | WASM128 | VSX) {
             unimplemented!()
         }
         {
@@ -1119,7 +1317,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, SSSE3) {
             return unsafe { t(_mm_maddubs_epi16(t(a), t(b))) };
         }
-        if matches_isa!(Self, NEON | WASM128) {
+        if matches_isa!(Self, NEON | WASM128 | VSX) {
             unimplemented!()
         }
         {
@@ -1135,7 +1333,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, SSE41) {
             return unsafe { t(_mm_blend_epi16::<IMM8>(t(a), t(b))) };
         }
-        if matches_isa!(Self, NEON | WASM128) {
+        if matches_isa!(Self, NEON | WASM128 | VSX) {
             unimplemented!()
         }
         {
@@ -1153,7 +1351,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, SSE41) {
             return unsafe { t(_mm_blendv_epi8(t(a), t(b), t(c))) };
         }
-        if matches_isa!(Self, NEON | WASM128) {
+        if matches_isa!(Self, NEON | WASM128 | VSX) {
             unimplemented!()
         }
         {
@@ -1169,7 +1367,7 @@ pub unsafe trait SIMD128: SIMD64 {
         if matches_isa!(Self, SSE2) {
             return unsafe { t(_mm_madd_epi16(t(a), t(b))) };
         }
-        if matches_isa!(Self, NEON | WASM128) {
+        if matches_isa!(Self, NEON | WASM128 | VSX) {
             unimplemented!()
         }
         {
@@ -1192,6 +1390,14 @@ pub unsafe trait SIMD128: SIMD64 {
         #[cfg(target_arch = "wasm32")]
         if matches_isa!(Self, WASM128) {
             return unsafe { t(u8x16_avgr(t(a), t(b))) };
+        }
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if matches_isa!(Self, VSX) {
+            return unsafe {
+                let a: vector_unsigned_char = t(a);
+                let b: vector_unsigned_char = t(b);
+                t(vec_avg(a, b))
+            };
         }
         {
             let _ = (a, b);

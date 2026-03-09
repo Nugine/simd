@@ -209,6 +209,17 @@ macro_rules! dispatch {
         }
     };
 
+    (@resolve_static, "vsx", $($arg_name: ident),*) => {
+        #[cfg(all(
+            feature = "unstable",
+            target_arch = "powerpc64",
+            target_feature = "vsx",
+        ))]
+        {
+            return unsafe { vsx($($arg_name),*) }
+        }
+    };
+
     (
         @iter_resolve_dynamic,
         targets     = {$x:tt, $($xs:tt),+},
@@ -263,6 +274,13 @@ macro_rules! dispatch {
         #[cfg(target_arch = "wasm32")]
         if $crate::isa::WASM128::is_enabled() {
             return simd128;
+        }
+    };
+
+    (@resolve_dynamic, "vsx") => {
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        if $crate::isa::VSX::is_enabled() {
+            return vsx;
         }
     };
 
@@ -388,6 +406,21 @@ macro_rules! dispatch {
         $vis unsafe fn simd128($($arg_name:$arg_type),*) -> $ret {
             use $crate::isa::{WASM128, InstructionSet as _};
             $simd_fn(WASM128::new() $(,$arg_name)*)
+        }
+    };
+
+    (
+        @compile,
+        signature   = {$vis:vis unsafe fn($($arg_name: ident: $arg_type: ty),*) -> $ret:ty},
+        simd        = {$simd_fn:path},
+        target      = {"vsx"},
+    ) => {
+        #[cfg(all(feature = "unstable", target_arch = "powerpc64"))]
+        #[inline]
+        #[target_feature(enable = "vsx")]
+        $vis unsafe fn vsx($($arg_name:$arg_type),*) -> $ret {
+            use $crate::isa::{VSX, InstructionSet as _};
+            $simd_fn(VSX::new() $(,$arg_name)*)
         }
     }
 }
