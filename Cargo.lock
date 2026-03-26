@@ -47,7 +47,7 @@ name = "base64-simd"
 version = "0.9.0-dev"
 dependencies = [
  "base64",
- "const-str",
+ "const-str 0.6.4",
  "getrandom",
  "outref",
  "rand",
@@ -106,6 +106,12 @@ name = "const-str"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "451d0640545a0553814b4c646eb549343561618838e9b42495f466131fe3ad49"
+
+[[package]]
+name = "const-str"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0664d2867b4a32697dfe655557f5c3b187e9b605b38612a748e5ec99811d160"
 
 [[package]]
 name = "cpufeatures"
@@ -560,7 +566,7 @@ dependencies = [
 name = "vsimd"
 version = "0.9.0-dev"
 dependencies = [
- "const-str",
+ "const-str 0.7.1",
  "getrandom",
  "rand",
  "wasm-bindgen-test",
