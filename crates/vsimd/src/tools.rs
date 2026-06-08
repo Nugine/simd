@@ -100,7 +100,7 @@ pub unsafe fn boxed_str(b: Box<[u8]>) -> Box<str> {
 #[cfg_attr(debug_assertions, track_caller)]
 pub unsafe fn transmute_copy<A: Copy, B: Copy>(a: &A) -> B {
     debug_assert_eq!(core::mem::size_of::<A>(), core::mem::size_of::<B>());
-    debug_assert_eq!(core::mem::align_of::<A>(), core::mem::align_of::<B>());
+    debug_assert!(core::mem::align_of::<B>() <= core::mem::align_of::<A>());
     *(core::ptr::from_ref::<A>(a) as *const B)
 }
 
