@@ -647,6 +647,7 @@ pub fn sub_sat<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     }
 }
 
+#[inline(always)]
 pub fn max<S: InstructionSet, T: POD, V: POD>(s: S, a: V, b: V) -> V {
     if is_pod_type!(V, V256) {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
