@@ -91,6 +91,33 @@ pub unsafe fn bswap_simd<S: SIMD256, T>(s: S, mut src: *const T, mut len: usize,
 where
     T: BSwap,
 {
+    // Four independent load/shuffle/store chains per iteration hide shuffle latency and amortize
+    // the loop overhead; the single-vector loop below then handles the remaining whole vectors.
+    const UNROLL: usize = 4;
+    let block = T::LANES * UNROLL;
+
+    let end = src.add(len / block * block);
+    while src < end {
+        let x0 = s.v256_load_unaligned(src.cast());
+        let x1 = s.v256_load_unaligned(src.add(T::LANES).cast());
+        let x2 = s.v256_load_unaligned(src.add(T::LANES * 2).cast());
+        let x3 = s.v256_load_unaligned(src.add(T::LANES * 3).cast());
+
+        let y0 = <T as BSwap>::swap_simd(s, x0);
+        let y1 = <T as BSwap>::swap_simd(s, x1);
+        let y2 = <T as BSwap>::swap_simd(s, x2);
+        let y3 = <T as BSwap>::swap_simd(s, x3);
+
+        s.v256_store_unaligned(dst.cast(), y0);
+        s.v256_store_unaligned(dst.add(T::LANES).cast(), y1);
+        s.v256_store_unaligned(dst.add(T::LANES * 2).cast(), y2);
+        s.v256_store_unaligned(dst.add(T::LANES * 3).cast(), y3);
+
+        src = src.add(block);
+        dst = dst.add(block);
+    }
+    len %= block;
+
     let end = src.add(len / T::LANES * T::LANES);
     while src < end {
         let x = s.v256_load_unaligned(src.cast());

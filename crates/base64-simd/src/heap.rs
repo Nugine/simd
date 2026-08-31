@@ -45,7 +45,7 @@ fn encode_append_vec(base64: &Base64, src: &[u8], buf: &mut Vec<u8>) {
         let m = encoded_length_unchecked(src.len(), base64.config);
         assert!(m <= usize::MAX / 2);
 
-        buf.reserve_exact(m);
+        buf.reserve(m);
         let prev_len = buf.len();
 
         {
@@ -89,7 +89,7 @@ fn decode_append_vec(base64: &Base64, src: &[u8], buf: &mut Vec<u8>) -> Result<(
     unsafe {
         let (n, m) = decoded_length(src, base64.config)?;
 
-        buf.reserve_exact(m);
+        buf.reserve(m);
         let prev_len = buf.len();
 
         let dst = buf.as_mut_ptr().add(prev_len);

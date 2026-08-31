@@ -174,6 +174,30 @@ pub(crate) unsafe fn decode_simd<S: SIMD256>(
         Kind::Base32Hex => (BASE32HEX_ALSW_CHECK_X2, BASE32HEX_ALSW_DECODE_X2),
     };
 
+    if n <= 2048 {
+        // n*5/8 >= 10+10+10+10+6
+        while n >= 74 {
+            let x0 = s.v256_load_unaligned(src);
+            let x1 = s.v256_load_unaligned(src.add(32));
+
+            let (c0, v0) = decode_ascii32_parts(s, x0, check_lut, decode_lut);
+            let (c1, v1) = decode_ascii32_parts(s, x1, check_lut, decode_lut);
+            ensure!(u8x32_highbit_any(s, s.v256_or(c0, c1)).not());
+
+            let (y0a, y0b) = v0.to_v128x2();
+            s.v128_store_unaligned(dst, y0a);
+            s.v128_store_unaligned(dst.add(10), y0b);
+
+            let (y1a, y1b) = v1.to_v128x2();
+            s.v128_store_unaligned(dst.add(20), y1a);
+            s.v128_store_unaligned(dst.add(30), y1b);
+
+            src = src.add(64);
+            dst = dst.add(40);
+            n -= 64;
+        }
+    }
+
     // n*5/8 >= 10+10+6
     while n >= 42 {
         let x = s.v256_load_unaligned(src);
@@ -265,9 +289,14 @@ fn merge_bits<S: SIMD256>(s: S, x: V256) -> V256 {
 }
 
 #[inline(always)]
-fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>, decode: AlswLut<V256>) -> Result<V256, Error> {
+fn decode_ascii32_parts<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>, decode: AlswLut<V256>) -> (V256, V256) {
     let (c1, c2) = vsimd::alsw::decode_ascii_xn(s, x, check, decode);
-    let y = merge_bits(s, c2);
+    (c1, merge_bits(s, c2))
+}
+
+#[inline(always)]
+fn decode_ascii32<S: SIMD256>(s: S, x: V256, check: AlswLut<V256>, decode: AlswLut<V256>) -> Result<V256, Error> {
+    let (c1, y) = decode_ascii32_parts(s, x, check, decode);
     ensure!(u8x32_highbit_any(s, c1).not());
     Ok(y)
 }
