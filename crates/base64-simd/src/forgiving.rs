@@ -52,7 +52,7 @@ pub fn forgiving_decode<'d>(src: &[u8], mut dst: Out<'d, [u8]>) -> Result<&'d mu
 
         copy_nonoverlapping(src, dst, pos);
 
-        let rem = remove_ascii_whitespace_fallback(src.add(pos), len - pos, dst.add(pos));
+        let rem = remove_ascii_whitespace(src.add(pos), len - pos, dst.add(pos));
         debug_assert!(rem <= len - pos);
 
         let data = slice_mut(dst, pos + rem);
@@ -88,7 +88,7 @@ pub fn forgiving_decode_to_vec(data: &[u8]) -> Result<Vec<u8>, Error> {
 
         copy_nonoverlapping(src, dst, pos);
 
-        let rem = remove_ascii_whitespace_fallback(src.add(pos), len - pos, dst.add(pos));
+        let rem = remove_ascii_whitespace(src.add(pos), len - pos, dst.add(pos));
         debug_assert!(rem <= len - pos);
 
         let data = slice_mut(dst, pos + rem);

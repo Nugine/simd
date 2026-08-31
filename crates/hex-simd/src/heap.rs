@@ -39,7 +39,7 @@ fn decode_append_vec(src: &[u8], buf: &mut Vec<u8>) -> Result<(), Error> {
     ensure!(src.len() % 2 == 0);
     let m = src.len() / 2;
 
-    buf.reserve_exact(m);
+    buf.reserve(m);
     let prev_len = buf.len();
 
     unsafe {
@@ -84,7 +84,7 @@ fn encode_append_vec(src: &[u8], buf: &mut Vec<u8>, case: AsciiCase) {
         let m = src.len() * 2;
         assert!(m <= usize::MAX / 2);
 
-        buf.reserve_exact(m);
+        buf.reserve(m);
         let prev_len = buf.len();
 
         let (src, len) = slice_parts(src);

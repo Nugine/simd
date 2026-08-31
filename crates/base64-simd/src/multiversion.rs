@@ -35,3 +35,12 @@ vsimd::dispatch!(
     targets     = {"avx2", "sse2", "neon", "simd128"},
     fastest     = {"avx2", "neon", "simd128"},
 );
+
+vsimd::dispatch!(
+    name        = {remove_ascii_whitespace},
+    signature   = {pub(crate) unsafe fn(src: *const u8, len: usize, dst: *mut u8) -> usize},
+    fallback    = {crate::ascii::remove_ascii_whitespace_fallback},
+    simd        = {crate::ascii::remove_ascii_whitespace_simd},
+    targets     = {"avx2", "ssse3", "sse2", "neon", "simd128"},
+    fastest     = {"avx2", "neon", "simd128"},
+);

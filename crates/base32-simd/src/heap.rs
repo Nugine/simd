@@ -41,7 +41,7 @@ fn decode_append_vec(base32: &Base32, src: &[u8], buf: &mut Vec<u8>) -> Result<(
 
     let (n, m) = decoded_length(src, base32.padding)?;
 
-    buf.reserve_exact(m);
+    buf.reserve(m);
     let prev_len = buf.len();
 
     unsafe {
@@ -85,7 +85,7 @@ fn encode_append_vec(base32: &Base32, src: &[u8], buf: &mut Vec<u8>) {
     let m = encoded_length_unchecked(src.len(), base32.padding);
     assert!(m <= usize::MAX / 2);
 
-    buf.reserve_exact(m);
+    buf.reserve(m);
     let prev_len = buf.len();
 
     unsafe {

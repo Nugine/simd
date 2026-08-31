@@ -1,5 +1,6 @@
-use vsimd::isa::AVX2;
+use vsimd::isa::{AVX2, SSSE3, WASM128};
 use vsimd::tools::slice_parts;
+use vsimd::vector::V128;
 use vsimd::{matches_isa, Scalable, POD, SIMD256};
 
 use core::ops::Not;
@@ -23,7 +24,7 @@ fn lookup_ascii_whitespace(c: u8) -> u8 {
 }
 
 #[inline(always)]
-fn has_ascii_whitespace<S: Scalable<V>, V: POD>(s: S, x: V) -> bool {
+fn ascii_whitespace_mask<S: Scalable<V>, V: POD>(s: S, x: V) -> V {
     // ASCII whitespaces
     // TAB      0x09    00001001
     // LF       0x0a    00001010
@@ -41,8 +42,13 @@ fn has_ascii_whitespace<S: Scalable<V>, V: POD>(s: S, x: V) -> bool {
     // m3 = {{byte is SPACE}}
     let m3 = s.u8xn_eq(x, s.u8xn_splat(0x20));
 
-    // any((m1 & !m2) | m3)
-    s.mask8xn_any(s.or(s.andnot(m1, m2), m3))
+    // (m1 & !m2) | m3
+    s.or(s.andnot(m1, m2), m3)
+}
+
+#[inline(always)]
+fn has_ascii_whitespace<S: Scalable<V>, V: POD>(s: S, x: V) -> bool {
+    s.mask8xn_any(ascii_whitespace_mask(s, x))
 }
 
 #[inline(always)]
@@ -124,6 +130,133 @@ pub unsafe fn remove_ascii_whitespace_fallback(mut src: *const u8, len: usize, m
     dst.offset_from(dst_base) as usize
 }
 
+/// For every 8-bit removal mask, the byte indices that survive, in order, packed little-endian.
+/// Unused lanes are zero; they are overwritten by the following block's bytes.
+const COMPRESS_INDEX: &[u64; 256] = &{
+    let mut table = [0u64; 256];
+    let mut m = 0;
+    while m < 256 {
+        let mut indices = [0u8; 8];
+        let mut kept = 0;
+        let mut i = 0;
+        while i < 8 {
+            if (m >> i) & 1 == 0 {
+                indices[kept] = i as u8;
+                kept += 1;
+            }
+            i += 1;
+        }
+        table[m] = u64::from_le_bytes(indices);
+        m += 1;
+    }
+    table
+};
+
+/// Compacts a 16-byte block with `vpshufb`-style byte shuffles: each 8-byte half is gathered by
+/// one table-driven swizzle, then written back with two overlapping 8-byte stores.
+///
+/// Both stores stay inside `dst[..16]`, which the caller has already proven writable.
+#[inline(always)]
+unsafe fn compress_block16<S: SIMD256>(s: S, x: V128, mask: u16, dst: *mut u8) -> usize {
+    let lo_mask = (mask & 0xff) as usize;
+    let hi_mask = (mask >> 8) as usize;
+
+    // The high half indexes bytes 8..16, so every index is shifted by 8; no lane can carry.
+    let lo_index = *COMPRESS_INDEX.get_unchecked(lo_mask);
+    let hi_index = COMPRESS_INDEX
+        .get_unchecked(hi_mask)
+        .wrapping_add(0x0808_0808_0808_0808);
+
+    let mut index = [0u8; 16];
+    index[..8].copy_from_slice(&lo_index.to_le_bytes());
+    index[8..].copy_from_slice(&hi_index.to_le_bytes());
+
+    let (lo, hi) = s.u8x16_swizzle(x, V128::from_bytes(index)).to_v64x2();
+
+    let lo_kept = 8 - lo_mask.count_ones() as usize;
+    let hi_kept = 8 - hi_mask.count_ones() as usize;
+
+    dst.cast::<u64>().write_unaligned(lo.to_u64());
+    dst.add(lo_kept).cast::<u64>().write_unaligned(hi.to_u64());
+
+    lo_kept + hi_kept
+}
+
+/// Compacts one 16-byte block, returning the number of retained bytes written to `dst`.
+///
+/// `dst` may trail `src` within the same allocation. The block is loaded before anything is
+/// stored, so a clean block is copied with a single vector store even when the ranges overlap.
+#[inline(always)]
+unsafe fn remove_ascii_whitespace_block16<S: SIMD256>(s: S, src: *const u8, dst: *mut u8) -> usize {
+    let x = s.v128_load_unaligned(src);
+    let m = ascii_whitespace_mask(s, x);
+
+    if s.mask8xn_any(m).not() {
+        s.v128_store_unaligned(dst, x);
+        return 16;
+    }
+
+    // `u8x16_bitmask` is unimplemented for NEON and `u8x16_swizzle` needs SSSE3, so other
+    // targets keep the scalar compaction tail.
+    if matches_isa!(S, SSSE3 | WASM128) {
+        return compress_block16(s, x, s.u8x16_bitmask(m), dst);
+    }
+
+    remove_ascii_whitespace_fallback(src, 16, dst)
+}
+
+#[inline(always)]
+#[must_use]
+pub(crate) unsafe fn remove_ascii_whitespace_simd<S: SIMD256>(
+    s: S,
+    mut src: *const u8,
+    len: usize,
+    mut dst: *mut u8,
+) -> usize {
+    let dst_base = dst;
+    let end = src.add(len);
+
+    if matches_isa!(S, AVX2) {
+        let block_end = src.add(len / 32 * 32);
+        while src < block_end {
+            let x = s.v256_load_unaligned(src);
+            if has_ascii_whitespace(s, x) {
+                dst = dst.add(remove_ascii_whitespace_block16(s, src, dst));
+                dst = dst.add(remove_ascii_whitespace_block16(s, src.add(16), dst));
+            } else {
+                s.v256_store_unaligned(dst, x);
+                dst = dst.add(32);
+            }
+            src = src.add(32);
+        }
+    }
+
+    {
+        let rem = end.offset_from(src) as usize;
+        let block_end = src.add(rem / 16 * 16);
+        while src < block_end {
+            dst = dst.add(remove_ascii_whitespace_block16(s, src, dst));
+            src = src.add(16);
+        }
+    }
+
+    let rem = end.offset_from(src) as usize;
+    dst = dst.add(remove_ascii_whitespace_fallback(src, rem, dst));
+
+    dst.offset_from(dst_base) as usize
+}
+
+/// Removes ASCII whitespace from `src[..len]`, writing the retained bytes to `dst`.
+///
+/// # Safety
+/// `src[..len]` must be readable and `dst[..len]` writable. `dst` may equal or trail `src` in
+/// the same allocation, but must not lead it.
+#[inline(always)]
+#[must_use]
+pub(crate) unsafe fn remove_ascii_whitespace(src: *const u8, len: usize, dst: *mut u8) -> usize {
+    crate::multiversion::remove_ascii_whitespace::auto(src, len, dst)
+}
+
 #[inline(always)]
 #[must_use]
 pub fn remove_ascii_whitespace_inplace(data: &mut [u8]) -> &mut [u8] {
@@ -139,7 +272,7 @@ pub fn remove_ascii_whitespace_inplace(data: &mut [u8]) -> &mut [u8] {
         let dst = data.as_mut_ptr().add(pos);
         let src = dst;
 
-        let rem = remove_ascii_whitespace_fallback(src, len, dst);
+        let rem = remove_ascii_whitespace(src, len, dst);
         debug_assert!(rem <= len);
 
         data.get_unchecked_mut(..(pos + rem))

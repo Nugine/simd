@@ -5,6 +5,10 @@ use rayon::prelude::{IndexedParallelIterator, ParallelIterator};
 use rayon::slice::{ParallelSlice, ParallelSliceMut};
 use vsimd::tools::slice_mut;
 
+/// Measured floor below which Rayon's fork/join cost exceeds parallel encoding gains.
+/// The per-thread budget still raises the cutoff for wider pools.
+const PAR_MIN_LEN: usize = 64 * 1024;
+
 impl Base64 {
     /// **EXPERIMENTAL**:
     /// Encodes bytes to a base64 string in parallel.
@@ -16,7 +20,7 @@ impl Base64 {
     pub fn par_encode<'d>(&self, src: &[u8], dst: Out<'d, [u8]>) -> Result<&'d mut [u8], Error> {
         let p = rayon::current_num_threads();
         let b = src.len() / 3;
-        if src.len() < p * 4096 || p < 2 || b < p {
+        if src.len() < PAR_MIN_LEN || src.len() < p * 4096 || p < 2 || b < p {
             return self.encode(src, dst);
         }
 
